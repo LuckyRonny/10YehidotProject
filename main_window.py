@@ -48,6 +48,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.marker_color_button.currentIndexChanged.connect(
             self.canvas_widget.change_pen_color)
 
+        # create eraser size spin box
+        self.eraser_size_button = QSpinBox()
+        self.eraser_size_button.setRange(*ERASER_RANGE)
+        self.eraser_size_button.setValue(ERASER_START_VALUE)
+        self.eraser_size_button.setSingleStep(ERASER_STEP)
+        self.eraser_size_button.valueChanged.connect(
+            self.canvas_widget.change_pen_size)
+        self.eraser_size_button.setMinimumWidth(BUTTON_WIDTH)
+
         # toolbar
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
@@ -128,6 +137,24 @@ class MainWindow(QtWidgets.QMainWindow):
             lambda checked, x=2: self.show_sub_toolbar(x))
         self.main_toolbar.addWidget(self.marker_button)
 
+        eraser_toolbar = QToolBar(f"eraser")
+        eraser_toolbar.setMovable(False)
+        eraser_toolbar.setFloatable(False)
+        eraser_toolbar.setVisible(False)
+        eraser_toolbar.setStyleSheet(SUB_TOOLBAR)
+
+        eraser_toolbar.addWidget(self.eraser_size_button)
+
+        self.sub_toolbars.append(eraser_toolbar)
+        central_layout.addWidget(eraser_toolbar)
+
+        self.eraser_button = QPushButton(f"eraser", self)
+        self.eraser_button.setCheckable(True)
+        self.eraser_button.setFixedSize(*BUTTON_SIZE)
+        self.eraser_button.clicked.connect(
+            lambda checked, x=3: self.show_sub_toolbar(x))
+        self.main_toolbar.addWidget(self.eraser_button)
+
         clear_button = QPushButton("clear", self)
         clear_button.clicked.connect(self.canvas_widget.clear_canvas)
         clear_button.setFixedSize(*BUTTON_SIZE)
@@ -174,6 +201,10 @@ class MainWindow(QtWidgets.QMainWindow):
                             self.marker_color_button.currentIndex())
                         self.canvas_widget.change_pen_size(
                             self.marker_size_button.value())
+                    elif i == 3:
+                        self.canvas_widget.set_tool("eraser")
+                        self.canvas_widget.change_pen_size(
+                            self.eraser_size_button.value())
             else:
                 toolbar.setVisible(False)
 
