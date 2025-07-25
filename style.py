@@ -10,6 +10,21 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction
 import os
 
+WINDOW_SIZE = (650, 650)
+CANVAS_SIZE = (550, 700)
+TOOLBARS_POSITION = (0, 0, 0, 0)
+PEN_RANGE = (1, 10)
+PEN_START_VALUE = 3
+PEN_STEP = 1
+MARKER_RANGE = (10, 100)
+MARKER_START_VALUE = 20
+MARKER_STEP = 10
+BUTTON_WIDTH = 50
+MARGIN = (0, 0, 0, 0)
+SPACER = (0, 0)
+BUTTON_SIZE = (60, 30)
+
+
 COLORS = ["#000000", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
           "#FFB662", "#F6ED6B", "#98FB98", "#9AD7FF", "#4983E6",
           "#A873F7", "#F0AEEA",]

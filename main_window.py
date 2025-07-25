@@ -2,20 +2,6 @@
 
 """
 from canvas import *
-from pathlib import Path
-WINDOW_SIZE = (650, 650)
-CANVAS_SIZE = (550, 700)
-TOOLBARS_POSITION = (0, 0, 0, 0)
-PEN_RANGE = (1, 10)
-PEN_START_VALUE = 3
-PEN_STEP = 1
-MARKER_RANGE = (10, 100)
-MARKER_START_VALUE = 20
-MARKER_STEP = 10
-BUTTON_WIDTH = 50
-MARGIN = (0, 0, 0, 0)
-SPACER = (0, 0)
-BUTTON_SIZE = (60, 30)
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -126,6 +112,18 @@ class MainWindow(QtWidgets.QMainWindow):
         back_button.setFixedSize(*BUTTON_SIZE)
         back_button.setStyleSheet(BUTTON)
         self.main_toolbar.addWidget(back_button)
+
+        lines_button = QPushButton("lines", self)
+        lines_button.clicked.connect(self.canvas_widget.lines)
+        lines_button.setFixedSize(*BUTTON_SIZE)
+        lines_button.setStyleSheet(BUTTON)
+        self.main_toolbar.addWidget(lines_button)
+
+        grid_button = QPushButton("grid", self)
+        grid_button.clicked.connect(self.canvas_widget.grid)
+        grid_button.setFixedSize(*BUTTON_SIZE)
+        grid_button.setStyleSheet(BUTTON)
+        self.main_toolbar.addWidget(grid_button)
 
         scroll_area = CenteredScrollArea(self.canvas_widget)
         central_layout.addWidget(scroll_area)

@@ -15,6 +15,7 @@ class DrawingCanvas(QWidget):
         self.pen_color = "black"
         self.pen_size = 1
         self.tool = "pen"
+        self.page_type = "blank"
 
         self.scale_factor = 1.0
         self.base_width = width
@@ -35,18 +36,22 @@ class DrawingCanvas(QWidget):
             self.history.append(self.canvas.copy())
             self.last_point = (event.position() / self.scale_factor).toPoint()
 
+    def create_painter(self, pen_size, pen_color):
+        painter = QtGui.QPainter(self.canvas)
+        pen = QtGui.QPen(QtGui.QColor(pen_color),
+                         pen_size,
+                         Qt.PenStyle.SolidLine,
+                         Qt.PenCapStyle.RoundCap)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        painter.setPen(pen)
+        return painter
+
     def mouseMoveEvent(self, event):
         """when mouse move and pressed creates
         a line from last point to current point"""
         if self.drawing:
             current_point = (event.position() / self.scale_factor).toPoint()
-            painter = QtGui.QPainter(self.canvas)
-            pen = QtGui.QPen(QtGui.QColor(self.pen_color),
-                             self.pen_size,
-                             Qt.PenStyle.SolidLine,
-                             Qt.PenCapStyle.RoundCap)
-            painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
-            painter.setPen(pen)
+            painter = self.create_painter(self.pen_size, self.pen_color)
             painter.drawLine(self.last_point, current_point)
             painter.end()
             self.last_point = current_point
@@ -59,8 +64,11 @@ class DrawingCanvas(QWidget):
 
     def clear_canvas(self):
         """cleans the canvas"""
-        self.canvas.fill(Qt.GlobalColor.white)
-        self.update()
+        if self.page_type == "blank":
+            self.canvas.fill(Qt.GlobalColor.white)
+            self.update()
+        else:
+            self.lines()
 
     def save_canvas(self, msg):
         """Open a file dialog to save the canvas with a custom name"""
@@ -120,6 +128,39 @@ class DrawingCanvas(QWidget):
         new_width = int(self.base_width * self.scale_factor)
         new_height = int(self.base_height * self.scale_factor)
         self.setFixedSize(new_width, new_height)
+        self.update()
+
+    def lines(self):
+        self.page_type = "lines"
+        self.canvas.fill(Qt.GlobalColor.white)
+        painter = self.create_painter(0.5, "#666666")
+        start = 50
+        end = 700
+        n_lines = 30
+        step_size = int((end - start)/n_lines)
+        for i in range(start, end, step_size):
+            painter.drawLine(0, i, 550, i)
+        painter.drawLine(500, 0, 500, 700)
+        painter.end()
+        painter = self.create_painter(0.5, "#CCCCCC")
+        painter.drawLine(50, 0, 50, 700)
+        painter.end()
+        self.update()
+
+    def grid(self):
+        self.page_type = "grid"
+        self.canvas.fill(Qt.GlobalColor.white)
+        painter = self.create_painter(0.5, "#666666")
+        start = 0
+        end = 700
+        n_lines = 50
+        step_size = int((end - start) / n_lines)
+        for i in range(start, end, step_size):
+            painter.drawLine(0, i, 550, i)
+        end = 550
+        for i in range(start, end, step_size):
+            painter.drawLine(i, 0, i, 700)
+        painter.end()
         self.update()
 
 
