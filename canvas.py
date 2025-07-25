@@ -64,11 +64,12 @@ class DrawingCanvas(QWidget):
 
     def clear_canvas(self):
         """cleans the canvas"""
-        if self.page_type == "blank":
-            self.canvas.fill(Qt.GlobalColor.white)
-            self.update()
-        else:
+        if self.page_type == "grid":
+            self.grid()
+        elif self.page_type == "lines":
             self.lines()
+        else:
+            self.blank()
 
     def save_canvas(self, msg):
         """Open a file dialog to save the canvas with a custom name"""
@@ -130,6 +131,11 @@ class DrawingCanvas(QWidget):
         self.setFixedSize(new_width, new_height)
         self.update()
 
+    def blank(self):
+        self.page_type = "blank"
+        self.canvas.fill(Qt.GlobalColor.white)
+        self.update()
+
     def lines(self):
         self.page_type = "lines"
         self.canvas.fill(Qt.GlobalColor.white)
@@ -153,7 +159,7 @@ class DrawingCanvas(QWidget):
         painter = self.create_painter(0.5, "#666666")
         start = 0
         end = 700
-        n_lines = 50
+        n_lines = 45
         step_size = int((end - start) / n_lines)
         for i in range(start, end, step_size):
             painter.drawLine(0, i, 550, i)
