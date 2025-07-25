@@ -162,7 +162,6 @@ class MainWindow(QtWidgets.QMainWindow):
                 if not is_visible:
                     if i == 0:
                         self.canvas_widget.set_tool("page")
-
                     elif i == 1:
                         self.canvas_widget.set_tool("pen")
                         self.canvas_widget.change_pen_color(
