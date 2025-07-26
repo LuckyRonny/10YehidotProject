@@ -1,3 +1,6 @@
+import math
+import time
+
 from style import *
 
 
@@ -14,6 +17,8 @@ class DrawingCanvas(QWidget):
         self.history = []
         self.drawing = False
         self.last_point = QtCore.QPoint()
+        self.first_point = QtCore.QPoint()
+        self.points = []
 
         self.pen_color = "black"
         self.pen_size = 1
@@ -38,6 +43,8 @@ class DrawingCanvas(QWidget):
             self.drawing = True
             self.history.append(self.drawing_layer.copy())
             self.last_point = (event.position() / self.scale_factor).toPoint()
+            self.first_point = (event.position() / self.scale_factor).toPoint()
+            self.points = []
 
     def create_painter(self, pen_size, pen_color, layer):
         painter = QtGui.QPainter(layer)
@@ -57,7 +64,7 @@ class DrawingCanvas(QWidget):
             painter = self.create_painter(self.pen_size, self.pen_color,
                                           self.drawing_layer)
             if self.tool == "eraser":
-                pen = QtGui.QPen(QtGui.QColor(0, 0, 0, 0), self.pen_size)
+                pen = QtGui.QPen(QtGui.QColor(*CLEAR_COLOR), self.pen_size)
                 pen.setCapStyle(Qt.PenCapStyle.RoundCap)
                 painter.setCompositionMode(
                     QtGui.QPainter.CompositionMode.CompositionMode_Clear)
@@ -65,12 +72,44 @@ class DrawingCanvas(QWidget):
             painter.drawLine(self.last_point, current_point)
             painter.end()
             self.last_point = current_point
+            self.points.append((self.last_point, time.time_ns()))
             self.update()
+
+    @staticmethod
+    def distance(point1, point2):
+        return math.sqrt((point1.x() - point2.x()) ** 2 + (point1.y() - point2.y()) ** 2)
+
+    @staticmethod
+    def _are_last_points_close(point_list, close_points_distance, close_points_time):
+        if len(point_list) == 0:
+            return False
+        current_time = time.time_ns()
+        for point in point_list:
+            if (current_time - point[TIME_OF_POINT_INDEX] < close_points_time and
+                    DrawingCanvas.distance(point[POINT_INDEX], point_list[LAST_POINT][POINT_INDEX]) >
+                    close_points_distance):
+                return False
+        return True
 
     def mouseReleaseEvent(self, event):
         """when mouse released change to not drawing"""
         if event.button() == Qt.MouseButton.LeftButton:
             self.drawing = False
+            painter = self.create_painter(self.pen_size, self.pen_color, self.drawing_layer)
+            painter.drawPoint(self.last_point)
+            painter.end()
+            if DrawingCanvas._are_last_points_close(self.points, CLOSE_POINTS_DISTANCE, CLOSE_POINTS_TIME):
+                self.back()
+                self.history.append(self.drawing_layer.copy())
+                painter = self.create_painter(self.pen_size, self.pen_color, self.drawing_layer)
+                if self.tool == "marker":
+                    for i in range(10):
+                        painter.drawLine(self.first_point, self.last_point)
+                painter.drawLine(self.first_point, self.last_point)
+                painter.end()
+
+            self.update()
+
 
     def clear_canvas(self):
         """cleans the canvas"""
