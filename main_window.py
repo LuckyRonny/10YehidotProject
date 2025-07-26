@@ -87,7 +87,7 @@ class MainWindow(QtWidgets.QMainWindow):
         page_toolbar.addWidget(self.grid_button)
 
         self.page_button = QPushButton(f"page", self)
-        self.toolbar_button(self.page_button, 0)
+        self.toolbar_button(self.page_button, PAGE_INDEX)
         self.main_toolbar.addWidget(self.page_button)
 
         pen_toolbar = QToolBar(f"pen")
@@ -97,7 +97,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pen_toolbar.addWidget(self.pen_color_button)
 
         self.pen_button = QPushButton(f"pen", self)
-        self.toolbar_button(self.pen_button, 1)
+        self.toolbar_button(self.pen_button, PEN_INDEX)
         self.main_toolbar.addWidget(self.pen_button)
 
         marker_toolbar = QToolBar(f"marker")
@@ -107,7 +107,7 @@ class MainWindow(QtWidgets.QMainWindow):
         marker_toolbar.addWidget(self.marker_color_button)
 
         self.marker_button = QPushButton(f"marker", self)
-        self.toolbar_button(self.marker_button, 2)
+        self.toolbar_button(self.marker_button, MARKER_INDEX)
         self.main_toolbar.addWidget(self.marker_button)
 
         eraser_toolbar = QToolBar(f"eraser")
@@ -116,7 +116,7 @@ class MainWindow(QtWidgets.QMainWindow):
         eraser_toolbar.addWidget(self.eraser_size_button)
 
         self.eraser_button = QPushButton(f"eraser", self)
-        self.toolbar_button(self.eraser_button, 3)
+        self.toolbar_button(self.eraser_button, ERASER_INDEX)
         self.main_toolbar.addWidget(self.eraser_button)
 
         clear_button = QPushButton("clear", self)
@@ -136,25 +136,26 @@ class MainWindow(QtWidgets.QMainWindow):
             if i == index:
                 is_visible = toolbar.isVisible()
                 toolbar.setVisible(not is_visible)
-                self.page_button.setChecked(i == 0 and not is_visible)
-                self.pen_button.setChecked(i == 1 and not is_visible)
-                self.marker_button.setChecked(i == 2 and not is_visible)
+                self.page_button.setChecked(i == PAGE_INDEX and not is_visible)
+                self.pen_button.setChecked(i == PEN_INDEX and not is_visible)
+                self.marker_button.setChecked(i == MARKER_INDEX and not is_visible)
+                self.eraser_button.setChecked(i == ERASER_INDEX and not is_visible)
                 if not is_visible:
-                    if i == 0:
+                    if i == PAGE_INDEX:
                         self.canvas_widget.set_tool("page")
-                    elif i == 1:
+                    elif i == PEN_INDEX:
                         self.canvas_widget.set_tool("pen")
                         self.canvas_widget.change_pen_color(
                             self.pen_color_button.currentIndex())
                         self.canvas_widget.change_pen_size(
                             self.pen_size_button.value())
-                    elif i == 2:
+                    elif i == MARKER_INDEX:
                         self.canvas_widget.set_tool("marker")
                         self.canvas_widget.change_pen_color(
                             self.marker_color_button.currentIndex())
                         self.canvas_widget.change_pen_size(
                             self.marker_size_button.value())
-                    elif i == 3:
+                    elif i == ERASER_INDEX:
                         self.canvas_widget.set_tool("eraser")
                         self.canvas_widget.change_pen_size(
                             self.eraser_size_button.value())

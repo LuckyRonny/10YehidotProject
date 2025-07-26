@@ -152,36 +152,39 @@ class DrawingCanvas(QWidget):
     def lines(self):
         self.page_type = "lines"
         self.background_layer.fill(Qt.GlobalColor.white)
-        painter = self.create_painter(0.5, "#666666",
+        painter = self.create_painter(BACKROUND_PEN_SIZE, "#666666",
                                       self.background_layer)
-        start = 50
-        end = 700
-        n_lines = 30
+        start = START_LINE
+        end = END_LINE
+        n_lines = NUMBER_LINES
         step_size = int((end - start)/n_lines)
         for i in range(start, end, step_size):
-            painter.drawLine(0, i, 550, i)
-        painter.drawLine(500, 0, 500, 700)
+            row_start, row_end = ROW_LIMITS
+            painter.drawLine(row_start, i, row_end, i)
+        painter.drawLine(*RIGHT_LINE)
         painter.end()
-        painter = self.create_painter(0.5, "#CCCCCC",
+        painter = self.create_painter(BACKROUND_PEN_SIZE, "#CCCCCC",
                                       self.background_layer)
-        painter.drawLine(50, 0, 50, 700)
+        painter.drawLine(*LEFT_LINE)
         painter.end()
         self.update()
 
     def grid(self):
         self.page_type = "grid"
         self.background_layer.fill(Qt.GlobalColor.white)
-        painter = self.create_painter(0.5, "#666666",
+        painter = self.create_painter(BACKROUND_PEN_SIZE, "#666666",
                                       self.background_layer)
-        start = 0
-        end = 700
-        n_lines = 45
+        start = START_GRID
+        end = END_GRID[ROW_INDEX]
+        n_lines = NUMBER_LINES_GRID
         step_size = int((end - start) / n_lines)
         for i in range(start, end, step_size):
-            painter.drawLine(0, i, 550, i)
-        end = 550
+            row_start, row_end = ROW_LIMITS
+            painter.drawLine(row_start, i, row_end, i)
+        end = END_GRID[COLUMN_INDEX]
         for i in range(start, end, step_size):
-            painter.drawLine(i, 0, i, 700)
+            column_start, column_end = COLUMN_LIMITS
+            painter.drawLine(i, column_start, i, column_end)
         painter.end()
         self.update()
 
