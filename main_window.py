@@ -19,50 +19,10 @@ class MainWindow(QtWidgets.QMainWindow):
         central_layout.setContentsMargins(*MARGIN)
         central_widget.setLayout(central_layout)
 
-        # create pen size spin box
-        self.pen_size_button = QSpinBox()
-        self.pen_size_button.setRange(*PEN_RANGE)
-        self.pen_size_button.setValue(PEN_START_VALUE)
-        self.pen_size_button.setSingleStep(PEN_STEP)
-        self.pen_size_button.valueChanged.connect(
-            self.canvas_widget.change_pen_size)
-        self.pen_size_button.setMinimumWidth(BUTTON_WIDTH)
-
-        # create combo box pen colors
-        self.pen_color_button = QComboBox()
-        self.pen_color_button.addItems(COLORS_NAMES)
-        self.pen_color_button.currentIndexChanged.connect(
-            self.canvas_widget.change_pen_color)
-
-        # create marker size spin box
-        self.marker_size_button = QSpinBox()
-        self.marker_size_button.setRange(*MARKER_RANGE)
-        self.marker_size_button.setValue(MARKER_START_VALUE)
-        self.marker_size_button.setSingleStep(MARKER_STEP)
-        self.marker_size_button.setMinimumWidth(BUTTON_WIDTH)
-        self.marker_size_button.valueChanged.connect(
-            self.canvas_widget.change_pen_size)
-
-        self.marker_color_button = QComboBox()
-        self.marker_color_button.addItems(MARKER_COLORS_NAMES)
-        self.marker_color_button.currentIndexChanged.connect(
-            self.canvas_widget.change_pen_color)
-
-        # create eraser size spin box
-        self.eraser_size_button = QSpinBox()
-        self.eraser_size_button.setRange(*ERASER_RANGE)
-        self.eraser_size_button.setValue(ERASER_START_VALUE)
-        self.eraser_size_button.setSingleStep(ERASER_STEP)
-        self.eraser_size_button.valueChanged.connect(
-            self.canvas_widget.change_pen_size)
-        self.eraser_size_button.setMinimumWidth(BUTTON_WIDTH)
-
         # toolbar
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
-
-
 
         self.sub_toolbars = []
 
@@ -89,12 +49,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.toolbar_button(self.marker_button, MARKER_INDEX)
         self.main_toolbar.addWidget(self.marker_button)
 
-        eraser_toolbar = QToolBar(f"eraser")
-        self.toolbar_features(eraser_toolbar)
-        central_layout.addWidget(eraser_toolbar)
-
-        eraser_toolbar.addWidget(self.eraser_size_button)
-
+        # eraser toolbar and button
+        self.eraser_toolbar, self.eraser_size_button = (
+            self.create_eraser_toolbar_and_size())
+        central_layout.addWidget(self.eraser_toolbar)
         self.eraser_button = QPushButton(f"eraser", self)
         self.toolbar_button(self.eraser_button, ERASER_INDEX)
         self.main_toolbar.addWidget(self.eraser_button)
@@ -204,8 +162,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
         pen_toolbar = QToolBar(f"pen")
         self.toolbar_features(pen_toolbar)
-        pen_toolbar.addWidget(self.pen_size_button)
-        pen_toolbar.addWidget(self.pen_color_button)
+        pen_toolbar.addWidget(pen_size_button)
+        pen_toolbar.addWidget(pen_color_button)
 
         return pen_toolbar, pen_size_button, pen_color_button
 
@@ -227,10 +185,26 @@ class MainWindow(QtWidgets.QMainWindow):
 
         marker_toolbar = QToolBar(f"marker")
         self.toolbar_features(marker_toolbar)
-        marker_toolbar.addWidget(self.marker_size_button)
-        marker_toolbar.addWidget(self.marker_color_button)
+        marker_toolbar.addWidget(marker_size_button)
+        marker_toolbar.addWidget(marker_color_button)
 
         return marker_toolbar, marker_size_button, marker_color_button
+
+    def create_eraser_toolbar_and_size(self):
+        # create eraser size spin box
+        eraser_size_button = QSpinBox()
+        eraser_size_button.setRange(*ERASER_RANGE)
+        eraser_size_button.setValue(ERASER_START_VALUE)
+        eraser_size_button.setSingleStep(ERASER_STEP)
+        eraser_size_button.valueChanged.connect(
+            self.canvas_widget.change_pen_size)
+        eraser_size_button.setMinimumWidth(BUTTON_WIDTH)
+
+        eraser_toolbar = QToolBar(f"eraser")
+        self.toolbar_features(eraser_toolbar)
+        eraser_toolbar.addWidget(eraser_size_button)
+
+        return eraser_toolbar, eraser_size_button
 
 
 if __name__ == '__main__':
