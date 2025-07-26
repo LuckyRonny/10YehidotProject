@@ -66,25 +66,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.sub_toolbars = []
 
+        # page toolbar and button
         self.page_toolbar = self.create_page_toolbar()
         self.page_button = QPushButton(f"page", self)
         self.toolbar_button(self.page_button, PAGE_INDEX)
         self.main_toolbar.addWidget(self.page_button)
         central_layout.addWidget(self.page_toolbar)
 
-        self.pen_toolbar, self.pen_size_button, self.pen_color_button = self.create_pen_toolbar_and_size_and_color()
+        # pen toolbar and button
+        self.pen_toolbar, self.pen_size_button, self.pen_color_button = (
+            self.create_pen_toolbar_and_size_and_color())
         central_layout.addWidget(self.pen_toolbar)
         self.pen_button = QPushButton(f"pen", self)
         self.toolbar_button(self.pen_button, PEN_INDEX)
         self.main_toolbar.addWidget(self.pen_button)
 
-        marker_toolbar = QToolBar(f"marker")
-        self.toolbar_features(marker_toolbar)
-        central_layout.addWidget(marker_toolbar)
-
-        marker_toolbar.addWidget(self.marker_size_button)
-        marker_toolbar.addWidget(self.marker_color_button)
-
+        # marker toolbar and button
+        self.marker_toolbar, self.marker_size_button, self.marker_color_button = (
+            self.create_marker_toolbar_and_size_and_color())
+        central_layout.addWidget(self.marker_toolbar)
         self.marker_button = QPushButton(f"marker", self)
         self.toolbar_button(self.marker_button, MARKER_INDEX)
         self.main_toolbar.addWidget(self.marker_button)
@@ -208,6 +208,29 @@ class MainWindow(QtWidgets.QMainWindow):
         pen_toolbar.addWidget(self.pen_color_button)
 
         return pen_toolbar, pen_size_button, pen_color_button
+
+    def create_marker_toolbar_and_size_and_color(self):
+        # create spin box marker size
+        marker_size_button = QSpinBox()
+        marker_size_button.setRange(*MARKER_RANGE)
+        marker_size_button.setValue(MARKER_START_VALUE)
+        marker_size_button.setSingleStep(MARKER_STEP)
+        marker_size_button.valueChanged.connect(
+            self.canvas_widget.change_pen_size)
+        marker_size_button.setMinimumWidth(BUTTON_WIDTH)
+
+        # create combo box marker colors
+        marker_color_button = QComboBox()
+        marker_color_button.addItems(MARKER_COLORS_NAMES)
+        marker_color_button.currentIndexChanged.connect(
+            self.canvas_widget.change_pen_color)
+
+        marker_toolbar = QToolBar(f"marker")
+        self.toolbar_features(marker_toolbar)
+        marker_toolbar.addWidget(self.marker_size_button)
+        marker_toolbar.addWidget(self.marker_color_button)
+
+        return marker_toolbar, marker_size_button, marker_color_button
 
 
 if __name__ == '__main__':
