@@ -80,100 +80,53 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sub_toolbars = []
 
         page_toolbar = QToolBar(f"page")
-        page_toolbar.setMovable(False)
-        page_toolbar.setFloatable(False)
-        page_toolbar.setVisible(False)
-        page_toolbar.setStyleSheet(SUB_TOOLBAR)
+        self.toolbar_features(page_toolbar, central_layout)
 
         page_toolbar.addWidget(self.blank_button)
         page_toolbar.addWidget(self.lines_button)
         page_toolbar.addWidget(self.grid_button)
 
-        self.sub_toolbars.append(page_toolbar)
-        central_layout.addWidget(page_toolbar)
-
         self.page_button = QPushButton(f"page", self)
-        self.page_button.setCheckable(True)
-        self.page_button.setFixedSize(*BUTTON_SIZE)
-        self.page_button.clicked.connect(
-            lambda checked, x=0: self.show_sub_toolbar(x))
+        self.toolbar_button(self.page_button, 0)
         self.main_toolbar.addWidget(self.page_button)
 
         pen_toolbar = QToolBar(f"pen")
-        pen_toolbar.setMovable(False)
-        pen_toolbar.setFloatable(False)
-        pen_toolbar.setVisible(False)
-        pen_toolbar.setStyleSheet(SUB_TOOLBAR)
+        self.toolbar_features(pen_toolbar, central_layout)
 
         pen_toolbar.addWidget(self.pen_size_button)
         pen_toolbar.addWidget(self.pen_color_button)
 
-        self.sub_toolbars.append(pen_toolbar)
-        central_layout.addWidget(pen_toolbar)
-
         self.pen_button = QPushButton(f"pen", self)
-        self.pen_button.setCheckable(True)
-        self.pen_button.setFixedSize(*BUTTON_SIZE)
-        self.pen_button.clicked.connect(
-            lambda checked, x=1: self.show_sub_toolbar(x))
+        self.toolbar_button(self.pen_button, 1)
         self.main_toolbar.addWidget(self.pen_button)
 
         marker_toolbar = QToolBar(f"marker")
-        marker_toolbar.setMovable(False)
-        marker_toolbar.setFloatable(False)
-        marker_toolbar.setVisible(False)
-        marker_toolbar.setStyleSheet(SUB_TOOLBAR)
+        self.toolbar_features(marker_toolbar, central_layout)
 
         marker_toolbar.addWidget(self.marker_size_button)
         marker_toolbar.addWidget(self.marker_color_button)
 
-        self.sub_toolbars.append(marker_toolbar)
-        central_layout.addWidget(marker_toolbar)
-
         self.marker_button = QPushButton(f"marker", self)
-        self.marker_button.setCheckable(True)
-        self.marker_button.setFixedSize(*BUTTON_SIZE)
-        self.marker_button.clicked.connect(
-            lambda checked, x=2: self.show_sub_toolbar(x))
+        self.toolbar_button(self.marker_button, 2)
         self.main_toolbar.addWidget(self.marker_button)
 
         eraser_toolbar = QToolBar(f"eraser")
-        eraser_toolbar.setMovable(False)
-        eraser_toolbar.setFloatable(False)
-        eraser_toolbar.setVisible(False)
-        eraser_toolbar.setStyleSheet(SUB_TOOLBAR)
+        self.toolbar_features(eraser_toolbar, central_layout)
 
         eraser_toolbar.addWidget(self.eraser_size_button)
 
-        self.sub_toolbars.append(eraser_toolbar)
-        central_layout.addWidget(eraser_toolbar)
-
         self.eraser_button = QPushButton(f"eraser", self)
-        self.eraser_button.setCheckable(True)
-        self.eraser_button.setFixedSize(*BUTTON_SIZE)
-        self.eraser_button.clicked.connect(
-            lambda checked, x=3: self.show_sub_toolbar(x))
+        self.toolbar_button(self.eraser_button, 3)
         self.main_toolbar.addWidget(self.eraser_button)
 
         clear_button = QPushButton("clear", self)
-        clear_button.clicked.connect(self.canvas_widget.clear_canvas)
-        clear_button.setFixedSize(*BUTTON_SIZE)
-        clear_button.setStyleSheet(BUTTON)
-        self.main_toolbar.addWidget(clear_button)
+        self.main_toolbar_button(clear_button, self.canvas_widget.clear_canvas)
 
         save_button = QPushButton("save", self)
-        saved_massage = QMessageBox()
-        save_button.clicked.connect(
-            lambda msg=saved_massage: self.canvas_widget.save_canvas(msg))
-        save_button.setFixedSize(*BUTTON_SIZE)
-        save_button.setStyleSheet(BUTTON)
-        self.main_toolbar.addWidget(save_button)
+        self.main_toolbar_button(save_button, self.canvas_widget.save_canvas)
 
         back_button = QPushButton("back", self)
-        back_button.clicked.connect(self.canvas_widget.back)
-        back_button.setFixedSize(*BUTTON_SIZE)
-        back_button.setStyleSheet(BUTTON)
-        self.main_toolbar.addWidget(back_button)
+        self.main_toolbar_button(back_button, self.canvas_widget.back)
 
         scroll_area = CenteredScrollArea(self.canvas_widget)
         central_layout.addWidget(scroll_area)
@@ -207,6 +160,26 @@ class MainWindow(QtWidgets.QMainWindow):
                             self.eraser_size_button.value())
             else:
                 toolbar.setVisible(False)
+
+    def toolbar_button(self, button, index):
+        button.setCheckable(True)
+        button.setFixedSize(*BUTTON_SIZE)
+        button.clicked.connect(
+            lambda checked, x=index: self.show_sub_toolbar(x))
+
+    def toolbar_features(self, toolbar, central_layout):
+        toolbar.setMovable(False)
+        toolbar.setFloatable(False)
+        toolbar.setVisible(False)
+        toolbar.setStyleSheet(SUB_TOOLBAR)
+        self.sub_toolbars.append(toolbar)
+        central_layout.addWidget(toolbar)
+
+    def main_toolbar_button(self, button, func):
+        button.clicked.connect(func)
+        button.setFixedSize(*BUTTON_SIZE)
+        button.setStyleSheet(BUTTON)
+        self.main_toolbar.addWidget(button)
 
 
 if __name__ == '__main__':

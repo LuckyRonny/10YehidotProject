@@ -78,7 +78,7 @@ class DrawingCanvas(QWidget):
         self.drawing_layer.fill(Qt.GlobalColor.transparent)
         self.update()
 
-    def save_canvas(self, msg):
+    def save_canvas(self):
         """Open a file dialog to save the canvas with a custom name"""
         result = QtGui.QPixmap(self.size())
         result.fill(Qt.GlobalColor.white)
