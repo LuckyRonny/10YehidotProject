@@ -26,7 +26,6 @@ class DrawingCanvas(QWidget):
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-        painter.setTransform(QtGui.QTransform()) # TODO: what is this?
         painter.fillRect(self.rect(), QtGui.QColor("#D3E9FF"))
         painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform)
         painter.scale(self.scale_factor, self.scale_factor)
