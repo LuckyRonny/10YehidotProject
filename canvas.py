@@ -26,7 +26,7 @@ class DrawingCanvas(QWidget):
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-        painter.setTransform(QtGui.QTransform())
+        painter.setTransform(QtGui.QTransform()) # TODO: what is this?
         painter.fillRect(self.rect(), QtGui.QColor("#D3E9FF"))
         painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform)
         painter.scale(self.scale_factor, self.scale_factor)
@@ -132,10 +132,6 @@ class DrawingCanvas(QWidget):
 
     def zoom_out(self):
         self.scale_factor /= 1.2
-        self._update_size()
-
-    def reset_zoom(self):
-        self.scale_factor = 1.0
         self._update_size()
 
     def _update_size(self):

@@ -62,46 +62,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_toolbar.setMovable(False)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
 
-        self.blank_button = QPushButton("blank", self)
-        self.blank_button.clicked.connect(self.canvas_widget.blank)
-        self.blank_button.setFixedSize(*BUTTON_SIZE)
-        self.blank_button.setStyleSheet(BUTTON)
 
-        self.lines_button = QPushButton("lines", self)
-        self.lines_button.clicked.connect(self.canvas_widget.lines)
-        self.lines_button.setFixedSize(*BUTTON_SIZE)
-        self.lines_button.setStyleSheet(BUTTON)
-
-        self.grid_button = QPushButton("grid", self)
-        self.grid_button.clicked.connect(self.canvas_widget.grid)
-        self.grid_button.setFixedSize(*BUTTON_SIZE)
-        self.grid_button.setStyleSheet(BUTTON)
 
         self.sub_toolbars = []
 
-        page_toolbar = QToolBar(f"page")
-        self.toolbar_features(page_toolbar, central_layout)
-
-        page_toolbar.addWidget(self.blank_button)
-        page_toolbar.addWidget(self.lines_button)
-        page_toolbar.addWidget(self.grid_button)
-
+        self.page_toolbar = self.create_page_toolbar()
         self.page_button = QPushButton(f"page", self)
         self.toolbar_button(self.page_button, PAGE_INDEX)
         self.main_toolbar.addWidget(self.page_button)
+        central_layout.addWidget(self.page_toolbar)
 
-        pen_toolbar = QToolBar(f"pen")
-        self.toolbar_features(pen_toolbar, central_layout)
-
-        pen_toolbar.addWidget(self.pen_size_button)
-        pen_toolbar.addWidget(self.pen_color_button)
-
+        self.pen_toolbar, self.pen_size_button, self.pen_color_button = self.create_pen_toolbar_and_size_and_color()
+        central_layout.addWidget(self.pen_toolbar)
         self.pen_button = QPushButton(f"pen", self)
         self.toolbar_button(self.pen_button, PEN_INDEX)
         self.main_toolbar.addWidget(self.pen_button)
 
         marker_toolbar = QToolBar(f"marker")
-        self.toolbar_features(marker_toolbar, central_layout)
+        self.toolbar_features(marker_toolbar)
+        central_layout.addWidget(marker_toolbar)
 
         marker_toolbar.addWidget(self.marker_size_button)
         marker_toolbar.addWidget(self.marker_color_button)
@@ -111,7 +90,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_toolbar.addWidget(self.marker_button)
 
         eraser_toolbar = QToolBar(f"eraser")
-        self.toolbar_features(eraser_toolbar, central_layout)
+        self.toolbar_features(eraser_toolbar)
+        central_layout.addWidget(eraser_toolbar)
 
         eraser_toolbar.addWidget(self.eraser_size_button)
 
@@ -168,19 +148,66 @@ class MainWindow(QtWidgets.QMainWindow):
         button.clicked.connect(
             lambda checked, x=index: self.show_sub_toolbar(x))
 
-    def toolbar_features(self, toolbar, central_layout):
+    def toolbar_features(self, toolbar):
         toolbar.setMovable(False)
         toolbar.setFloatable(False)
         toolbar.setVisible(False)
         toolbar.setStyleSheet(SUB_TOOLBAR)
         self.sub_toolbars.append(toolbar)
-        central_layout.addWidget(toolbar)
 
     def main_toolbar_button(self, button, func):
         button.clicked.connect(func)
         button.setFixedSize(*BUTTON_SIZE)
         button.setStyleSheet(BUTTON)
         self.main_toolbar.addWidget(button)
+
+    def create_page_toolbar(self):
+        blank_button = QPushButton("blank", self)
+        blank_button.clicked.connect(self.canvas_widget.blank)
+        blank_button.setFixedSize(*BUTTON_SIZE)
+        blank_button.setStyleSheet(BUTTON)
+
+        lines_button = QPushButton("lines", self)
+        lines_button.clicked.connect(self.canvas_widget.lines)
+        lines_button.setFixedSize(*BUTTON_SIZE)
+        lines_button.setStyleSheet(BUTTON)
+
+        grid_button = QPushButton("grid", self)
+        grid_button.clicked.connect(self.canvas_widget.grid)
+        grid_button.setFixedSize(*BUTTON_SIZE)
+        grid_button.setStyleSheet(BUTTON)
+
+        page_toolbar = QToolBar(f"page")
+        self.toolbar_features(page_toolbar)
+
+        page_toolbar.addWidget(blank_button)
+        page_toolbar.addWidget(lines_button)
+        page_toolbar.addWidget(grid_button)
+
+        return page_toolbar
+
+    def create_pen_toolbar_and_size_and_color(self):
+        # create spin box pen size
+        pen_size_button = QSpinBox()
+        pen_size_button.setRange(*PEN_RANGE)
+        pen_size_button.setValue(PEN_START_VALUE)
+        pen_size_button.setSingleStep(PEN_STEP)
+        pen_size_button.valueChanged.connect(
+            self.canvas_widget.change_pen_size)
+        pen_size_button.setMinimumWidth(BUTTON_WIDTH)
+
+        # create combo box pen colors
+        pen_color_button = QComboBox()
+        pen_color_button.addItems(COLORS_NAMES)
+        pen_color_button.currentIndexChanged.connect(
+            self.canvas_widget.change_pen_color)
+
+        pen_toolbar = QToolBar(f"pen")
+        self.toolbar_features(pen_toolbar)
+        pen_toolbar.addWidget(self.pen_size_button)
+        pen_toolbar.addWidget(self.pen_color_button)
+
+        return pen_toolbar, pen_size_button, pen_color_button
 
 
 if __name__ == '__main__':
