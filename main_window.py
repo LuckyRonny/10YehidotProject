@@ -146,19 +146,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_pen_toolbar_and_size_and_color(self):
         # create spin box pen size
-        pen_size_button = QSpinBox()
-        pen_size_button.setRange(*PEN_RANGE)
-        pen_size_button.setValue(PEN_START_VALUE)
-        pen_size_button.setSingleStep(PEN_STEP)
-        pen_size_button.valueChanged.connect(
-            self.canvas_widget.change_pen_size)
-        pen_size_button.setMinimumWidth(BUTTON_WIDTH)
+        pen_size_button = self.create_size_button(PEN_RANGE, PEN_START_VALUE, PEN_STEP)
 
         # create combo box pen colors
-        pen_color_button = QComboBox()
-        pen_color_button.addItems(COLORS_NAMES)
-        pen_color_button.currentIndexChanged.connect(
-            self.canvas_widget.change_pen_color)
+        pen_color_button = self.create_color_button(COLORS_NAMES)
 
         pen_toolbar = QToolBar(f"pen")
         self.toolbar_features(pen_toolbar)
@@ -169,19 +160,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_marker_toolbar_and_size_and_color(self):
         # create spin box marker size
-        marker_size_button = QSpinBox()
-        marker_size_button.setRange(*MARKER_RANGE)
-        marker_size_button.setValue(MARKER_START_VALUE)
-        marker_size_button.setSingleStep(MARKER_STEP)
-        marker_size_button.valueChanged.connect(
-            self.canvas_widget.change_pen_size)
-        marker_size_button.setMinimumWidth(BUTTON_WIDTH)
+        marker_size_button = self.create_size_button(MARKER_RANGE, MARKER_START_VALUE, MARKER_STEP)
 
         # create combo box marker colors
-        marker_color_button = QComboBox()
-        marker_color_button.addItems(MARKER_COLORS_NAMES)
-        marker_color_button.currentIndexChanged.connect(
-            self.canvas_widget.change_pen_color)
+        marker_color_button = self.create_color_button(MARKER_COLORS_NAMES)
 
         marker_toolbar = QToolBar(f"marker")
         self.toolbar_features(marker_toolbar)
@@ -192,13 +174,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_eraser_toolbar_and_size(self):
         # create eraser size spin box
-        eraser_size_button = QSpinBox()
-        eraser_size_button.setRange(*ERASER_RANGE)
-        eraser_size_button.setValue(ERASER_START_VALUE)
-        eraser_size_button.setSingleStep(ERASER_STEP)
-        eraser_size_button.valueChanged.connect(
-            self.canvas_widget.change_pen_size)
-        eraser_size_button.setMinimumWidth(BUTTON_WIDTH)
+        eraser_size_button = self.create_size_button(ERASER_RANGE, ERASER_START_VALUE, ERASER_STEP)
 
         eraser_toolbar = QToolBar(f"eraser")
         self.toolbar_features(eraser_toolbar)
@@ -206,6 +182,21 @@ class MainWindow(QtWidgets.QMainWindow):
 
         return eraser_toolbar, eraser_size_button
 
+    def create_size_button(self, size_range, start_value, size_step):
+        size_button = QSpinBox()
+        size_button.setRange(*size_range)
+        size_button.setValue(start_value)
+        size_button.setSingleStep(size_step)
+        size_button.valueChanged.connect(self.canvas_widget.change_pen_size)
+        size_button.setMinimumWidth(BUTTON_WIDTH)
+        return size_button
+
+    def create_color_button(self, colors):
+        color_button = QComboBox()
+        color_button.addItems(colors)
+        color_button.currentIndexChanged.connect(
+            self.canvas_widget.change_pen_color)
+        return color_button
 
 if __name__ == '__main__':
     app = QApplication([])
