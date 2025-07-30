@@ -76,8 +76,10 @@ class MainWindow(QtWidgets.QMainWindow):
                 toolbar.setVisible(not is_visible)
                 self.page_button.setChecked(i == PAGE_INDEX and not is_visible)
                 self.pen_button.setChecked(i == PEN_INDEX and not is_visible)
-                self.marker_button.setChecked(i == MARKER_INDEX and not is_visible)
-                self.eraser_button.setChecked(i == ERASER_INDEX and not is_visible)
+                self.marker_button.setChecked(i == MARKER_INDEX and
+                                              not is_visible)
+                self.eraser_button.setChecked(i == ERASER_INDEX and
+                                              not is_visible)
                 if not is_visible:
                     if i == PAGE_INDEX:
                         self.canvas_widget.set_tool("page")
