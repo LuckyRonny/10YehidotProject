@@ -25,6 +25,10 @@ class DrawingCanvas(QWidget):
         self.tool = "pen"
         self.page_type = "blank"
 
+        self.is_gesturing = False
+        self.last_pan_center = None
+        self.grabGesture(QtCore.Qt.GestureType.PinchGesture)
+        self.grabGesture(QtCore.Qt.GestureType.PanGesture)
         self.scale_factor = 1.0
         self.base_width = width
         self.base_height = height
@@ -39,6 +43,8 @@ class DrawingCanvas(QWidget):
 
     def mousePressEvent(self, event):
         """when mouse pressed change to drawing"""
+        if self.is_gesturing:
+            return
         if event.button() == Qt.MouseButton.LeftButton:
             self.drawing = True
             self.history.append(self.drawing_layer.copy())
@@ -59,6 +65,8 @@ class DrawingCanvas(QWidget):
     def mouseMoveEvent(self, event):
         """when mouse move and pressed creates
         a line from last point to current point"""
+        if self.is_gesturing:
+            return
         if self.drawing:
             current_point = (event.position() / self.scale_factor).toPoint()
             painter = self.create_painter(self.pen_size, self.pen_color,
@@ -77,39 +85,51 @@ class DrawingCanvas(QWidget):
 
     @staticmethod
     def distance(point1, point2):
-        return math.sqrt((point1.x() - point2.x()) ** 2 + (point1.y() - point2.y()) ** 2)
+        return math.sqrt((point1.x() - point2.x()) ** 2 +
+                         (point1.y() - point2.y()) ** 2)
 
     @staticmethod
-    def _are_last_points_close(point_list, close_points_distance, close_points_time):
+    def _are_last_points_close(point_list, close_points_distance,
+                               close_points_time):
         if len(point_list) == 0:
             return False
         current_time = time.time_ns()
         for point in point_list:
-            if (current_time - point[TIME_OF_POINT_INDEX] < close_points_time and
-                    DrawingCanvas.distance(point[POINT_INDEX], point_list[LAST_POINT][POINT_INDEX]) >
-                    close_points_distance):
+            if (current_time - point[TIME_OF_POINT_INDEX] < close_points_time
+                    and DrawingCanvas.distance(point[POINT_INDEX],
+                                           point_list[LAST_POINT][POINT_INDEX])
+                    > close_points_distance):
                 return False
         return True
 
     def mouseReleaseEvent(self, event):
         """when mouse released change to not drawing"""
-        if event.button() == Qt.MouseButton.LeftButton:
+        if self.is_gesturing:
+            return
+        if (self.drawing is True and
+                event.button() == Qt.MouseButton.LeftButton):
             self.drawing = False
-            painter = self.create_painter(self.pen_size, self.pen_color, self.drawing_layer)
-            painter.drawPoint(self.last_point)
-            painter.end()
-            if DrawingCanvas._are_last_points_close(self.points, CLOSE_POINTS_DISTANCE, CLOSE_POINTS_TIME):
-                self.back()
-                self.history.append(self.drawing_layer.copy())
-                painter = self.create_painter(self.pen_size, self.pen_color, self.drawing_layer)
-                if self.tool == "marker":
-                    for i in range(10):
-                        painter.drawLine(self.first_point, self.last_point)
-                painter.drawLine(self.first_point, self.last_point)
+            if not self.tool == "eraser":
+                painter = self.create_painter(self.pen_size,
+                                              self.pen_color,
+                                              self.drawing_layer)
+                painter.drawPoint(self.last_point)
                 painter.end()
+                if DrawingCanvas._are_last_points_close(self.points,
+                                                        CLOSE_POINTS_DISTANCE,
+                                                        CLOSE_POINTS_TIME):
+                    self.back()
+                    self.history.append(self.drawing_layer.copy())
+                    painter = self.create_painter(self.pen_size,
+                                                  self.pen_color,
+                                                  self.drawing_layer)
+                    if self.tool == "marker":
+                        for i in range(4):
+                            painter.drawLine(self.first_point, self.last_point)
+                    painter.drawLine(self.first_point, self.last_point)
+                    painter.end()
 
             self.update()
-
 
     def clear_canvas(self):
         """cleans the canvas"""
@@ -152,7 +172,7 @@ class DrawingCanvas(QWidget):
         """changes pen size"""
         if self.tool == "marker":
             color = QtGui.QColor(MARKER_COLORS[i])
-            color.setAlpha(30)
+            color.setAlpha(50)
         else:
             color = QtGui.QColor(COLORS[i])
             color.setAlpha(255)
@@ -177,6 +197,36 @@ class DrawingCanvas(QWidget):
         new_height = int(self.base_height * self.scale_factor)
         self.setFixedSize(new_width, new_height)
         self.update()
+
+    def event(self, event):
+        if event.type() == QtCore.QEvent.Type.Gesture:
+            return self.gestureEvent(event)
+        return super().event(event)
+
+    def gestureEvent(self, event):
+        pinch = event.gesture(QtCore.Qt.GestureType.PinchGesture)
+        if pinch:
+            self.is_gesturing = True
+            self.handle_pinch(pinch)
+            if pinch.state() == Qt.GestureState.GestureFinished:
+                self.is_gesturing = False
+            return True
+        pan = event.gesture(QtCore.Qt.GestureType.PanGesture)
+        if pan:
+            self.is_gesturing = True
+            if pan.state() == Qt.GestureState.GestureFinished:
+                self.is_gesturing = False
+            return True
+        return False
+
+    def handle_pinch(self, pinch):
+        if pinch.state() == Qt.GestureState.GestureUpdated:
+            scale_change = pinch.scaleFactor()
+            self.scale_factor *= scale_change
+            self.scale_factor = max(0.5,
+                                    min(5.0, self.scale_factor))
+            self._update_size()
+            self.update()
 
     def blank(self):
         self.page_type = "blank"

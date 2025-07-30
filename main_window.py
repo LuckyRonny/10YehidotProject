@@ -42,8 +42,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_toolbar.addWidget(self.pen_button)
 
         # marker toolbar and button
-        self.marker_toolbar, self.marker_size_button, self.marker_color_button = (
-            self.create_marker_toolbar_and_size_and_color())
+        self.marker_toolbar, self.marker_size_button, self.marker_color_button \
+            = (self.create_marker_toolbar_and_size_and_color())
         central_layout.addWidget(self.marker_toolbar)
         self.marker_button = QPushButton(f"marker", self)
         self.toolbar_button(self.marker_button, MARKER_INDEX)
@@ -146,7 +146,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_pen_toolbar_and_size_and_color(self):
         # create spin box pen size
-        pen_size_button = self.create_size_button(PEN_RANGE, PEN_START_VALUE, PEN_STEP)
+        pen_size_button = self.create_size_button(PEN_RANGE,
+                                                  PEN_START_VALUE,
+                                                  PEN_STEP)
 
         # create combo box pen colors
         pen_color_button = self.create_color_button(COLORS_NAMES)
@@ -160,7 +162,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_marker_toolbar_and_size_and_color(self):
         # create spin box marker size
-        marker_size_button = self.create_size_button(MARKER_RANGE, MARKER_START_VALUE, MARKER_STEP)
+        marker_size_button = self.create_size_button(MARKER_RANGE,
+                                                     MARKER_START_VALUE,
+                                                     MARKER_STEP)
 
         # create combo box marker colors
         marker_color_button = self.create_color_button(MARKER_COLORS_NAMES)
@@ -174,7 +178,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_eraser_toolbar_and_size(self):
         # create eraser size spin box
-        eraser_size_button = self.create_size_button(ERASER_RANGE, ERASER_START_VALUE, ERASER_STEP)
+        eraser_size_button = self.create_size_button(ERASER_RANGE,
+                                                     ERASER_START_VALUE,
+                                                     ERASER_STEP)
 
         eraser_toolbar = QToolBar(f"eraser")
         self.toolbar_features(eraser_toolbar)
@@ -197,6 +203,7 @@ class MainWindow(QtWidgets.QMainWindow):
         color_button.currentIndexChanged.connect(
             self.canvas_widget.change_pen_color)
         return color_button
+
 
 if __name__ == '__main__':
     app = QApplication([])
