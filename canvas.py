@@ -116,6 +116,9 @@ class DrawingCanvas(QWidget):
                 painter.drawPoint(self.last_point)
                 painter.end()
                 if DrawingCanvas._are_last_points_close(self.points,
+                                                        DrawingCanvas.distance(
+                                                            self.last_point,
+                                                            self.first_point) -
                                                         CLOSE_POINTS_DISTANCE,
                                                         CLOSE_POINTS_TIME):
                     self.back()
@@ -185,11 +188,15 @@ class DrawingCanvas(QWidget):
             self.update()
 
     def zoom_in(self):
-        self.scale_factor *= 1.2
+        self.scale_factor *= SCALE_CHANGE
+        self.scale_factor = max(SCALE_MIN,
+                                min(SCALE_MAX, self.scale_factor))
         self._update_size()
 
     def zoom_out(self):
-        self.scale_factor /= 1.2
+        self.scale_factor /= SCALE_CHANGE
+        self.scale_factor = max(SCALE_MIN,
+                                min(SCALE_MAX, self.scale_factor))
         self._update_size()
 
     def _update_size(self):
@@ -223,8 +230,8 @@ class DrawingCanvas(QWidget):
         if pinch.state() == Qt.GestureState.GestureUpdated:
             scale_change = pinch.scaleFactor()
             self.scale_factor *= scale_change
-            self.scale_factor = max(0.5,
-                                    min(5.0, self.scale_factor))
+            self.scale_factor = max(SCALE_MIN,
+                                    min(SCALE_MAX, self.scale_factor))
             self._update_size()
             self.update()
 

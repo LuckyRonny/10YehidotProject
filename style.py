@@ -48,19 +48,22 @@ BACKROUND_PEN_SIZE = 0.5
 CLEAR_COLOR = (0, 0, 0, 0)
 TIME_OF_POINT_INDEX = 1
 CLOSE_POINTS_TIME = 1E9
-CLOSE_POINTS_DISTANCE = 15
+CLOSE_POINTS_DISTANCE = 5
 LAST_POINT = -1
 POINT_INDEX = 0
+SCALE_CHANGE = 1.2
+SCALE_MAX = 5.0
+SCALE_MIN = 0.5
 
 
-COLORS = ["#000000", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
+COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
           "#FFB662", "#F6ED6B", "#98FB98", "#9AD7FF", "#4983E6",
           "#A873F7", "#F0AEEA",]
 COLORS_NAMES = ["black", "gray", "white", "silver", "gold", "red", "orange",
                 "yellow", "green", "light blue", "blue",
                 "purple", "pink"]
 
-MARKER_COLORS = ["#000000", "#A1A1A1", "#FFFFFF", "#DC143C", "#FFB662",
+MARKER_COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#DC143C", "#FFB662",
                  "#F6ED6B", "#98FB98", "#9AD7FF",
                  "#4983E6", "#A873F7", "#F0AEEA"]
 MARKER_COLORS_NAMES = ["black", "gray", "white", "red", "orange",
