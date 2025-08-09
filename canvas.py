@@ -1,12 +1,17 @@
+"""
+Ronny Getz
+canvas and canvas container
+"""
+
 import math
 import time
-
 from style import *
 
 
 class DrawingCanvas(QWidget):
     def __init__(self, width, height):
         super().__init__()
+        # layers
         self.setFixedSize(width, height)
         self.background_layer = QtGui.QPixmap(self.size())
         self.background_layer.fill(Qt.GlobalColor.white)
@@ -14,17 +19,20 @@ class DrawingCanvas(QWidget):
         self.drawing_layer = QtGui.QPixmap(self.size())
         self.drawing_layer.fill(Qt.GlobalColor.transparent)
 
+        # points and history
         self.history = []
         self.drawing = False
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
         self.points = []
 
+        # type and color
         self.pen_color = "black"
         self.pen_size = 1
         self.tool = "pen"
         self.page_type = "blank"
 
+        # zoom in
         self.is_gesturing = False
         self.last_pan_center = None
         self.grabGesture(QtCore.Qt.GestureType.PinchGesture)
@@ -34,6 +42,7 @@ class DrawingCanvas(QWidget):
         self.base_height = height
 
     def paintEvent(self, event):
+        """create the background and layers"""
         painter = QtGui.QPainter(self)
         painter.fillRect(self.rect(), QtGui.QColor("#D3E9FF"))
         painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform)
@@ -53,6 +62,7 @@ class DrawingCanvas(QWidget):
             self.points = []
 
     def create_painter(self, pen_size, pen_color, layer):
+        """create the painter with the right parameters"""
         painter = QtGui.QPainter(layer)
         pen = QtGui.QPen(QtGui.QColor(pen_color),
                          pen_size,
@@ -85,12 +95,14 @@ class DrawingCanvas(QWidget):
 
     @staticmethod
     def distance(point1, point2):
+        """calculate distance"""
         return math.sqrt((point1.x() - point2.x()) ** 2 +
                          (point1.y() - point2.y()) ** 2)
 
     @staticmethod
     def _are_last_points_close(point_list, close_points_distance,
                                close_points_time):
+        """check if the points are close"""
         if len(point_list) == 0:
             return False
         current_time = time.time_ns()
@@ -103,7 +115,8 @@ class DrawingCanvas(QWidget):
         return True
 
     def mouseReleaseEvent(self, event):
-        """when mouse released change to not drawing"""
+        """when mouse released change to not drawing
+        and check if it needs to straighten the line """
         if self.is_gesturing:
             return
         if (self.drawing is True and
@@ -121,18 +134,21 @@ class DrawingCanvas(QWidget):
                                                             self.first_point) -
                                                         CLOSE_POINTS_DISTANCE,
                                                         CLOSE_POINTS_TIME):
-                    self.back()
-                    self.history.append(self.drawing_layer.copy())
-                    painter = self.create_painter(self.pen_size,
-                                                  self.pen_color,
-                                                  self.drawing_layer)
-                    if self.tool == "marker":
-                        for i in range(4):
-                            painter.drawLine(self.first_point, self.last_point)
-                    painter.drawLine(self.first_point, self.last_point)
-                    painter.end()
-
+                    self.draw_line()
             self.update()
+
+    def draw_line(self):
+        """draw the line from the first point to last"""
+        self.back()
+        self.history.append(self.drawing_layer.copy())
+        painter = self.create_painter(self.pen_size,
+                                      self.pen_color,
+                                      self.drawing_layer)
+        if self.tool == "marker":
+            for i in range(4):
+                painter.drawLine(self.first_point, self.last_point)
+        painter.drawLine(self.first_point, self.last_point)
+        painter.end()
 
     def clear_canvas(self):
         """cleans the canvas"""
@@ -141,19 +157,13 @@ class DrawingCanvas(QWidget):
 
     def save_canvas(self):
         """Open a file dialog to save the canvas with a custom name"""
-        result = QtGui.QPixmap(self.size())
-        result.fill(Qt.GlobalColor.white)
-        painter = QtGui.QPainter(result)
-        painter.drawPixmap(0, 0, self.background_layer)
-        painter.drawPixmap(0, 0, self.drawing_layer)
-        painter.end()
+        result = self.combine_layers()
         filename, _ = QFileDialog.getSaveFileName(
             self,
             "Save Image",
             "drawing.png",
             "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*)"
         )
-
         if filename:
             ext = os.path.splitext(filename)[1].lower()
             if ext not in [".png", ".jpg", ".jpeg"]:
@@ -162,6 +172,16 @@ class DrawingCanvas(QWidget):
             result.save(filename)
             QMessageBox.information(self, "Saved",
                                     f"Saved to:\n{filename}")
+
+    def combine_layers(self):
+        """combine the layers"""
+        result = QtGui.QPixmap(self.size())
+        result.fill(Qt.GlobalColor.white)
+        painter = QtGui.QPainter(result)
+        painter.drawPixmap(0, 0, self.background_layer)
+        painter.drawPixmap(0, 0, self.drawing_layer)
+        painter.end()
+        return result
 
     def change_pen_size(self, size):
         """changes pen size"""
@@ -188,29 +208,34 @@ class DrawingCanvas(QWidget):
             self.update()
 
     def zoom_in(self):
+        """change the scale factor *1.2"""
         self.scale_factor *= SCALE_CHANGE
         self.scale_factor = max(SCALE_MIN,
                                 min(SCALE_MAX, self.scale_factor))
         self._update_size()
 
     def zoom_out(self):
+        """change the scale factor /1.2"""
         self.scale_factor /= SCALE_CHANGE
         self.scale_factor = max(SCALE_MIN,
                                 min(SCALE_MAX, self.scale_factor))
         self._update_size()
 
     def _update_size(self):
+        """change the size of the canvas by the scale factor"""
         new_width = int(self.base_width * self.scale_factor)
         new_height = int(self.base_height * self.scale_factor)
         self.setFixedSize(new_width, new_height)
         self.update()
 
     def event(self, event):
+        """check if the event is gesture"""
         if event.type() == QtCore.QEvent.Type.Gesture:
-            return self.gestureEvent(event)
+            return self.gesture_event(event)
         return super().event(event)
 
-    def gestureEvent(self, event):
+    def gesture_event(self, event):
+        """check if zoom or slide"""
         pinch = event.gesture(QtCore.Qt.GestureType.PinchGesture)
         if pinch:
             self.is_gesturing = True
@@ -227,6 +252,7 @@ class DrawingCanvas(QWidget):
         return False
 
     def handle_pinch(self, pinch):
+        """handle zoom in"""
         if pinch.state() == Qt.GestureState.GestureUpdated:
             scale_change = pinch.scaleFactor()
             self.scale_factor *= scale_change
@@ -236,11 +262,13 @@ class DrawingCanvas(QWidget):
             self.update()
 
     def blank(self):
+        """change the canvas to be blank"""
         self.page_type = "blank"
         self.background_layer.fill(Qt.GlobalColor.white)
         self.update()
 
     def lines(self):
+        """change the back to be lines"""
         self.page_type = "lines"
         self.background_layer.fill(Qt.GlobalColor.white)
         painter = self.create_painter(BACKROUND_PEN_SIZE, "#666666",
@@ -261,6 +289,7 @@ class DrawingCanvas(QWidget):
         self.update()
 
     def grid(self):
+        """change the back to be grid"""
         self.page_type = "grid"
         self.background_layer.fill(Qt.GlobalColor.white)
         painter = self.create_painter(BACKROUND_PEN_SIZE, "#666666",
@@ -298,6 +327,7 @@ class CanvasContainer(QWidget):
         self.setLayout(layout)
 
     def paintEvent(self, event):
+        """draw the background"""
         painter = QtGui.QPainter(self)
         painter.fillRect(self.rect(), QtGui.QColor("#D3E9FF"))
 
@@ -313,6 +343,7 @@ class CenteredScrollArea(QScrollArea):
         self.setWidget(container)
 
     def wheelEvent(self, event):
+        """check if zoom in or out"""
         if (QApplication.keyboardModifiers() ==
                 Qt.KeyboardModifier.ControlModifier):
             if event.angleDelta().y() > 0:
@@ -322,4 +353,3 @@ class CenteredScrollArea(QScrollArea):
             event.accept()
         else:
             super().wheelEvent(event)
-

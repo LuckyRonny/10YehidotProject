@@ -1,5 +1,6 @@
 """
-
+Ronny Getz
+imports, magic numbers and style
 """
 
 import sys

@@ -1,5 +1,6 @@
 """
-
+Ronny Getz
+main window
 """
 from canvas import *
 
@@ -70,6 +71,7 @@ class MainWindow(QtWidgets.QMainWindow):
         central_layout.addWidget(scroll_area)
 
     def show_sub_toolbar(self, index):
+        """change between the sub toolbars"""
         for i, toolbar in enumerate(self.sub_toolbars):
             if i == index:
                 is_visible = toolbar.isVisible()
@@ -103,12 +105,14 @@ class MainWindow(QtWidgets.QMainWindow):
                 toolbar.setVisible(False)
 
     def toolbar_button(self, button, index):
+        """set features of the button of the sub toolbar buttons"""
         button.setCheckable(True)
         button.setFixedSize(*BUTTON_SIZE)
         button.clicked.connect(
             lambda checked, x=index: self.show_sub_toolbar(x))
 
     def toolbar_features(self, toolbar):
+        """set features of sub toolbars"""
         toolbar.setMovable(False)
         toolbar.setFloatable(False)
         toolbar.setVisible(False)
@@ -116,12 +120,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sub_toolbars.append(toolbar)
 
     def main_toolbar_button(self, button, func):
+        """set features of main toolbar"""
         button.clicked.connect(func)
         button.setFixedSize(*BUTTON_SIZE)
         button.setStyleSheet(BUTTON)
         self.main_toolbar.addWidget(button)
 
     def create_page_toolbar(self):
+        """create page toolbar"""
         blank_button = QPushButton("blank", self)
         blank_button.clicked.connect(self.canvas_widget.blank)
         blank_button.setFixedSize(*BUTTON_SIZE)
@@ -147,6 +153,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return page_toolbar
 
     def create_pen_toolbar_and_size_and_color(self):
+        """create pen toolbar"""
         # create spin box pen size
         pen_size_button = self.create_size_button(PEN_RANGE,
                                                   PEN_START_VALUE,
@@ -163,6 +170,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return pen_toolbar, pen_size_button, pen_color_button
 
     def create_marker_toolbar_and_size_and_color(self):
+        """create marker toolbar"""
         # create spin box marker size
         marker_size_button = self.create_size_button(MARKER_RANGE,
                                                      MARKER_START_VALUE,
@@ -179,6 +187,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return marker_toolbar, marker_size_button, marker_color_button
 
     def create_eraser_toolbar_and_size(self):
+        """create eraser toolbar"""
         # create eraser size spin box
         eraser_size_button = self.create_size_button(ERASER_RANGE,
                                                      ERASER_START_VALUE,
@@ -191,6 +200,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return eraser_toolbar, eraser_size_button
 
     def create_size_button(self, size_range, start_value, size_step):
+        """create size button"""
         size_button = QSpinBox()
         size_button.setRange(*size_range)
         size_button.setValue(start_value)
@@ -200,6 +210,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return size_button
 
     def create_color_button(self, colors):
+        """create color button"""
         color_button = QComboBox()
         color_button.addItems(colors)
         color_button.currentIndexChanged.connect(
