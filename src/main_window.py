@@ -65,6 +65,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.toolbar_button(self.eraser_button, ToolbarsEnum.ERASER.value)
         self.main_toolbar.addWidget(self.eraser_button)
 
+        # text toolbar and button
+        self.text_toolbar, self.text_size_button = self.create_text_toolbar()
+        central_layout.addWidget(self.text_toolbar)
+        self.text_button = QPushButton(f"text", self)
+        self.toolbar_button(self.text_button, ToolbarsEnum.TEXT.value)
+        self.main_toolbar.addWidget(self.text_button)
+
         clear_button = QPushButton("clear", self)
         self.main_toolbar_button(clear_button, self.canvas_widget.clear_canvas)
 
@@ -83,13 +90,18 @@ class MainWindow(QtWidgets.QMainWindow):
             if i == index:
                 is_visible = toolbar.isVisible()
                 toolbar.setVisible(not is_visible)
-                self.page_button.setChecked(i == ToolbarsEnum.PAGE.value and not is_visible)
-                self.select_button.setChecked(i == ToolbarsEnum.SELECT.value and not is_visible)
-                self.pen_button.setChecked(i == ToolbarsEnum.PEN.value and not is_visible)
+                self.page_button.setChecked(i == ToolbarsEnum.PAGE.value and
+                                            not is_visible)
+                self.select_button.setChecked(i == ToolbarsEnum.SELECT.value and
+                                              not is_visible)
+                self.pen_button.setChecked(i == ToolbarsEnum.PEN.value and
+                                           not is_visible)
                 self.marker_button.setChecked(i == ToolbarsEnum.MARKER.value and
                                               not is_visible)
                 self.eraser_button.setChecked(i == ToolbarsEnum.ERASER.value and
                                               not is_visible)
+                self.text_button.setChecked(i == ToolbarsEnum.TEXT.value and
+                                            not is_visible)
                 if not is_visible:
                     if i == ToolbarsEnum.PAGE.value:
                         self.canvas_widget.set_tool("page")
@@ -111,6 +123,10 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.canvas_widget.set_tool("eraser")
                         self.canvas_widget.change_pen_size(
                             self.eraser_size_button.value())
+                    elif i == ToolbarsEnum.TEXT.value:
+                        self.canvas_widget.set_tool("text")
+                        self.canvas_widget.change_pen_size(
+                            self.text_size_button.value())
             else:
                 toolbar.setVisible(False)
 
@@ -167,6 +183,14 @@ class MainWindow(QtWidgets.QMainWindow):
         select_toolbar = QToolBar(f"select")
         self.toolbar_features(select_toolbar)
         return select_toolbar
+
+    def create_text_toolbar(self):
+        """create select toolbar"""
+        text_size_button = self.create_size_button((2, 36), 14, 2)
+        text_toolbar = QToolBar(f"select")
+        self.toolbar_features(text_toolbar)
+        text_toolbar.addWidget(text_size_button)
+        return text_toolbar, text_size_button
 
     def create_pen_toolbar_and_size_and_color(self):
         """create pen toolbar"""

@@ -20,6 +20,9 @@ class DrawingCanvas(QWidget):
         self.drawing_layer = QtGui.QPixmap(self.size())
         self.drawing_layer.fill(Qt.GlobalColor.transparent)
 
+        self.text_layer = QtGui.QPixmap(self.size())
+        self.text_layer.fill(Qt.GlobalColor.transparent)
+
         # points and history
         self.history = []
         self.drawing = False
@@ -32,6 +35,18 @@ class DrawingCanvas(QWidget):
         self.pen_size = PEN_START_SIZE
         self.tool = "pen"
         self.page_type = "blank"
+
+        # text
+        self.text_edit = QTextEdit(self)
+        self.text_edit.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self.text_edit.setStyleSheet("""
+                    QTextEdit {
+                        background: transparent;
+                        border: none;
+                    }
+                """)
+        self.text_edit.hide()
+        self.text_edit.setGeometry(0, 0, 550, 700)
 
         # zoom in
         self.is_gesturing = False
@@ -50,6 +65,7 @@ class DrawingCanvas(QWidget):
         painter.scale(self.scale_factor, self.scale_factor)
         painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.background_layer)
         painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.drawing_layer)
+        painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.text_layer)
 
     def mousePressEvent(self, event):
         """when mouse pressed change to drawing"""
@@ -133,12 +149,13 @@ class DrawingCanvas(QWidget):
                                               self.drawing_layer)
                 painter.drawPoint(self.last_point)
                 painter.end()
-                if self.tool != "select" and DrawingCanvas._are_last_points_close(self.points,
+                if (self.tool != "select" and
+                        DrawingCanvas._are_last_points_close(self.points,
                                                         DrawingCanvas.distance(
                                                             self.last_point,
                                                             self.first_point) -
                                                         CLOSE_POINTS_DISTANCE,
-                                                        CLOSE_POINTS_TIME):
+                                                        CLOSE_POINTS_TIME)):
                     self.draw_line()
             self.update()
 
@@ -194,13 +211,37 @@ class DrawingCanvas(QWidget):
         painter.end()
         return result
 
-    def change_pen_size(self, size):
-        """changes pen size"""
-        self.pen_size = size / PEN_SIZE_FACTOR
-
     def set_tool(self, tool_type):
         """set the tool that is used"""
         self.tool = tool_type
+        if self.tool == "text":
+            self.text_edit.show()
+            self.text_layer.fill(Qt.GlobalColor.transparent)
+            self.update()
+        else:
+            self.text_edit.hide()
+            self.commit_text_to_pixmap()
+
+    def commit_text_to_pixmap(self):
+        """"""
+        if not self.text_edit:
+            return
+        text = self.text_edit.toPlainText()
+        if not text.strip():
+            return
+        painter = self.create_painter(self.pen_size, self.pen_color,
+                                      self.text_layer)
+        painter.setFont(self.text_edit.font())
+        doc = self.text_edit.document()
+        doc.drawContents(painter)
+        painter.end()
+        self.update()
+
+    def change_pen_size(self, size):
+        """changes pen size"""
+        self.pen_size = size / PEN_SIZE_FACTOR
+        if self.tool == "text":
+            self.text_edit.setFontPointSize(self.pen_size)
 
     def change_pen_color(self, i):
         """changes pen size"""
@@ -237,6 +278,7 @@ class DrawingCanvas(QWidget):
         new_width = int(self.base_width * self.scale_factor)
         new_height = int(self.base_height * self.scale_factor)
         self.setFixedSize(new_width, new_height)
+        self.text_edit.resize(self.size())
         self.update()
 
     def event(self, event):

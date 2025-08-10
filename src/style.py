@@ -12,12 +12,15 @@ from PyQt6.QtGui import QAction
 import os
 from enum import Enum
 
+
 class ToolbarsEnum(Enum):
     PAGE = 0
     SELECT = 1
     PEN = 2
     MARKER = 3
     ERASER = 4
+    TEXT = 5
+
 
 WINDOW_SIZE = (650, 650)
 CANVAS_SIZE = (550, 700)
@@ -53,7 +56,7 @@ BACKGROUND_PEN_SIZE = 0.5
 CLEAR_COLOR = (0, 0, 0, 0)
 TIME_OF_POINT_INDEX = 1
 CLOSE_POINTS_TIME = 1E9
-CLOSE_POINTS_DISTANCE = 5
+CLOSE_POINTS_DISTANCE = 15
 LAST_POINT = -1
 POINT_INDEX = 0
 SCALE_CHANGE = 1.2
