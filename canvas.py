@@ -21,7 +21,6 @@ class DrawingCanvas(QWidget):
 
         # points and history
         self.history = []
-        self.before_line = None
         self.drawing = False
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
@@ -48,8 +47,8 @@ class DrawingCanvas(QWidget):
         painter.fillRect(self.rect(), QtGui.QColor("#D3E9FF"))
         painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform)
         painter.scale(self.scale_factor, self.scale_factor)
-        painter.drawPixmap(0, 0, self.background_layer)
-        painter.drawPixmap(0, 0, self.drawing_layer)
+        painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.background_layer)
+        painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.drawing_layer)
 
     def mousePressEvent(self, event):
         """when mouse pressed change to drawing"""
@@ -97,8 +96,8 @@ class DrawingCanvas(QWidget):
     @staticmethod
     def distance(point1, point2):
         """calculate distance"""
-        return math.sqrt((point1.x() - point2.x()) ** 2 +
-                         (point1.y() - point2.y()) ** 2)
+        return math.sqrt((point1.x() - point2.x()) ** SQUARED +
+                         (point1.y() - point2.y()) ** SQUARED)
 
     @staticmethod
     def _are_last_points_close(point_list, close_points_distance,
@@ -135,20 +134,24 @@ class DrawingCanvas(QWidget):
                                                             self.first_point) -
                                                         CLOSE_POINTS_DISTANCE,
                                                         CLOSE_POINTS_TIME):
-                    self.before_line = self.drawing_layer.copy()
                     self.draw_line()
             self.update()
 
-    def draw_line(self):
-        """draw the line from the first point to last"""
+    def history_push(self):
+        """save the line before straitening"""
+        before_line = self.drawing_layer.copy()
         self.back()
         self.history.append(self.drawing_layer.copy())
-        self.history.append(self.before_line.copy())
+        self.history.append(before_line.copy())
+
+    def draw_line(self):
+        """draw the line from the first point to last"""
+        self.history_push()
         painter = self.create_painter(self.pen_size,
                                       self.pen_color,
                                       self.drawing_layer)
         if self.tool == "marker":
-            for i in range(4):
+            for i in range(MARKER_LINE_TIMES):
                 painter.drawLine(self.first_point, self.last_point)
         painter.drawLine(self.first_point, self.last_point)
         painter.end()
@@ -181,8 +184,8 @@ class DrawingCanvas(QWidget):
         result = QtGui.QPixmap(self.size())
         result.fill(Qt.GlobalColor.white)
         painter = QtGui.QPainter(result)
-        painter.drawPixmap(0, 0, self.background_layer)
-        painter.drawPixmap(0, 0, self.drawing_layer)
+        painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.background_layer)
+        painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.drawing_layer)
         painter.end()
         return result
 
@@ -274,7 +277,7 @@ class DrawingCanvas(QWidget):
         """change the back to be lines"""
         self.page_type = "lines"
         self.background_layer.fill(Qt.GlobalColor.white)
-        painter = self.create_painter(BACKROUND_PEN_SIZE, "#666666",
+        painter = self.create_painter(BACKGROUND_PEN_SIZE, "#666666",
                                       self.background_layer)
         start = START_LINE
         end = END_LINE
@@ -285,7 +288,7 @@ class DrawingCanvas(QWidget):
             painter.drawLine(row_start, i, row_end, i)
         painter.drawLine(*RIGHT_LINE)
         painter.end()
-        painter = self.create_painter(BACKROUND_PEN_SIZE, "#CCCCCC",
+        painter = self.create_painter(BACKGROUND_PEN_SIZE, "#CCCCCC",
                                       self.background_layer)
         painter.drawLine(*LEFT_LINE)
         painter.end()
@@ -295,7 +298,7 @@ class DrawingCanvas(QWidget):
         """change the back to be grid"""
         self.page_type = "grid"
         self.background_layer.fill(Qt.GlobalColor.white)
-        painter = self.create_painter(BACKROUND_PEN_SIZE, "#666666",
+        painter = self.create_painter(BACKGROUND_PEN_SIZE, "#666666",
                                       self.background_layer)
         start = START_GRID
         end = END_GRID[ROW_INDEX]
