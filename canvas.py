@@ -28,7 +28,7 @@ class DrawingCanvas(QWidget):
 
         # type and color
         self.pen_color = "black"
-        self.pen_size = 1
+        self.pen_size = PEN_START_SIZE
         self.tool = "pen"
         self.page_type = "blank"
 
@@ -37,7 +37,7 @@ class DrawingCanvas(QWidget):
         self.last_pan_center = None
         self.grabGesture(QtCore.Qt.GestureType.PinchGesture)
         self.grabGesture(QtCore.Qt.GestureType.PanGesture)
-        self.scale_factor = 1.0
+        self.scale_factor = START_SCALE_FACTOR
         self.base_width = width
         self.base_height = height
 
@@ -103,7 +103,7 @@ class DrawingCanvas(QWidget):
     def _are_last_points_close(point_list, close_points_distance,
                                close_points_time):
         """check if the points are close"""
-        if len(point_list) == 0:
+        if len(point_list) == EMPTY_POINT_LIST:
             return False
         current_time = time.time_ns()
         for point in point_list:
@@ -171,7 +171,7 @@ class DrawingCanvas(QWidget):
             "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*)"
         )
         if filename:
-            ext = os.path.splitext(filename)[1].lower()
+            ext = os.path.splitext(filename)[FILE_EXTENSION].lower()
             if ext not in [".png", ".jpg", ".jpeg"]:
                 filename += ".png"
 
@@ -191,7 +191,7 @@ class DrawingCanvas(QWidget):
 
     def change_pen_size(self, size):
         """changes pen size"""
-        self.pen_size = size / 2
+        self.pen_size = size / PEN_SIZE_FACTOR
 
     def set_tool(self, tool_type):
         """set the tool that is used"""
@@ -201,10 +201,10 @@ class DrawingCanvas(QWidget):
         """changes pen size"""
         if self.tool == "marker":
             color = QtGui.QColor(MARKER_COLORS[i])
-            color.setAlpha(50)
+            color.setAlpha(TRANSPARENCY_MARKER)
         else:
             color = QtGui.QColor(COLORS[i])
-            color.setAlpha(255)
+            color.setAlpha(TRANSPARENCY_PEN)
         self.pen_color = color
 
     def back(self):
@@ -321,15 +321,15 @@ class CanvasContainer(QWidget):
         self.child_widget = child_widget
 
         layout = QVBoxLayout()
-        layout.addStretch(1)
+        layout.addStretch(STRETCH)
 
         h_layout = QHBoxLayout()
-        h_layout.addStretch(1)
+        h_layout.addStretch(STRETCH)
         h_layout.addWidget(self.child_widget)
-        h_layout.addStretch(1)
+        h_layout.addStretch(STRETCH)
 
         layout.addLayout(h_layout)
-        layout.addStretch(1)
+        layout.addStretch(STRETCH)
         self.setLayout(layout)
 
     def paintEvent(self, event):
@@ -352,7 +352,7 @@ class CenteredScrollArea(QScrollArea):
         """check if zoom in or out"""
         if (QApplication.keyboardModifiers() ==
                 Qt.KeyboardModifier.ControlModifier):
-            if event.angleDelta().y() > 0:
+            if event.angleDelta().y() > START_ANGLE:
                 self.canvas_widget.zoom_in()
             else:
                 self.canvas_widget.zoom_out()
