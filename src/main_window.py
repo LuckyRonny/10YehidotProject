@@ -37,7 +37,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # select toolbar and button
         self.select_toolbar = self.create_select_toolbar()
         central_layout.addWidget(self.select_toolbar)
-        self.select_button = QPushButton(f"select", self)
+        self.select_button = QPushButton(f"select (WIP)", self)
         self.toolbar_button(self.select_button, ToolbarsEnum.SELECT.value)
         self.main_toolbar.addWidget(self.select_button)
 
