@@ -21,6 +21,7 @@ class DrawingCanvas(QWidget):
 
         # points and history
         self.history = []
+        self.before_line = None
         self.drawing = False
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
@@ -134,6 +135,7 @@ class DrawingCanvas(QWidget):
                                                             self.first_point) -
                                                         CLOSE_POINTS_DISTANCE,
                                                         CLOSE_POINTS_TIME):
+                    self.before_line = self.drawing_layer.copy()
                     self.draw_line()
             self.update()
 
@@ -141,6 +143,7 @@ class DrawingCanvas(QWidget):
         """draw the line from the first point to last"""
         self.back()
         self.history.append(self.drawing_layer.copy())
+        self.history.append(self.before_line.copy())
         painter = self.create_painter(self.pen_size,
                                       self.pen_color,
                                       self.drawing_layer)
