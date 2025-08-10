@@ -10,6 +10,14 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QAction
 import os
+from enum import Enum
+
+class ToolbarsEnum(Enum):
+    PAGE = 0
+    SELECT = 1
+    PEN = 2
+    MARKER = 3
+    ERASER = 4
 
 WINDOW_SIZE = (650, 650)
 CANVAS_SIZE = (550, 700)
@@ -29,10 +37,6 @@ BUTTON_WIDTH = 50
 MARGIN = (0, 0, 0, 0)
 SPACER = (0, 0)
 BUTTON_SIZE = (60, 30)
-PAGE_INDEX = 0
-PEN_INDEX = 1
-MARKER_INDEX = 2
-ERASER_INDEX = 3
 LINE_MARGIN = 50
 LEFT_LINE = (LINE_MARGIN, 0, LINE_MARGIN, CANVAS_SIZE[1])
 RIGHT_LINE = (CANVAS_SIZE[0]-LINE_MARGIN, 0, CANVAS_SIZE[0]-LINE_MARGIN,

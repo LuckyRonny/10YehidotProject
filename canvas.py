@@ -4,6 +4,7 @@ canvas and canvas container
 """
 
 import math
+import random
 import time
 from style import *
 
@@ -87,7 +88,11 @@ class DrawingCanvas(QWidget):
                 painter.setCompositionMode(
                     QtGui.QPainter.CompositionMode.CompositionMode_Clear)
                 painter.setPen(pen)
-            painter.drawLine(self.last_point, current_point)
+            if self.tool == "select":
+                if int(time.time_ns() / 1000) % 10 == 0:
+                    painter.drawLine(self.last_point, current_point)
+            else:
+                painter.drawLine(self.last_point, current_point)
             painter.end()
             self.last_point = current_point
             self.points.append((self.last_point, time.time_ns()))
@@ -128,7 +133,7 @@ class DrawingCanvas(QWidget):
                                               self.drawing_layer)
                 painter.drawPoint(self.last_point)
                 painter.end()
-                if DrawingCanvas._are_last_points_close(self.points,
+                if self.tool != "select" and DrawingCanvas._are_last_points_close(self.points,
                                                         DrawingCanvas.distance(
                                                             self.last_point,
                                                             self.first_point) -

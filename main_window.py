@@ -30,16 +30,23 @@ class MainWindow(QtWidgets.QMainWindow):
         # page toolbar and button
         self.page_toolbar = self.create_page_toolbar()
         self.page_button = QPushButton(f"page", self)
-        self.toolbar_button(self.page_button, PAGE_INDEX)
+        self.toolbar_button(self.page_button, ToolbarsEnum.PAGE.value)
         self.main_toolbar.addWidget(self.page_button)
         central_layout.addWidget(self.page_toolbar)
+
+        # select toolbar and button
+        self.select_toolbar = self.create_select_toolbar()
+        central_layout.addWidget(self.select_toolbar)
+        self.select_button = QPushButton(f"select", self)
+        self.toolbar_button(self.select_button, ToolbarsEnum.SELECT.value)
+        self.main_toolbar.addWidget(self.select_button)
 
         # pen toolbar and button
         self.pen_toolbar, self.pen_size_button, self.pen_color_button = (
             self.create_pen_toolbar_and_size_and_color())
         central_layout.addWidget(self.pen_toolbar)
         self.pen_button = QPushButton(f"pen", self)
-        self.toolbar_button(self.pen_button, PEN_INDEX)
+        self.toolbar_button(self.pen_button, ToolbarsEnum.PEN.value)
         self.main_toolbar.addWidget(self.pen_button)
 
         # marker toolbar and button
@@ -47,7 +54,7 @@ class MainWindow(QtWidgets.QMainWindow):
             = (self.create_marker_toolbar_and_size_and_color())
         central_layout.addWidget(self.marker_toolbar)
         self.marker_button = QPushButton(f"marker", self)
-        self.toolbar_button(self.marker_button, MARKER_INDEX)
+        self.toolbar_button(self.marker_button, ToolbarsEnum.MARKER.value)
         self.main_toolbar.addWidget(self.marker_button)
 
         # eraser toolbar and button
@@ -55,7 +62,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.create_eraser_toolbar_and_size())
         central_layout.addWidget(self.eraser_toolbar)
         self.eraser_button = QPushButton(f"eraser", self)
-        self.toolbar_button(self.eraser_button, ERASER_INDEX)
+        self.toolbar_button(self.eraser_button, ToolbarsEnum.ERASER.value)
         self.main_toolbar.addWidget(self.eraser_button)
 
         clear_button = QPushButton("clear", self)
@@ -76,28 +83,31 @@ class MainWindow(QtWidgets.QMainWindow):
             if i == index:
                 is_visible = toolbar.isVisible()
                 toolbar.setVisible(not is_visible)
-                self.page_button.setChecked(i == PAGE_INDEX and not is_visible)
-                self.pen_button.setChecked(i == PEN_INDEX and not is_visible)
-                self.marker_button.setChecked(i == MARKER_INDEX and
+                self.page_button.setChecked(i == ToolbarsEnum.PAGE.value and not is_visible)
+                self.select_button.setChecked(i == ToolbarsEnum.SELECT.value and not is_visible)
+                self.pen_button.setChecked(i == ToolbarsEnum.PEN.value and not is_visible)
+                self.marker_button.setChecked(i == ToolbarsEnum.MARKER.value and
                                               not is_visible)
-                self.eraser_button.setChecked(i == ERASER_INDEX and
+                self.eraser_button.setChecked(i == ToolbarsEnum.ERASER.value and
                                               not is_visible)
                 if not is_visible:
-                    if i == PAGE_INDEX:
+                    if i == ToolbarsEnum.PAGE.value:
                         self.canvas_widget.set_tool("page")
-                    elif i == PEN_INDEX:
+                    elif i == ToolbarsEnum.SELECT.value:
+                        self.canvas_widget.set_tool("select")
+                    elif i == ToolbarsEnum.PEN.value:
                         self.canvas_widget.set_tool("pen")
                         self.canvas_widget.change_pen_color(
                             self.pen_color_button.currentIndex())
                         self.canvas_widget.change_pen_size(
                             self.pen_size_button.value())
-                    elif i == MARKER_INDEX:
+                    elif i == ToolbarsEnum.MARKER.value:
                         self.canvas_widget.set_tool("marker")
                         self.canvas_widget.change_pen_color(
                             self.marker_color_button.currentIndex())
                         self.canvas_widget.change_pen_size(
                             self.marker_size_button.value())
-                    elif i == ERASER_INDEX:
+                    elif i == ToolbarsEnum.ERASER.value:
                         self.canvas_widget.set_tool("eraser")
                         self.canvas_widget.change_pen_size(
                             self.eraser_size_button.value())
@@ -151,6 +161,12 @@ class MainWindow(QtWidgets.QMainWindow):
         page_toolbar.addWidget(grid_button)
 
         return page_toolbar
+
+    def create_select_toolbar(self):
+        """create select toolbar"""
+        select_toolbar = QToolBar(f"select")
+        self.toolbar_features(select_toolbar)
+        return select_toolbar
 
     def create_pen_toolbar_and_size_and_color(self):
         """create pen toolbar"""
