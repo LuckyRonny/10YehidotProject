@@ -151,9 +151,6 @@ class DrawingCanvas(QWidget):
                 painter.end()
                 if (self.tool != "select" and
                         DrawingCanvas._are_last_points_close(self.points,
-                                                        DrawingCanvas.distance(
-                                                            self.last_point,
-                                                            self.first_point) -
                                                         CLOSE_POINTS_DISTANCE,
                                                         CLOSE_POINTS_TIME)):
                     self.draw_line()

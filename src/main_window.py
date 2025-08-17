@@ -29,10 +29,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # page toolbar and button
         self.page_toolbar = self.create_page_toolbar()
+        central_layout.addWidget(self.page_toolbar)
         self.page_button = QPushButton(f"page", self)
         self.toolbar_button(self.page_button, ToolbarsEnum.PAGE.value)
         self.main_toolbar.addWidget(self.page_button)
-        central_layout.addWidget(self.page_toolbar)
 
         # select toolbar and button
         self.select_toolbar = self.create_select_toolbar()
@@ -186,7 +186,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_text_toolbar(self):
         """create select toolbar"""
-        text_size_button = self.create_size_button((2, 36), 14, 2)
+        text_size_button = self.create_size_button(TEXT_RANGE, TEXT_START_VALUE
+                                                   , TEXT_STEP)
         text_toolbar = QToolBar(f"select")
         self.toolbar_features(text_toolbar)
         text_toolbar.addWidget(text_size_button)
