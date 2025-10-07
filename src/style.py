@@ -15,11 +15,10 @@ from enum import Enum
 
 class ToolbarsEnum(Enum):
     PAGE = 0
-    SELECT = 1
-    PEN = 2
-    MARKER = 3
-    ERASER = 4
-    TEXT = 5
+    PEN = 1
+    MARKER = 2
+    ERASER = 3
+    SELECT = 4
 
 
 WINDOW_SIZE = (650, 650)
@@ -27,8 +26,8 @@ CANVAS_SIZE = (550, 700)
 ROW_LIMITS = (0, CANVAS_SIZE[0])
 COLUMN_LIMITS = (0, CANVAS_SIZE[1])
 TOOLBARS_POSITION = (0, 0, 0, 0)
-PEN_RANGE = (1, 10)
-PEN_START_VALUE = 3
+PEN_RANGE = (1, 25)
+PEN_START_VALUE = 5
 PEN_STEP = 1
 ERASER_RANGE = (5, 50)
 ERASER_START_VALUE = 10
@@ -73,10 +72,11 @@ START_ANGLE = 0
 TRANSPARENCY_PEN = 255
 TRANSPARENCY_MARKER = 50
 PEN_SIZE_FACTOR = 2
-PEN_START_SIZE = 1
 EMPTY_POINT_LIST = 0
 START_SCALE_FACTOR = 1.0
 FILE_EXTENSION = 1
+SECOND_POINT = 1
+POINT_BEFORE = 1
 
 
 COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
@@ -86,9 +86,9 @@ COLORS_NAMES = ["black", "gray", "white", "silver", "gold", "red", "orange",
                 "yellow", "green", "light blue", "blue",
                 "purple", "pink"]
 
-MARKER_COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#DC143C", "#FFB662",
-                 "#F6ED6B", "#98FB98", "#9AD7FF",
-                 "#4983E6", "#A873F7", "#F0AEEA"]
+MARKER_COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#F36565", "#F3B165",
+                 "#FAFA80", "#B5FA80", "#9FF5EF",
+                 "#74A5EE", "#A683F6", "#EFACF6"]
 MARKER_COLORS_NAMES = ["black", "gray", "white", "red", "orange",
                        "yellow", "green", "light blue",
                        "blue", "purple", "pink"]

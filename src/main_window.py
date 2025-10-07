@@ -34,13 +34,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.toolbar_button(self.page_button, ToolbarsEnum.PAGE.value)
         self.main_toolbar.addWidget(self.page_button)
 
-        # select toolbar and button
-        self.select_toolbar = self.create_select_toolbar()
-        central_layout.addWidget(self.select_toolbar)
-        self.select_button = QPushButton(f"select (WIP)", self)
-        self.toolbar_button(self.select_button, ToolbarsEnum.SELECT.value)
-        self.main_toolbar.addWidget(self.select_button)
-
         # pen toolbar and button
         self.pen_toolbar, self.pen_size_button, self.pen_color_button = (
             self.create_pen_toolbar_and_size_and_color())
@@ -64,6 +57,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.eraser_button = QPushButton(f"eraser", self)
         self.toolbar_button(self.eraser_button, ToolbarsEnum.ERASER.value)
         self.main_toolbar.addWidget(self.eraser_button)
+
+        # select toolbar and button
+        self.select_toolbar = self.create_select_toolbar()
+        central_layout.addWidget(self.select_toolbar)
+        self.select_button = QPushButton(f"select", self)
+        self.toolbar_button(self.select_button, ToolbarsEnum.SELECT.value)
+        self.main_toolbar.addWidget(self.select_button)
 
         clear_button = QPushButton("clear", self)
         self.main_toolbar_button(clear_button, self.canvas_widget.clear_canvas)
@@ -98,6 +98,7 @@ class MainWindow(QtWidgets.QMainWindow):
                         self.canvas_widget.set_tool("page")
                     elif i == ToolbarsEnum.SELECT.value:
                         self.canvas_widget.set_tool("select")
+                        toolbar.setVisible(False)
                     elif i == ToolbarsEnum.PEN.value:
                         self.canvas_widget.set_tool("pen")
                         self.canvas_widget.change_pen_color(
@@ -170,15 +171,6 @@ class MainWindow(QtWidgets.QMainWindow):
         select_toolbar = QToolBar(f"select")
         self.toolbar_features(select_toolbar)
         return select_toolbar
-
-    def create_text_toolbar(self):
-        """create select toolbar"""
-        text_size_button = self.create_size_button(TEXT_RANGE, TEXT_START_VALUE
-                                                   , TEXT_STEP)
-        text_toolbar = QToolBar(f"select")
-        self.toolbar_features(text_toolbar)
-        text_toolbar.addWidget(text_size_button)
-        return text_toolbar, text_size_button
 
     def create_pen_toolbar_and_size_and_color(self):
         """create pen toolbar"""
