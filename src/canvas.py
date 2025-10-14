@@ -19,30 +19,26 @@ class Stroke(object):
     def contains_point(self, pt, tolerance):
         for i in range(SECOND_POINT, len(self.points)):
             p1, p2 = self.points[i-POINT_BEFORE], self.points[i]
-            if self._point_line_distance(pt, p1, p2) <= tolerance:
+            if self.point_line_distance(pt, p1, p2) <= tolerance:
                 return True
         return False
 
     @staticmethod
-    def _point_line_distance(p, a, b):
+    def point_line_distance(p, a, b):
+        """Return the minimum distance from point p to line segment ab"""
         ax, ay = a.x(), a.y()
         bx, by = b.x(), b.y()
         px, py = p.x(), p.y()
         dx, dy = bx - ax, by - ay
-        if dx == dy == 0:
-            return ((px - ax)**2 + (py - ay)**2) ** 0.5
-        t = max(0, min(1, ((px - ax)*dx + (py - ay)*dy)/(dx*dx + dy*dy)))
+        if dx == dy == SAME_POINT:
+            return ((px - ax)**SQUARED + (py - ay)**SQUARED) ** SQUARE_ROOT
+        t = max(LINE_POINT_START,
+                min(LINE_POINT_END,
+                    ((px - ax)*dx + (py - ay)*dy)/(dx*dx + dy*dy)))
         closest_x = ax + t*dx
         closest_y = ay + t*dy
-        return ((px - closest_x)**2 + (py - closest_y)**2) ** 0.5
-
-    def contains_point(self, pos, tolerance=5):
-        for i in range(len(self.points) - 1):
-            p1 = self.points[i]
-            p2 = self.points[i + 1]
-            if Stroke._point_line_distance(pos, p1, p2) <= tolerance:
-                return True
-        return False
+        return (((px - closest_x)**SQUARED + (py - closest_y)**SQUARED) **
+                SQUARE_ROOT)
 
 
 class DrawingCanvas(QWidget):
@@ -93,7 +89,8 @@ class DrawingCanvas(QWidget):
 
             painter.save()
             painter.scale(self.scale_factor, self.scale_factor)
-            painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.background_layer)
+            painter.drawPixmap(START_PIXMAP, START_PIXMAP,
+                               self.background_layer)
             painter.restore()
 
             painter.save()
@@ -104,14 +101,13 @@ class DrawingCanvas(QWidget):
                 painter.setPen(pen)
                 pts = stroke.points
                 if len(pts) > 1:
-                    for i in range(1, len(pts)):
+                    for i in range(SECOND_POINT, len(pts)):
                         painter.drawLine(pts[i - 1], pts[i])
                 if stroke.selected:
-                    highlight = QtGui.QPen(stroke.pen_color.lighter(130),
-                                           stroke.pen_size + 2)
-                    highlight.setStyle(QtCore.Qt.PenStyle.DashLine)
+                    highlight = self.create_pen(stroke.pen_size + 1,
+                                                stroke.pen_color.lighter(130))
                     painter.setPen(highlight)
-                    for i in range(1, len(pts)):
+                    for i in range(SECOND_POINT, len(pts)):
                         painter.drawLine(pts[i - 1], pts[i])
 
             # Draw the stroke being currently drawn
@@ -121,7 +117,7 @@ class DrawingCanvas(QWidget):
                 painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
                 painter.setPen(pen)
                 pts = self.current_stroke_points
-                for i in range(1, len(pts)):
+                for i in range(SECOND_POINT, len(pts)):
                     painter.drawLine(pts[i - 1], pts[i])
 
             painter.restore()
@@ -139,7 +135,7 @@ class DrawingCanvas(QWidget):
             elif self.tool == "select":
                 self.selected_stroke = None
                 for stroke in reversed(self.strokes):
-                    if stroke.contains_point(pos, tolerance=5):
+                    if stroke.contains_point(pos, tolerance=2):
                         stroke.selected = True
                         self.selected_stroke = stroke
                         self.last_point = pos  # important for movement
@@ -209,7 +205,7 @@ class DrawingCanvas(QWidget):
             for i in range(len(stroke.points) - 1):
                 p1 = stroke.points[i]
                 p2 = stroke.points[i + 1]
-                if self._distance_to_segment(pos, p1, p2) > erase_radius:
+                if Stroke.point_line_distance(pos, p1, p2) > erase_radius:
                     segment.append(p1)
                 else:
                     if len(segment) > 1:
@@ -223,19 +219,6 @@ class DrawingCanvas(QWidget):
                     Stroke(seg, stroke.pen_color, stroke.pen_size))
 
         self.strokes = new_strokes
-
-    def _distance_to_segment(self, p, a, b):
-        """Return the minimum distance from point p to line segment ab"""
-        ap = QtCore.QPointF(p - a)
-        ab = QtCore.QPointF(b - a)
-        ab_len2 = ab.x() ** 2 + ab.y() ** 2
-        if ab_len2 == 0:
-            return (ap.x() ** 2 + ap.y() ** 2) ** 0.5
-        t = max(0, min(1, (ap.x() * ab.x() + ap.y() * ab.y()) / ab_len2))
-        closest = QtCore.QPointF(a.x() + ab.x() * t, a.y() + ab.y() * t)
-        dx = closest.x() - p.x()
-        dy = closest.y() - p.y()
-        return (dx ** 2 + dy ** 2) ** 0.5
 
     @staticmethod
     def distance(point1, point2):
