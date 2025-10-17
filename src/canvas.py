@@ -4,14 +4,14 @@ canvas and canvas container
 """
 
 import math
-import random
 import time
 from style import *
 
 
 class Stroke(object):
-    def __init__(self, points, pen_color, pen_size):
+    def __init__(self, points, times, pen_color, pen_size):
         self.points = points
+        self.times = times
         self.pen_color = pen_color
         self.pen_size = pen_size
         self.selected = False
@@ -51,7 +51,9 @@ class DrawingCanvas(QWidget):
 
         # Add strokes
         self.strokes = []
+        self.history = []
         self.current_stroke_points = []
+        self.current_stroke_times = []
 
         # For moving strokes
         self.selected_stroke = None
@@ -97,33 +99,38 @@ class DrawingCanvas(QWidget):
             painter.scale(self.scale_factor, self.scale_factor)
             for stroke in self.strokes:
                 pen = self.create_pen(stroke.pen_size, stroke.pen_color)
-                painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
                 painter.setPen(pen)
-                pts = stroke.points
-                if len(pts) > 1:
-                    for i in range(SECOND_POINT, len(pts)):
-                        painter.drawLine(pts[i - 1], pts[i])
+                self.draw_stroke(stroke, painter)
                 if stroke.selected:
-                    highlight = self.create_pen(stroke.pen_size + 1,
-                                                stroke.pen_color.lighter(130))
+                    highlight = self.create_pen(stroke.pen_size +
+                                                ADD_SELECTED_PEN_SIZE,
+                                                stroke.pen_color.lighter(
+                                                    LIGHTER_COLOR))
                     painter.setPen(highlight)
-                    for i in range(SECOND_POINT, len(pts)):
-                        painter.drawLine(pts[i - 1], pts[i])
-
+                    self.draw_stroke(stroke, painter)
             # Draw the stroke being currently drawn
-            if self.drawing and len(self.current_stroke_points) > 1:
+            if (self.drawing and
+                    len(self.current_stroke_points) > ONLY_ONE_POINT):
                 pen = self.create_pen(self.pen_size,
                                       QtGui.QColor(self.pen_color))
                 painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
                 painter.setPen(pen)
                 pts = self.current_stroke_points
                 for i in range(SECOND_POINT, len(pts)):
-                    painter.drawLine(pts[i - 1], pts[i])
+                    painter.drawLine(pts[i - POINT_BEFORE], pts[i])
 
             painter.restore()
         except Exception as e:
             print("paintEvent crash:", e)
             return
+
+    def draw_stroke(self, stroke, painter):
+        """draws a stroke"""
+        painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
+        pts = stroke.points
+        if len(pts) > ONLY_ONE_POINT:
+            for i in range(SECOND_POINT, len(pts)):
+                painter.drawLine(pts[i - POINT_BEFORE], pts[i])
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
@@ -132,10 +139,13 @@ class DrawingCanvas(QWidget):
             if self.tool in ["pen", "marker"]:
                 self.drawing = True
                 self.current_stroke_points = [pos]
+                self.current_stroke_times = [time.time_ns()]
             elif self.tool == "select":
                 self.selected_stroke = None
                 for stroke in reversed(self.strokes):
-                    if stroke.contains_point(pos, tolerance=2):
+                    if stroke.contains_point(pos,
+                                             stroke.pen_size /
+                                             SELECTED_TOLERANCE):
                         stroke.selected = True
                         self.selected_stroke = stroke
                         self.last_point = pos  # important for movement
@@ -145,10 +155,11 @@ class DrawingCanvas(QWidget):
                 self.update()
             elif self.tool == "eraser":
                 # erase immediately when clicking
-                new_strokes = [
-                    s for s in self.strokes
-                    if not s.contains_point(pos, tolerance=self.pen_size * 1.5)
-                ]
+                new_strokes = []
+                for s in self.strokes:
+                    if not s.contains_point(pos,
+                                            self.pen_size * ERASER_TOLERANCE):
+                        new_strokes.append(s)
                 self.strokes = new_strokes
                 self.update()
 
@@ -169,13 +180,9 @@ class DrawingCanvas(QWidget):
         if self.move_selected_stroke(event, pos):
             return
         if self.drawing:
-            if (self.tool == "eraser" and event.buttons() &
-                  QtCore.Qt.MouseButton.LeftButton):
+            if self.tool in ["pen", "marker"]:
                 self.current_stroke_points.append(pos)
-                self.erase_points(pos)
-                self.update()
-            elif self.tool in ["pen", "marker"] and self.drawing:
-                self.current_stroke_points.append(pos)
+                self.current_stroke_times.append(time.time_ns())
                 self.update()
 
     def move_selected_stroke(self, e, pos):
@@ -190,36 +197,6 @@ class DrawingCanvas(QWidget):
             return True
         return False
 
-    def erase_points(self, pos):
-        """Erase only the part of strokes that are under the eraser"""
-        erase_radius = self.pen_size * 1.5
-        new_strokes = []
-
-        for stroke in self.strokes:
-            if len(stroke.points) < 2:
-                continue
-
-            new_segments = []
-            segment = []
-
-            for i in range(len(stroke.points) - 1):
-                p1 = stroke.points[i]
-                p2 = stroke.points[i + 1]
-                if Stroke.point_line_distance(pos, p1, p2) > erase_radius:
-                    segment.append(p1)
-                else:
-                    if len(segment) > 1:
-                        new_segments.append(segment[:])
-                    segment = []
-            if len(segment) > 1:
-                new_segments.append(segment)
-
-            for seg in new_segments:
-                new_strokes.append(
-                    Stroke(seg, stroke.pen_color, stroke.pen_size))
-
-        self.strokes = new_strokes
-
     @staticmethod
     def distance(point1, point2):
         """calculate distance"""
@@ -227,16 +204,17 @@ class DrawingCanvas(QWidget):
                          (point1.y() - point2.y()) ** SQUARED)
 
     @staticmethod
-    def _are_last_points_close(point_list, close_points_distance,
+    def _are_last_points_close(point_list, time_list, close_points_distance,
                                close_points_time):
         """check if the points are close"""
         if len(point_list) == EMPTY_POINT_LIST:
             return False
         current_time = time.time_ns()
-        for point in point_list:
-            if (current_time - point[TIME_OF_POINT_INDEX] < close_points_time
-                    and DrawingCanvas.distance(point[POINT_INDEX],
-                                           point_list[LAST_POINT][POINT_INDEX])
+        for i in range(len(point_list)):
+            if (current_time - time_list[i] <
+                    close_points_time
+                    and DrawingCanvas.distance(point_list[i],
+                                               point_list[LAST_POINT])
                     > close_points_distance):
                 return False
         return True
@@ -246,17 +224,37 @@ class DrawingCanvas(QWidget):
         and check if it needs to straighten the line """
         if self.is_gesturing:
             return
-        pos = (event.position() / self.scale_factor).toPoint()
-
-        if self.tool in ["pen", "marker"] and self.drawing:
-            self.drawing = False
-            stroke = Stroke(
-                points=self.current_stroke_points[:],
-                pen_color=self.pen_color,
-                pen_size=self.pen_size
+        stroke = Stroke(
+            self.current_stroke_points[:],
+            self.current_stroke_times,
+            self.pen_color,
+            self.pen_size
+        )
+        start_to_end = DrawingCanvas.distance(
+            self.current_stroke_points[STROKE_POINT_START],
+            self.current_stroke_points[STROKE_POINT_END])
+        if (self.drawing and DrawingCanvas._are_last_points_close(
+                self.current_stroke_points,
+                self.current_stroke_times,
+                start_to_end / CLOSE_POINTS_DISTANCE,
+                CLOSE_POINTS_TIME)):
+            new_stroke = Stroke(
+                [self.current_stroke_points[STROKE_POINT_START],
+                 self.current_stroke_points[STROKE_POINT_END]],
+                [self.current_stroke_times[STROKE_POINT_START],
+                 self.current_stroke_times[STROKE_POINT_END]],
+                self.pen_color,
+                self.pen_size
             )
+            self.strokes.append(new_stroke)
+            self.current_stroke_points = []
+            self.current_stroke_times = []
+            self.update()
+        elif self.tool in ["pen", "marker"] and self.drawing:
+            self.drawing = False
             self.strokes.append(stroke)
             self.current_stroke_points = []
+            self.current_stroke_times = []
             self.update()
         elif self.tool == "select":
             if self.selected_stroke:
@@ -264,27 +262,9 @@ class DrawingCanvas(QWidget):
                 self.selected_stroke = None
             self.update()
 
-    def history_push(self):
-        """save the line before straitening"""
-        before_line = self.drawing_layer.copy()
-        self.back()
-        self.history.append(self.drawing_layer.copy())
-        self.history.append(before_line.copy())
-
-    def draw_line(self):
-        """draw the line from the first point to last"""
-        self.history_push()
-        painter = self.create_painter(self.pen_size,
-                                      self.pen_color,
-                                      self.drawing_layer)
-        if self.tool == "marker":
-            for i in range(MARKER_LINE_TIMES):
-                painter.drawLine(self.first_point, self.last_point)
-        painter.drawLine(self.first_point, self.last_point)
-        painter.end()
-
     def clear_canvas(self):
         """cleans the canvas"""
+        self.history = self.strokes
         self.strokes = []
         self.current_stroke_points = []
         self.selected_stroke = None
@@ -299,20 +279,25 @@ class DrawingCanvas(QWidget):
         if not filename:
             return
 
+        scale_factor = self.scale_factor
+        self.scale_factor = START_SCALE_FACTOR
+        self._update_size()
+        self.update()
         result = QtGui.QPixmap(self.size())
         result.fill(Qt.GlobalColor.white)
         painter = QtGui.QPainter(result)
+        painter.scale(self.scale_factor, self.scale_factor)
         painter.drawPixmap(START_PIXMAP, START_PIXMAP, self.background_layer)
         for stroke in self.strokes:
-            pen = QtGui.QPen(stroke.pen_color, stroke.pen_size)
+            pen = self.create_pen(stroke.pen_size, stroke.pen_color)
             painter.setPen(pen)
-            pts = stroke.points
-            if len(pts) > 1:
-                for i in range(SECOND_POINT, len(pts)):
-                    painter.drawLine(pts[i - POINT_BEFORE], pts[i])
+            self.draw_stroke(stroke, painter)
         painter.end()
+        self.scale_factor = scale_factor
+        self._update_size()
+        self.update()
 
-        ext = filename.split(".")[-1].lower()
+        ext = filename.split(".")[FILE_EXTENSION].lower()
         if ext not in ["png", "jpg", "jpeg"]:
             filename += ".png"
         result.save(filename)
@@ -341,8 +326,12 @@ class DrawingCanvas(QWidget):
         self.pen_color = color
 
     def back(self):
+        """remove the last stroke or if empty get history"""
         if self.strokes:
             self.strokes.pop()
+            self.update()
+        else:
+            self.strokes = self.history
             self.update()
 
     def zoom_in(self):
@@ -390,7 +379,7 @@ class DrawingCanvas(QWidget):
         return False
 
     def handle_pinch(self, pinch):
-        """handle zoom in"""
+        """change the scale factor and update the size of the canvas"""
         if pinch.state() == Qt.GestureState.GestureUpdated:
             scale_change = pinch.scaleFactor()
             self.scale_factor *= scale_change

@@ -21,27 +21,18 @@ class ToolbarsEnum(Enum):
     SELECT = 4
 
 
+# window
 WINDOW_SIZE = (650, 650)
-CANVAS_SIZE = (550, 700)
-ROW_LIMITS = (0, CANVAS_SIZE[0])
-COLUMN_LIMITS = (0, CANVAS_SIZE[1])
-TOOLBARS_POSITION = (0, 0, 0, 0)
-PEN_RANGE = (1, 25)
-PEN_START_VALUE = 5
-PEN_STEP = 1
-ERASER_RANGE = (5, 50)
-ERASER_START_VALUE = 10
-ERASER_STEP = 5
-MARKER_RANGE = (10, 100)
-MARKER_START_VALUE = 20
-MARKER_STEP = 10
-TEXT_RANGE = (10, 36)
-TEXT_START_VALUE = 14
-TEXT_STEP = 2
-BUTTON_WIDTH = 50
 MARGIN = (0, 0, 0, 0)
 SPACER = (0, 0)
-BUTTON_SIZE = (60, 30)
+
+# canvas & background
+CANVAS_SIZE = (550, 700)
+START_PIXMAP = 0
+STRETCH = 1
+START_ANGLE = 0
+ROW_LIMITS = (0, CANVAS_SIZE[0])
+COLUMN_LIMITS = (0, CANVAS_SIZE[1])
 LINE_MARGIN = 50
 LEFT_LINE = (LINE_MARGIN, 0, LINE_MARGIN, CANVAS_SIZE[1])
 RIGHT_LINE = (CANVAS_SIZE[0]-LINE_MARGIN, 0, CANVAS_SIZE[0]-LINE_MARGIN,
@@ -55,32 +46,70 @@ NUMBER_LINES_GRID = 45
 ROW_INDEX = 0
 COLUMN_INDEX = 1
 BACKGROUND_PEN_SIZE = 0.5
+
+# toolbar
+TOOLBARS_POSITION = (0, 0, 0, 0)
+# pen
+PEN_RANGE = (1, 25)
+PEN_START_VALUE = 5
+PEN_STEP = 1
+TRANSPARENCY_PEN = 255
+PEN_SIZE_FACTOR = 2
+ADD_SELECTED_PEN_SIZE = 1
+# eraser
+ERASER_RANGE = (5, 50)
+ERASER_START_VALUE = 10
+ERASER_STEP = 5
+ERASER_TOLERANCE = 1.5
+# marker
+MARKER_RANGE = (10, 100)
+MARKER_START_VALUE = 20
+MARKER_STEP = 10
+TRANSPARENCY_MARKER = 50
+
+# button
+BUTTON_WIDTH = 60
+BUTTON_SIZE = (60, 30)
+
+# colors
 CLEAR_COLOR = (0, 0, 0, 0)
-TIME_OF_POINT_INDEX = 1
+LIGHTER_COLOR = 130
+
+# straight line
 CLOSE_POINTS_TIME = 1E9
 CLOSE_POINTS_DISTANCE = 10
+MARKER_LINE_TIMES = 4
 LAST_POINT = -1
-POINT_INDEX = 0
+
+# zoom in
+START_SCALE_FACTOR = 1.0
 SCALE_CHANGE = 1.2
 SCALE_MAX = 5.0
 SCALE_MIN = 0.5
-MARKER_LINE_TIMES = 4
+
+# distance
 SQUARED = 2
-START_PIXMAP = 0
-STRETCH = 1
-START_ANGLE = 0
-TRANSPARENCY_PEN = 255
-TRANSPARENCY_MARKER = 50
-PEN_SIZE_FACTOR = 2
-EMPTY_POINT_LIST = 0
-START_SCALE_FACTOR = 1.0
-FILE_EXTENSION = 1
-SECOND_POINT = 1
-POINT_BEFORE = 1
 SQUARE_ROOT = 0.5
+
+# points
+EMPTY_POINT_LIST = 0
 SAME_POINT = 0
 LINE_POINT_START = 0
 LINE_POINT_END = 1
+SECOND_POINT = 1
+POINT_BEFORE = 1
+ONLY_ONE_POINT = 1
+LESS_THEN_TWO_POINTS = 2
+POINT_AFTER = 1
+STROKE_POINT_START = 0
+STROKE_POINT_END = -1
+
+# file
+FILE_EXTENSION = -1
+
+
+# select
+SELECTED_TOLERANCE = 2
 
 
 COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
@@ -129,13 +158,18 @@ MAIN_WINDOW = """
             QSpinBox{
                 background: #D0E0FF;
                 min-height: 25px;
-                min-width: 35px;
                 font: bold 14px;
                 color: #FFFFFF;
                 border-style: outset;
                 border-width: 2px;
                 border-radius: 1px;
                 border-color: #D3E9FF;
+            }
+            QSpinBox::edit-field {
+                padding-left: 22px;
+            }
+            QSpinBox::up-button, QSpinBox::down-button {
+                width: 20px;
             }
             QComboBox{
                 background: #D0E0FF;

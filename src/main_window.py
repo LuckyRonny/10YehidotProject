@@ -227,6 +227,7 @@ class MainWindow(QtWidgets.QMainWindow):
         size_button.setSingleStep(size_step)
         size_button.valueChanged.connect(self.canvas_widget.change_pen_size)
         size_button.setMinimumWidth(BUTTON_WIDTH)
+        size_button.setMaximumWidth(BUTTON_WIDTH)
         return size_button
 
     def create_color_button(self, colors):
