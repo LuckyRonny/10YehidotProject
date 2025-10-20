@@ -182,7 +182,6 @@ class MainWindow(QtWidgets.QMainWindow):
         pen_size_button = self.create_size_button(PEN_RANGE,
                                                   PEN_START_VALUE,
                                                   PEN_STEP)
-
         # create combo box pen colors
         pen_color_button = self.create_color_button(COLORS_NAMES)
 
@@ -199,7 +198,6 @@ class MainWindow(QtWidgets.QMainWindow):
         marker_size_button = self.create_size_button(MARKER_RANGE,
                                                      MARKER_START_VALUE,
                                                      MARKER_STEP)
-
         # create combo box marker colors
         marker_color_button = self.create_color_button(MARKER_COLORS_NAMES)
 
