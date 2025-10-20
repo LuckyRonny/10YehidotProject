@@ -1,6 +1,6 @@
 """
 Ronny Getz
-imports, magic numbers and style
+magic numbers and style
 """
 
 from enum import Enum
