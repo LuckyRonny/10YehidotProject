@@ -82,17 +82,7 @@ class MainWindow(QtWidgets.QMainWindow):
         for i, toolbar in enumerate(self.sub_toolbars):
             if i == index:
                 is_visible = toolbar.isVisible()
-                toolbar.setVisible(not is_visible)
-                self.page_button.setChecked(i == ToolbarsEnum.PAGE.value and
-                                            not is_visible)
-                self.select_button.setChecked(i == ToolbarsEnum.SELECT.value and
-                                              not is_visible)
-                self.pen_button.setChecked(i == ToolbarsEnum.PEN.value and
-                                           not is_visible)
-                self.marker_button.setChecked(i == ToolbarsEnum.MARKER.value and
-                                              not is_visible)
-                self.eraser_button.setChecked(i == ToolbarsEnum.ERASER.value and
-                                              not is_visible)
+                self.set_checked(i, toolbar, is_visible)
                 if not is_visible:
                     if i == ToolbarsEnum.PAGE.value:
                         self.canvas_widget.set_tool("page")
@@ -117,6 +107,20 @@ class MainWindow(QtWidgets.QMainWindow):
                             self.eraser_size_button.value())
             else:
                 toolbar.setVisible(False)
+
+    def set_checked(self, i, toolbar, is_visible):
+        """set the right toolbar button checked and visible"""
+        toolbar.setVisible(not is_visible)
+        self.page_button.setChecked(i == ToolbarsEnum.PAGE.value and
+                                    not is_visible)
+        self.select_button.setChecked(i == ToolbarsEnum.SELECT.value and
+                                      not is_visible)
+        self.pen_button.setChecked(i == ToolbarsEnum.PEN.value and
+                                   not is_visible)
+        self.marker_button.setChecked(i == ToolbarsEnum.MARKER.value and
+                                      not is_visible)
+        self.eraser_button.setChecked(i == ToolbarsEnum.ERASER.value and
+                                      not is_visible)
 
     def toolbar_button(self, button, index):
         """set features of the button of the sub toolbar buttons"""

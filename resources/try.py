@@ -1,41 +1,15 @@
-from PyQt6 import QtWidgets, QtGui, QtCore
 import sys
+from PyQt6 import QtWidgets, QtGui, QtCore
 
-# --- Placeholder constants (replace with your style.py values) ---
-WINDOW_SIZE = (1000, 700)
-CANVAS_SIZE = (800, 600)
-MARGIN = (10, 10, 10, 10)
-BUTTON_SIZE = (80, 30)
-BUTTON_WIDTH = 50
-SUB_TOOLBAR = ""
-MAIN_WINDOW = ""
-PEN_RANGE = (1, 50)
-PEN_START_VALUE = 5
-PEN_STEP = 1
-MARKER_RANGE = (5, 50)
-MARKER_START_VALUE = 10
-MARKER_STEP = 1
-ERASER_RANGE = (5, 50)
-ERASER_START_VALUE = 10
-ERASER_STEP = 1
-COLORS_NAMES = ["black", "red", "green", "blue"]
-MARKER_COLORS_NAMES = ["yellow", "orange", "pink", "lightblue"]
-TEXT_RANGE = (10, 100)
-TEXT_START_VALUE = 20
-TEXT_STEP = 5
+# --- הגדרות ראשוניות ---
+START_WIDTH = 800
+START_HEIGHT = 600
 
+# צבעים
+COLORS = ["black", "red", "green", "blue", "yellow"]
+MARKER_COLORS = ["red", "green", "blue", "yellow"]
 
-# --- Toolbars Enum ---
-from enum import Enum
-
-
-class ToolbarsEnum(Enum):
-    PAGE = 0
-    PEN = 1
-    MARKER = 2
-    ERASER = 3
-    SELECT = 4
-# --- Drawing Canvas ---
+# --- Stroke class פשוט ---
 class Stroke:
     def __init__(self, points, pen_color, pen_size):
         self.points = points
@@ -43,211 +17,233 @@ class Stroke:
         self.pen_size = pen_size
         self.selected = False
 
-    def contains_point(self, pt, tolerance=5):
-        for i in range(1, len(self.points)):
-            p1, p2 = self.points[i-1], self.points[i]
-            if self._point_line_distance(pt, p1, p2) <= tolerance:
-                return True
-        return False
-
-    @staticmethod
-    def _point_line_distance(p, a, b):
-        ax, ay = a.x(), a.y()
-        bx, by = b.x(), b.y()
-        px, py = p.x(), p.y()
-        dx, dy = bx - ax, by - ay
-        if dx == dy == 0:
-            return ((px - ax)**2 + (py - ay)**2) ** 0.5
-        t = max(0, min(1, ((px - ax)*dx + (py - ay)*dy)/(dx*dx + dy*dy)))
-        closest_x = ax + t*dx
-        closest_y = ay + t*dy
-        return ((px - closest_x)**2 + (py - closest_y)**2) ** 0.5
-
+# --- Canvas class ---
 class DrawingCanvas(QtWidgets.QWidget):
-    def __init__(self, width=800, height=600):
+    def __init__(self, width, height):
         super().__init__()
         self.setFixedSize(width, height)
+        self.strokes = []
+        self.current_stroke_points = []
+        self.drawing = False
+        self.tool = "pen"
+        self.pen_color = QtGui.QColor("black")
+        self.pen_size = 5
+        self.marker_alpha = 120
+
+        # רקע
         self.background_layer = QtGui.QPixmap(self.size())
         self.background_layer.fill(QtCore.Qt.GlobalColor.white)
 
-        self.strokes = []
-        self.current_stroke_points = []
-
-        self.drawing = False
         self.selected_stroke = None
-        self.pen_color = QtGui.QColor("black")
-        self.pen_size = 5
-
-        self.scale_factor = 1.0
+        self.last_point = QtCore.QPoint()
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
+        painter.drawPixmap(0, 0, self.background_layer)
         painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
 
-        painter.save()
-        painter.scale(self.scale_factor, self.scale_factor)
-        painter.drawPixmap(0, 0, self.background_layer)
-        painter.restore()
-
-        painter.save()
-        painter.scale(self.scale_factor, self.scale_factor)
-
-        # Draw all strokes
+        # לצייר את כל הקווים
         for stroke in self.strokes:
             pen = QtGui.QPen(stroke.pen_color, stroke.pen_size)
+            pen.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap)
             painter.setPen(pen)
             pts = stroke.points
             if len(pts) > 1:
                 for i in range(1, len(pts)):
-                    painter.drawLine(pts[i-1], pts[i])
-            if stroke.selected:
-                highlight = QtGui.QPen(QtGui.QColor("red"), stroke.pen_size+2)
-                highlight.setStyle(QtCore.Qt.PenStyle.DashLine)
-                painter.setPen(highlight)
-                for i in range(1, len(pts)):
-                    painter.drawLine(pts[i-1], pts[i])
+                    painter.drawLine(pts[i - 1], pts[i])
 
-        # Draw current stroke
+        # לצייר את הקו הנוכחי בזמן גרירה
         if self.drawing and len(self.current_stroke_points) > 1:
             pen = QtGui.QPen(self.pen_color, self.pen_size)
+            pen.setCapStyle(QtCore.Qt.PenCapStyle.RoundCap)
             painter.setPen(pen)
             pts = self.current_stroke_points
             for i in range(1, len(pts)):
-                painter.drawLine(pts[i-1], pts[i])
-        painter.restore()
+                painter.drawLine(pts[i - 1], pts[i])
 
     def mousePressEvent(self, event):
-        pos = (event.position() / self.scale_factor).toPoint()
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
-            clicked_stroke = None
-            for stroke in reversed(self.strokes):
-                if stroke.contains_point(pos):
-                    clicked_stroke = stroke
-                    break
-            if clicked_stroke:
-                self.selected_stroke = clicked_stroke
-                clicked_stroke.selected = True
-                self.prev_mouse_pos = pos
-            else:
+            pos = event.position().toPoint()
+            if self.tool in ["pen", "marker"]:
                 self.drawing = True
                 self.current_stroke_points = [pos]
+            elif self.tool == "eraser":
+                self.erase_points(pos)
+            elif self.tool == "select":
                 self.selected_stroke = None
-                for s in self.strokes:
-                    s.selected = False
-            self.update()
+                for stroke in reversed(self.strokes):
+                    for p in stroke.points:
+                        if (p - pos).manhattanLength() < 10:
+                            stroke.selected = True
+                            self.selected_stroke = stroke
+                            self.last_point = pos
+                            break
+                    else:
+                        stroke.selected = False
+                self.update()
 
     def mouseMoveEvent(self, event):
-        pos = (event.position() / self.scale_factor).toPoint()
-        if self.drawing:
+        pos = event.position().toPoint()
+        if self.drawing and self.tool in ["pen", "marker"]:
             self.current_stroke_points.append(pos)
             self.update()
-        elif self.selected_stroke:
-            dx = pos.x() - self.prev_mouse_pos.x()
-            dy = pos.y() - self.prev_mouse_pos.y()
-            for i, p in enumerate(self.selected_stroke.points):
-                self.selected_stroke.points[i] = QtCore.QPoint(p.x()+dx, p.y()+dy)
-            self.prev_mouse_pos = pos
+        elif self.tool == "eraser" and event.buttons() & QtCore.Qt.MouseButton.LeftButton:
+            self.erase_points(pos)
+        elif self.tool == "select" and self.selected_stroke and event.buttons() & QtCore.Qt.MouseButton.LeftButton:
+            dx = pos.x() - self.last_point.x()
+            dy = pos.y() - self.last_point.y()
+            self.selected_stroke.points = [QtCore.QPoint(p.x() + dx, p.y() + dy) for p in self.selected_stroke.points]
+            self.last_point = pos
             self.update()
 
     def mouseReleaseEvent(self, event):
-        if self.drawing:
-            if len(self.current_stroke_points) > 1:
-                self.strokes.append(Stroke(self.current_stroke_points.copy(),
-                                           self.pen_color, self.pen_size))
-            self.current_stroke_points = []
+        if self.tool in ["pen", "marker"] and self.drawing:
             self.drawing = False
-            self.update()
-        self.selected_stroke = None
-
-    def zoom_in(self):
-        self.scale_factor *= 1.2
-        self.update()
-    def zoom_out(self):
-        self.scale_factor /= 1.2
-        self.update()
-    def change_pen_size(self, val):
-        self.pen_size = val
-    def change_pen_color(self, index):
-        try:
-            self.pen_color = QtGui.QColor(COLORS_NAMES[index])
-        except:
-            self.pen_color = QtGui.QColor("black")
-    def clear_canvas(self):
-        self.strokes = []
-        self.update()
-    def save_canvas(self):
-        pixmap = QtGui.QPixmap(self.size())
-        self.render(pixmap)
-        pixmap.save("drawing.png")
-    def back(self):
-        if self.strokes:
-            self.strokes.pop()
+            stroke = Stroke(points=self.current_stroke_points[:], pen_color=self.pen_color, pen_size=self.pen_size)
+            self.strokes.append(stroke)
+            self.current_stroke_points = []
             self.update()
 
-# --- Scroll Area ---
-class CanvasContainer(QtWidgets.QWidget):
-    def __init__(self, child_widget):
-        super().__init__()
-        self.child_widget = child_widget
-        layout = QtWidgets.QVBoxLayout()
-        layout.addStretch(1)
-        h_layout = QtWidgets.QHBoxLayout()
-        h_layout.addStretch(1)
-        h_layout.addWidget(child_widget)
-        h_layout.addStretch(1)
-        layout.addLayout(h_layout)
-        layout.addStretch(1)
-        self.setLayout(layout)
+    def erase_points(self, pos):
+        new_strokes = []
+        for stroke in self.strokes:
+            new_points = [p for p in stroke.points if (p - pos).manhattanLength() > self.pen_size * 1.5]
+            if len(new_points) > 1:
+                new_strokes.append(Stroke(new_points, stroke.pen_color, stroke.pen_size))
+        self.strokes = new_strokes
+        self.update()
 
-class CenteredScrollArea(QtWidgets.QScrollArea):
-    def __init__(self, canvas_widget):
+    def set_tool(self, tool_type):
+        self.tool = tool_type
+
+    def set_pen_color(self, color):
+        self.pen_color = QtGui.QColor(color)
+        if self.tool == "marker":
+            self.pen_color.setAlpha(self.marker_alpha)
+
+    def set_pen_size(self, size):
+        self.pen_size = size
+
+    def set_background(self, type_):
+        self.background_layer.fill(QtCore.Qt.GlobalColor.white)
+        if type_ == "lines":
+            painter = QtGui.QPainter(self.background_layer)
+            pen = QtGui.QPen(QtGui.QColor("#666666"))
+            painter.setPen(pen)
+            for y in range(50, self.height(), 50):
+                painter.drawLine(0, y, self.width(), y)
+            painter.end()
+        elif type_ == "grid":
+            painter = QtGui.QPainter(self.background_layer)
+            pen = QtGui.QPen(QtGui.QColor("#666666"))
+            painter.setPen(pen)
+            step = 50
+            for y in range(0, self.height(), step):
+                painter.drawLine(0, y, self.width(), y)
+            for x in range(0, self.width(), step):
+                painter.drawLine(x, 0, x, self.height())
+            painter.end()
+        self.update()
+
+
+# --- Notebook class עם כמה דפים ---
+class Notebook(QtWidgets.QWidget):
+    def __init__(self):
         super().__init__()
-        self.canvas_widget = canvas_widget
-        self.setWidgetResizable(True)
-        container = CanvasContainer(canvas_widget)
-        self.setWidget(container)
-    def wheelEvent(self, event):
-        if (QtWidgets.QApplication.keyboardModifiers() ==
-            QtCore.Qt.KeyboardModifier.ControlModifier):
-            if event.angleDelta().y() > 0:
-                self.canvas_widget.zoom_in()
-            else:
-                self.canvas_widget.zoom_out()
-            event.accept()
-        else:
-            super().wheelEvent(event)
+        self.pages = QtWidgets.QStackedWidget()
+        self.pages_list = []
+
+        btn_prev = QtWidgets.QPushButton("Prev Page")
+        btn_next = QtWidgets.QPushButton("Next Page")
+        btn_add = QtWidgets.QPushButton("Add Page")
+
+        btn_prev.clicked.connect(self.prev_page)
+        btn_next.clicked.connect(self.next_page)
+        btn_add.clicked.connect(self.add_page)
+
+        top_layout = QtWidgets.QHBoxLayout()
+        top_layout.addWidget(btn_prev)
+        top_layout.addWidget(btn_next)
+        top_layout.addWidget(btn_add)
+
+        main_layout = QtWidgets.QVBoxLayout(self)
+        main_layout.addLayout(top_layout)
+        main_layout.addWidget(self.pages)
+
+        self.add_page()  # התחלה עם דף אחד
+
+    def add_page(self):
+        canvas = DrawingCanvas(START_WIDTH, START_HEIGHT)
+        self.pages_list.append(canvas)
+        self.pages.addWidget(canvas)
+        self.pages.setCurrentWidget(canvas)
+
+    def prev_page(self):
+        index = self.pages.currentIndex()
+        if index > 0:
+            self.pages.setCurrentIndex(index - 1)
+
+    def next_page(self):
+        index = self.pages.currentIndex()
+        if index < len(self.pages_list) - 1:
+            self.pages.setCurrentIndex(index + 1)
+
 
 # --- Main Window ---
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setMinimumSize(*WINDOW_SIZE)
-        self.canvas_widget = DrawingCanvas(*CANVAS_SIZE)
+        self.notebook = Notebook()
+        self.setCentralWidget(self.notebook)
 
-        central_widget = QtWidgets.QWidget()
-        self.setCentralWidget(central_widget)
-        central_layout = QtWidgets.QVBoxLayout()
-        central_layout.setContentsMargins(*MARGIN)
-        central_widget.setLayout(central_layout)
+        # כלים
+        toolbar = QtWidgets.QToolBar("Tools")
+        self.addToolBar(toolbar)
 
-        self.main_toolbar = QtWidgets.QToolBar("Main Toolbar")
-        self.main_toolbar.setMovable(False)
-        self.addToolBar(QtCore.Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
+        for tool_name in ["pen", "marker", "eraser", "select"]:
+            btn = QtWidgets.QPushButton(tool_name.capitalize())
+            btn.clicked.connect(lambda checked, t=tool_name: self.set_tool(t))
+            toolbar.addWidget(btn)
 
-        scroll_area = CenteredScrollArea(self.canvas_widget)
-        central_layout.addWidget(scroll_area)
+        # צבעים
+        for color in COLORS:
+            btn = QtWidgets.QPushButton()
+            btn.setStyleSheet(f"background-color: {color}")
+            btn.clicked.connect(lambda checked, c=color: self.set_color(c))
+            toolbar.addWidget(btn)
 
-        # Add clear/save/back buttons
-        for name, func in [("Clear", self.canvas_widget.clear_canvas),
-                           ("Save", self.canvas_widget.save_canvas),
-                           ("Back", self.canvas_widget.back)]:
-            btn = QtWidgets.QPushButton(name)
-            btn.clicked.connect(func)
-            self.main_toolbar.addWidget(btn)
+        # גודל
+        size_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        size_slider.setMinimum(1)
+        size_slider.setMaximum(30)
+        size_slider.setValue(5)
+        size_slider.valueChanged.connect(self.set_size)
+        toolbar.addWidget(size_slider)
 
-# --- Run ---
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+        # רקע
+        for bg in ["blank", "lines", "grid"]:
+            btn = QtWidgets.QPushButton(bg.capitalize())
+            btn.clicked.connect(lambda checked, b=bg: self.set_background(b))
+            toolbar.addWidget(btn)
+
+    def current_canvas(self):
+        return self.notebook.pages.currentWidget()
+
+    def set_tool(self, tool):
+        self.current_canvas().set_tool(tool)
+
+    def set_color(self, color):
+        self.current_canvas().set_pen_color(color)
+
+    def set_size(self, size):
+        self.current_canvas().set_pen_size(size)
+
+    def set_background(self, bg_type):
+        self.current_canvas().set_background(bg_type)
+
+
+# --- הפעלת האפליקציה ---
+app = QtWidgets.QApplication(sys.argv)
+window = MainWindow()
+window.show()
+sys.exit(app.exec())
