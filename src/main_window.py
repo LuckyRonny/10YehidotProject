@@ -2,6 +2,7 @@
 Ronny Getz
 main window
 """
+
 from canvas import *
 
 

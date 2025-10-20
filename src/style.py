@@ -3,13 +3,6 @@ Ronny Getz
 imports, magic numbers and style
 """
 
-import sys
-import PyQt6
-from PyQt6 import QtCore, QtGui, QtWidgets, uic
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QAction
-import os
 from enum import Enum
 
 
