@@ -53,30 +53,25 @@ class DrawingCanvas(QWidget):
         self.setFixedSize(width, height)
         self.background_layer = QtGui.QPixmap(self.size())
         self.background_layer.fill(Qt.GlobalColor.white)
-
         # Add strokes
         self.strokes = []
         self.history = []
         self.current_stroke_points = []
         self.current_stroke_times = []
-
         # For moving strokes
         self.selected_stroke = None
         self.drawing = False
-
         # points and history
         self.history = []
         self.drawing = False
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
         self.points = []
-
         # type and color
         self.pen_color = QtGui.QColor("black")
         self.pen_size = PEN_START_VALUE / PEN_SIZE_FACTOR
         self.tool = "pen"
         self.page_type = "blank"
-
         # zoom in
         self.is_gesturing = False
         self.last_pan_center = None
@@ -239,29 +234,21 @@ class DrawingCanvas(QWidget):
         and check if it needs to straighten the line """
         if self.is_gesturing:
             return
-        stroke = Stroke(
-            self.current_stroke_points[:],
-            self.current_stroke_times,
-            self.pen_color,
-            self.pen_size
-        )
+        stroke = Stroke(self.current_stroke_points[:], self.current_stroke_times
+                        , self.pen_color, self.pen_size)
         if self.current_stroke_times:
             start_to_end = DrawingCanvas.distance(
                 self.current_stroke_points[STROKE_POINT_START],
                 self.current_stroke_points[STROKE_POINT_END])
             if (self.drawing and DrawingCanvas._are_last_points_close(
-                    self.current_stroke_points,
-                    self.current_stroke_times,
-                    start_to_end / CLOSE_POINTS_DISTANCE,
-                    CLOSE_POINTS_TIME)):
+                    self.current_stroke_points, self.current_stroke_times,
+                    start_to_end / CLOSE_POINTS_DISTANCE, CLOSE_POINTS_TIME)):
                 new_stroke = Stroke(
                     [self.current_stroke_points[STROKE_POINT_START],
                      self.current_stroke_points[STROKE_POINT_END]],
                     [self.current_stroke_times[STROKE_POINT_START],
                      self.current_stroke_times[STROKE_POINT_END]],
-                    self.pen_color,
-                    self.pen_size
-                )
+                    self.pen_color, self.pen_size)
                 self.strokes.append(new_stroke)
                 self.current_stroke_points = []
                 self.current_stroke_times = []
@@ -479,24 +466,30 @@ class CanvasContainer(QWidget):
         painter.fillRect(self.rect(), QtGui.QColor("#D3E9FF"))
 
 
-class CenteredScrollArea(QScrollArea):
-    def __init__(self, canvas_widget):
+class CenteredScrollArea(QtWidgets.QScrollArea):
+    def __init__(self, notebook_widget):
         super().__init__()
-        self.canvas_widget = canvas_widget
+
         self.setWidgetResizable(True)
+        self.notebook = notebook_widget
 
-        container = CanvasContainer(canvas_widget)
+        center_widget = QtWidgets.QWidget()
+        center_layout = QtWidgets.QVBoxLayout(center_widget)
+        center_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
-        self.setWidget(container)
+        center_layout.addWidget(notebook_widget,
+                                alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
+
+        self.setWidget(center_widget)
 
     def wheelEvent(self, event):
-        """check if zoom in or out"""
+        """Zoom in/out when scrolling with Ctrl"""
         if (QApplication.keyboardModifiers() ==
                 Qt.KeyboardModifier.ControlModifier):
-            if event.angleDelta().y() > START_ANGLE:
-                self.canvas_widget.zoom_in()
+            if event.angleDelta().y() > 0:
+                self.notebook.zoom_in()
             else:
-                self.canvas_widget.zoom_out()
+                self.notebook.zoom_out()
             event.accept()
         else:
             super().wheelEvent(event)
