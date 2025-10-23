@@ -55,21 +55,25 @@ class MainWindow(QtWidgets.QMainWindow):
             (self.set_tool_for_current("select"))
             toolbar.setVisible(False)
         elif i == ToolbarsEnum.PEN.value:
-            self.set_tool_for_current("pen")
-            self.set_color_for_current(
-                self.pen_color_button.currentIndex())
-            self.set_size_for_current(
-                self.pen_size_button.value())
+            self.tool_size_and_color("pen",
+                                     self.pen_color_button.currentIndex(),
+                                     self.pen_size_button.value())
         elif i == ToolbarsEnum.MARKER.value:
-            self.set_tool_for_current("marker")
-            self.set_color_for_current(
-                self.marker_color_button.currentIndex())
-            self.set_size_for_current(
-                self.marker_size_button.value())
+            self.tool_size_and_color("marker",
+                                     self.marker_color_button.currentIndex(),
+                                     self.marker_size_button.value())
         elif i == ToolbarsEnum.ERASER.value:
-            self.set_tool_for_current("eraser")
-            self.set_size_for_current(
-                self.eraser_size_button.value())
+            self.tool_size_and_color("eraser",
+                                     self.eraser_size_button.value(),
+                                     None)
+
+    def tool_size_and_color(self, tool, size, color):
+        """calls the fuc set_tool_for_current, set_color_for_current
+        and if there is a color set_size_for_current"""
+        self.set_tool_for_current(tool)
+        self.set_color_for_current(size)
+        if color:
+            self.set_size_for_current(color)
 
     def create_buttons(self):
         """create clear, save, back, prev, next, add page buttons"""

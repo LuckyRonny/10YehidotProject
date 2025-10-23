@@ -50,31 +50,47 @@ class DrawingCanvas(QWidget):
     def __init__(self, width, height):
         super().__init__()
         # background layer
+        self.create_background_layer(width, height)
+        # Add strokes
+        self.create_strokes_params()
+        # points and history
+        self.create_history_params()
+        # type and color
+        self.create_pen_params()
+        # zoom in
+        self.create_zoom_in_params(width, height)
+
+    def create_background_layer(self, width, height):
+        """create background layer"""
         self.setFixedSize(width, height)
         self.background_layer = QtGui.QPixmap(self.size())
         self.background_layer.fill(Qt.GlobalColor.white)
-        # Add strokes
+
+    def create_strokes_params(self):
+        """create strokes parameters"""
         self.strokes = []
         self.history = []
         self.current_stroke_points = []
         self.current_stroke_times = []
         self.selected_stroke = None
         self.drawing = False
-        # points and history
+
+    def create_history_params(self):
+        """create history parameters"""
         self.history = []
         self.drawing = False
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
         self.points = []
-        # type and color
+
+    def create_pen_params(self):
+        """create pen parameters"""
         self.pen_color = QtGui.QColor("black")
         self.pen_size = PEN_START_VALUE / PEN_SIZE_FACTOR
         self.tool = "pen"
         self.page_type = "blank"
-        # zoom in
-        self.define_zoom_in(width, height)
 
-    def define_zoom_in(self, width, height):
+    def create_zoom_in_params(self, width, height):
         """creates parameters for zoom in"""
         self.is_gesturing = False
         self.grabGesture(QtCore.Qt.GestureType.PinchGesture)
@@ -89,17 +105,7 @@ class DrawingCanvas(QWidget):
             self.draw_background(painter)
             painter.restore()
             painter.save()
-            for stroke in self.strokes:
-                pen = self.create_pen(stroke.pen_size, stroke.pen_color)
-                painter.setPen(pen)
-                self.draw_stroke(stroke, painter)
-                if stroke.selected:
-                    highlight = self.create_pen(stroke.pen_size +
-                                                ADD_SELECTED_PEN_SIZE,
-                                                stroke.pen_color.lighter(
-                                                    LIGHTER_COLOR))
-                    painter.setPen(highlight)
-                    self.draw_stroke(stroke, painter)
+            self.draw_strokes(painter)
             # Draw the stroke being currently drawn
             if (self.drawing and
                     len(self.current_stroke_points) > ONLY_ONE_POINT):
@@ -108,6 +114,20 @@ class DrawingCanvas(QWidget):
         except Exception as e:
             print("paintEvent crash:", e)
             return
+
+    def draw_strokes(self, painter):
+        """draws all the strokes in the canvas"""
+        for stroke in self.strokes:
+            pen = self.create_pen(stroke.pen_size, stroke.pen_color)
+            painter.setPen(pen)
+            self.draw_stroke(stroke, painter)
+            if stroke.selected:
+                highlight = self.create_pen(stroke.pen_size +
+                                            ADD_SELECTED_PEN_SIZE,
+                                            stroke.pen_color.lighter(
+                                                LIGHTER_COLOR))
+                painter.setPen(highlight)
+                self.draw_stroke(stroke, painter)
 
     def draw_background(self, painter):
         """draw the background"""
@@ -142,23 +162,13 @@ class DrawingCanvas(QWidget):
         and set the correct parameters"""
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             pos = (event.position() / self.scale_factor).toPoint()
-
             if self.tool in ["pen", "marker"]:
                 self.drawing = True
                 self.current_stroke_points = [pos]
                 self.current_stroke_times = [time.time_ns()]
             elif self.tool == "select":
                 self.selected_stroke = None
-                for stroke in reversed(self.strokes):
-                    if stroke.contains_point(pos,
-                                             stroke.pen_size /
-                                             SELECTED_TOLERANCE):
-                        stroke.selected = True
-                        self.selected_stroke = stroke
-                        self.last_point = pos  # important for movement
-                        break
-                    else:
-                        stroke.selected = False
+                self.check_which_selected(pos)
                 self.update()
             elif self.tool == "eraser":
                 # erase immediately when clicking
@@ -169,6 +179,19 @@ class DrawingCanvas(QWidget):
                         new_strokes.append(s)
                 self.strokes = new_strokes
                 self.update()
+
+    def check_which_selected(self, pos):
+        """check which stroke is selected from the end"""
+        for stroke in reversed(self.strokes):
+            if stroke.contains_point(pos,
+                                     stroke.pen_size /
+                                     SELECTED_TOLERANCE):
+                stroke.selected = True
+                self.selected_stroke = stroke
+                self.last_point = pos  # important for movement
+                break
+            else:
+                stroke.selected = False
 
     def create_pen(self, pen_size, pen_color):
         """create the painter with the right parameters"""
@@ -235,37 +258,45 @@ class DrawingCanvas(QWidget):
         and check if it needs to straighten the line """
         if self.is_gesturing:
             return
-        stroke = Stroke(self.current_stroke_points[:],
-                        self.current_stroke_times,
-                        self.pen_color, self.pen_size)
-        if self.current_stroke_times:
+        if self.current_stroke_points:
             start_to_end = DrawingCanvas.distance(
                 self.current_stroke_points[STROKE_POINT_START],
                 self.current_stroke_points[STROKE_POINT_END])
             if (self.drawing and DrawingCanvas._are_last_points_close(
                     self.current_stroke_points, self.current_stroke_times,
                     start_to_end / CLOSE_POINTS_DISTANCE, CLOSE_POINTS_TIME)):
-                new_stroke = Stroke(
-                    [self.current_stroke_points[STROKE_POINT_START],
-                     self.current_stroke_points[STROKE_POINT_END]],
-                    [self.current_stroke_times[STROKE_POINT_START],
-                     self.current_stroke_times[STROKE_POINT_END]],
-                    self.pen_color, self.pen_size)
-                self.strokes.append(new_stroke)
-                self.current_stroke_points = []
-                self.current_stroke_times = []
-                self.update()
+                self.create_straight_line()
             elif self.tool in ["pen", "marker"] and self.drawing:
-                self.drawing = False
-                self.strokes.append(stroke)
-                self.current_stroke_points = []
-                self.current_stroke_times = []
-                self.update()
+                self.end_stroke()
         elif self.tool == "select":
             if self.selected_stroke:
                 self.selected_stroke.selected = False
                 self.selected_stroke = None
             self.update()
+
+    def create_straight_line(self):
+        """create a straight line and resset the parameters"""
+        new_stroke = Stroke(
+            [self.current_stroke_points[STROKE_POINT_START],
+                self.current_stroke_points[STROKE_POINT_END]],
+            [self.current_stroke_times[STROKE_POINT_START],
+                self.current_stroke_times[STROKE_POINT_END]],
+            self.pen_color, self.pen_size)
+        self.strokes.append(new_stroke)
+        self.current_stroke_points = []
+        self.current_stroke_times = []
+        self.update()
+
+    def end_stroke(self):
+        """add the stroke and resset the parameters"""
+        stroke = Stroke(self.current_stroke_points[:],
+                        self.current_stroke_times,
+                        self.pen_color, self.pen_size)
+        self.drawing = False
+        self.strokes.append(stroke)
+        self.current_stroke_points = []
+        self.current_stroke_times = []
+        self.update()
 
     def clear_canvas(self):
         """cleans the canvas"""
