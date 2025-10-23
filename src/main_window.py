@@ -11,56 +11,30 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
-
         # create canvas
         self.notebook_widget = Notebook()
         self.current_page = self.notebook_widget.pages.currentIndex()
-
+        # central_widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_layout = QVBoxLayout()
         central_layout.setContentsMargins(*MARGIN)
         central_widget.setLayout(central_layout)
-
         # toolbar
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
-
+        # sub toolbars
         self.sub_toolbars = []
         self.create_sub_toolbars(central_layout)
-
-        clear_button = QPushButton("clear", self)
-        self.main_toolbar_button(clear_button, self.notebook_widget.
-                                 pages_list[self.current_page].clear_canvas)
-
-        save_button = QPushButton("save", self)
-        self.main_toolbar_button(save_button, self.notebook_widget.
-                                 pages_list[self.current_page].save_canvas)
-
-        back_button = QPushButton("back", self)
-        self.main_toolbar_button(back_button, self.notebook_widget.
-                                 pages_list[self.current_page].back)
-
-        self.btn_prev = QtWidgets.QPushButton("⟨ Prev Page")
-        self.btn_next = QtWidgets.QPushButton("Next Page ⟩")
-        self.btn_add = QtWidgets.QPushButton("+ Add Page")
-
-        self.btn_prev.clicked.connect(self.notebook_widget.prev_page)
-        self.btn_next.clicked.connect(self.notebook_widget.next_page)
-        self.btn_add.clicked.connect(self.notebook_widget.add_page)
-
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addStretch()
-        button_layout.addWidget(self.btn_prev)
-        button_layout.addWidget(self.btn_add)
-        button_layout.addWidget(self.btn_next)
-        button_layout.addStretch()
-
+        # pages button layout
+        self.create_buttons()
+        button_layout = self.create_buttons_layout()
+        # organize widgets
         scroll_area = CenteredScrollArea(self.notebook_widget)
         central_layout.addWidget(scroll_area)
         central_layout.addLayout(button_layout)
-        central_layout.setStretch(0, 1)
+        central_layout.setStretch(SCROLL_AREA, SCROLL_STRETCH)
 
     def show_sub_toolbar(self, index):
         """change between the sub toolbars"""
@@ -69,68 +43,110 @@ class MainWindow(QtWidgets.QMainWindow):
                 is_visible = toolbar.isVisible()
                 self.set_checked(i, toolbar, is_visible)
                 if not is_visible:
-                    if i == ToolbarsEnum.PAGE.value:
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .set_tool("page"))
-                    elif i == ToolbarsEnum.SELECT.value:
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .set_tool("select"))
-                        toolbar.setVisible(False)
-                    elif i == ToolbarsEnum.PEN.value:
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .set_tool("pen"))
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .change_pen_color(
-                            self.pen_color_button.currentIndex()))
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .change_pen_size(
-                            self.pen_size_button.value()))
-                    elif i == ToolbarsEnum.MARKER.value:
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .set_tool("marker"))
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .change_pen_color(
-                            self.marker_color_button.currentIndex()))
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .change_pen_size(self.marker_size_button.value()))
-                    elif i == ToolbarsEnum.ERASER.value:
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .set_tool("eraser"))
-                        (self.notebook_widget.pages_list[self.current_page]
-                         .change_pen_size(self.eraser_size_button.value()))
+                    self.set_tool_and_size_and_color(i, toolbar)
             else:
                 toolbar.setVisible(False)
+
+    def set_tool_and_size_and_color(self, i, toolbar):
+        """check which toolbar is on and sets the tool, size and color"""
+        if i == ToolbarsEnum.PAGE.value:
+            (self.set_tool_for_current("page"))
+        elif i == ToolbarsEnum.SELECT.value:
+            (self.set_tool_for_current("select"))
+            toolbar.setVisible(False)
+        elif i == ToolbarsEnum.PEN.value:
+            self.set_tool_for_current("pen")
+            self.set_color_for_current(
+                self.pen_color_button.currentIndex())
+            self.set_size_for_current(
+                self.pen_size_button.value())
+        elif i == ToolbarsEnum.MARKER.value:
+            self.set_tool_for_current("marker")
+            self.set_color_for_current(
+                self.marker_color_button.currentIndex())
+            self.set_size_for_current(
+                self.marker_size_button.value())
+        elif i == ToolbarsEnum.ERASER.value:
+            self.set_tool_for_current("eraser")
+            self.set_size_for_current(
+                self.eraser_size_button.value())
+
+    def create_buttons(self):
+        """create clear, save, back, prev, next, add page buttons"""
+        clear_button = QPushButton("clear", self)
+        self.main_toolbar_button(clear_button, self.clear_current_page)
+        save_button = QPushButton("save", self)
+        self.main_toolbar_button(save_button, self.save_current_page)
+        back_button = QPushButton("back", self)
+        self.main_toolbar_button(back_button, self.back_current_page)
+
+        self.btn_prev = QtWidgets.QPushButton("⟨ Prev Page")
+        self.btn_next = QtWidgets.QPushButton("Next Page ⟩")
+        self.btn_add = QtWidgets.QPushButton("+ Add Page")
+        self.btn_prev.clicked.connect(self.notebook_widget.prev_page)
+        self.btn_next.clicked.connect(self.notebook_widget.next_page)
+        self.btn_add.clicked.connect(self.notebook_widget.add_page)
+
+    def create_buttons_layout(self):
+        """create button layout"""
+        button_layout = QtWidgets.QHBoxLayout()
+        button_layout.addStretch()
+        button_layout.addWidget(self.btn_prev)
+        button_layout.addWidget(self.btn_add)
+        button_layout.addWidget(self.btn_next)
+        button_layout.addStretch()
+        return button_layout
 
     def create_sub_toolbars(self, central_layout):
         """create the sub toolbars and their buttons"""
         # page toolbar and button
+        self.create_sub_toolbar_page(central_layout)
+        # pen toolbar and button
+        self.create_sub_toolbar_pen(central_layout)
+        # marker toolbar and button
+        self.create_sub_toolbar_marker(central_layout)
+        # eraser toolbar and button
+        self.create_sub_toolbar_eraser(central_layout)
+        # select toolbar and button
+        self.create_sub_toolbar_select(central_layout)
+
+    def create_sub_toolbar_page(self, central_layout):
+        """create page sub toolbar and button"""
         self.page_toolbar = self.create_page_toolbar()
         central_layout.addWidget(self.page_toolbar)
         self.page_button = QPushButton(f"page", self)
         self.toolbar_button(self.page_button, ToolbarsEnum.PAGE.value)
         self.main_toolbar.addWidget(self.page_button)
-        # pen toolbar and button
+
+    def create_sub_toolbar_pen(self, central_layout):
+        """create pen sub toolbar and button"""
         self.pen_toolbar, self.pen_size_button, self.pen_color_button = (
             self.create_pen_toolbar_and_size_and_color())
         central_layout.addWidget(self.pen_toolbar)
         self.pen_button = QPushButton(f"pen", self)
         self.toolbar_button(self.pen_button, ToolbarsEnum.PEN.value)
         self.main_toolbar.addWidget(self.pen_button)
-        # marker toolbar and button
-        self.marker_toolbar, self.marker_size_button, self.marker_color_button \
+
+    def create_sub_toolbar_marker(self, central_layout):
+        """create marker sub toolbar and button"""
+        self.marker_toolbar, self.marker_size_button, self.marker_color_button\
             = (self.create_marker_toolbar_and_size_and_color())
         central_layout.addWidget(self.marker_toolbar)
         self.marker_button = QPushButton(f"marker", self)
         self.toolbar_button(self.marker_button, ToolbarsEnum.MARKER.value)
         self.main_toolbar.addWidget(self.marker_button)
-        # eraser toolbar and button
+
+    def create_sub_toolbar_eraser(self, central_layout):
+        """create eraser sub toolbar and button"""
         self.eraser_toolbar, self.eraser_size_button = (
             self.create_eraser_toolbar_and_size())
         central_layout.addWidget(self.eraser_toolbar)
         self.eraser_button = QPushButton(f"eraser", self)
         self.toolbar_button(self.eraser_button, ToolbarsEnum.ERASER.value)
         self.main_toolbar.addWidget(self.eraser_button)
-        # select toolbar and button
+
+    def create_sub_toolbar_select(self, central_layout):
+        """create select sub toolbar and button"""
         self.select_toolbar = self.create_select_toolbar()
         central_layout.addWidget(self.select_toolbar)
         self.select_button = QPushButton(f"select", self)
@@ -158,6 +174,53 @@ class MainWindow(QtWidgets.QMainWindow):
         button.clicked.connect(
             lambda checked, x=index: self.show_sub_toolbar(x))
 
+    def clear_current_page(self):
+        """calls the clear_canvas func on current page"""
+        canvas = self.notebook_widget.current_canvas()
+        if canvas:
+            canvas.clear_canvas()
+
+    def save_current_page(self):
+        """calls the save func on current page"""
+        canvas = self.notebook_widget.current_canvas()
+        if canvas:
+            canvas.save_canvas()
+
+    def back_current_page(self):
+        """calls the back func on current page"""
+        canvas = self.notebook_widget.current_canvas()
+        if canvas:
+            canvas.back()
+
+    def set_tool_for_current(self, tool_name):
+        """calls the set_tool func on current page"""
+        canvas = self.notebook_widget.current_canvas()
+        if canvas:
+            canvas.set_tool(tool_name)
+
+    def set_size_for_current(self, size):
+        """calls the change_pen_size func on current page"""
+        canvas = self.notebook_widget.current_canvas()
+        if canvas:
+            canvas.change_pen_size(size)
+
+    def set_color_for_current(self, color):
+        """calls the change_pen_color func on current page"""
+        canvas = self.notebook_widget.current_canvas()
+        if canvas:
+            canvas.change_pen_color(color)
+
+    def set_background_for_current(self, background):
+        """calls the right background func on current page"""
+        canvas = self.notebook_widget.current_canvas()
+        if canvas:
+            if background == "grid":
+                canvas.grid()
+            elif background == "lines":
+                canvas.lines()
+            else:
+                canvas.blank()
+
     def toolbar_features(self, toolbar):
         """set features of sub toolbars"""
         toolbar.setMovable(False)
@@ -173,25 +236,28 @@ class MainWindow(QtWidgets.QMainWindow):
         button.setStyleSheet(BUTTON)
         self.main_toolbar.addWidget(button)
 
-    def create_page_toolbar(self):
-        """create page toolbar"""
+    def create_page_buttons(self):
+        """create blank, lines and grid buttons"""
         blank_button = QPushButton("blank", self)
-        blank_button.clicked.connect(self.notebook_widget.pages_list
-                                     [self.current_page].blank)
+        blank_button.clicked.connect(lambda:
+                                     self.set_background_for_current("blank"))
         blank_button.setFixedSize(*BUTTON_SIZE)
         blank_button.setStyleSheet(BUTTON)
-
         lines_button = QPushButton("lines", self)
-        lines_button.clicked.connect(self.notebook_widget.pages_list
-                                     [self.current_page].lines)
+        lines_button.clicked.connect(lambda:
+                                     self.set_background_for_current("lines"))
         lines_button.setFixedSize(*BUTTON_SIZE)
         lines_button.setStyleSheet(BUTTON)
-
         grid_button = QPushButton("grid", self)
-        grid_button.clicked.connect(self.notebook_widget.pages_list
-                                    [self.current_page].grid)
+        grid_button.clicked.connect(lambda:
+                                    self.set_background_for_current("grid"))
         grid_button.setFixedSize(*BUTTON_SIZE)
         grid_button.setStyleSheet(BUTTON)
+        return blank_button, lines_button, grid_button
+
+    def create_page_toolbar(self):
+        """create page toolbar"""
+        blank_button, lines_button, grid_button = self.create_page_buttons()
 
         page_toolbar = QToolBar(f"page")
         self.toolbar_features(page_toolbar)
@@ -260,7 +326,7 @@ class MainWindow(QtWidgets.QMainWindow):
         size_button.setValue(start_value)
         size_button.setSingleStep(size_step)
         size_button.valueChanged.connect(
-            self.notebook_widget.pages_list[self.current_page].change_pen_size)
+            self.set_size_for_current)
         size_button.setMinimumWidth(BUTTON_WIDTH)
         size_button.setMaximumWidth(BUTTON_WIDTH)
         return size_button
@@ -270,7 +336,7 @@ class MainWindow(QtWidgets.QMainWindow):
         color_button = QComboBox()
         color_button.addItems(colors)
         color_button.currentIndexChanged.connect(
-            self.notebook_widget.pages_list[self.current_page].change_pen_color)
+            self.set_color_for_current)
         return color_button
 
 

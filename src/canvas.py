@@ -49,7 +49,7 @@ class Stroke(object):
 class DrawingCanvas(QWidget):
     def __init__(self, width, height):
         super().__init__()
-        # layers
+        # background layer
         self.setFixedSize(width, height)
         self.background_layer = QtGui.QPixmap(self.size())
         self.background_layer.fill(Qt.GlobalColor.white)
@@ -58,7 +58,6 @@ class DrawingCanvas(QWidget):
         self.history = []
         self.current_stroke_points = []
         self.current_stroke_times = []
-        # For moving strokes
         self.selected_stroke = None
         self.drawing = False
         # points and history
@@ -73,10 +72,12 @@ class DrawingCanvas(QWidget):
         self.tool = "pen"
         self.page_type = "blank"
         # zoom in
+        self.define_zoom_in(width, height)
+
+    def define_zoom_in(self, width, height):
+        """creates parameters for zoom in"""
         self.is_gesturing = False
-        self.last_pan_center = None
         self.grabGesture(QtCore.Qt.GestureType.PinchGesture)
-        self.grabGesture(QtCore.Qt.GestureType.PanGesture)
         self.scale_factor = START_SCALE_FACTOR
         self.base_width = width
         self.base_height = height
@@ -222,20 +223,21 @@ class DrawingCanvas(QWidget):
         current_time = time.time_ns()
         for i in range(len(point_list)):
             if (current_time - time_list[i] <
-                    close_points_time
-                    and DrawingCanvas.distance(point_list[i],
-                                               point_list[LAST_POINT])
-                    > close_points_distance):
+                    close_points_time and
+                    DrawingCanvas.distance(point_list[i],
+                                           point_list[LAST_POINT]) >
+                    close_points_distance):
                 return False
         return True
 
     def mouseReleaseEvent(self, event):
-        """when mouse released change resset the tool
+        """when mouse released resset the tool
         and check if it needs to straighten the line """
         if self.is_gesturing:
             return
-        stroke = Stroke(self.current_stroke_points[:], self.current_stroke_times
-                        , self.pen_color, self.pen_size)
+        stroke = Stroke(self.current_stroke_points[:],
+                        self.current_stroke_times,
+                        self.pen_color, self.pen_size)
         if self.current_stroke_times:
             start_to_end = DrawingCanvas.distance(
                 self.current_stroke_points[STROKE_POINT_START],
@@ -281,7 +283,16 @@ class DrawingCanvas(QWidget):
         )
         if not filename:
             return
+        result = self.draw_all_canvas()
+        ext = filename.split(".")[FILE_EXTENSION].lower()
+        if ext not in ["png", "jpg", "jpeg"]:
+            filename += ".png"
+        result.save(filename)
+        QtWidgets.QMessageBox.information(self, "Saved",
+                                          f"Saved to:\n{filename}")
 
+    def draw_all_canvas(self):
+        """ draws all the canvas"""
         scale_factor = self.scale_factor
         self.scale_factor = START_SCALE_FACTOR
         self._update_size()
@@ -299,13 +310,7 @@ class DrawingCanvas(QWidget):
         self.scale_factor = scale_factor
         self._update_size()
         self.update()
-
-        ext = filename.split(".")[FILE_EXTENSION].lower()
-        if ext not in ["png", "jpg", "jpeg"]:
-            filename += ".png"
-        result.save(filename)
-        QtWidgets.QMessageBox.information(self, "Saved",
-                                          f"Saved to:\n{filename}")
+        return result
 
     def set_tool(self, tool_type):
         """set the tool that is used"""
@@ -372,12 +377,6 @@ class DrawingCanvas(QWidget):
             self.is_gesturing = True
             self.handle_pinch(pinch)
             if pinch.state() == Qt.GestureState.GestureFinished:
-                self.is_gesturing = False
-            return True
-        pan = event.gesture(QtCore.Qt.GestureType.PanGesture)
-        if pan:
-            self.is_gesturing = True
-            if pan.state() == Qt.GestureState.GestureFinished:
                 self.is_gesturing = False
             return True
         return False
@@ -486,7 +485,7 @@ class CenteredScrollArea(QtWidgets.QScrollArea):
         """Zoom in/out when scrolling with Ctrl"""
         if (QApplication.keyboardModifiers() ==
                 Qt.KeyboardModifier.ControlModifier):
-            if event.angleDelta().y() > 0:
+            if event.angleDelta().y() > NO_ENGLE:
                 self.notebook.zoom_in()
             else:
                 self.notebook.zoom_out()

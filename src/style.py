@@ -79,6 +79,8 @@ START_SCALE_FACTOR = 1.0
 SCALE_CHANGE = 1.2
 SCALE_MAX = 5.0
 SCALE_MIN = 0.5
+SCROLL_AREA = 0
+SCROLL_STRETCH = 1
 
 # distance
 SQUARED = 2
@@ -100,14 +102,22 @@ STROKE_POINT_END = -1
 # file
 FILE_EXTENSION = -1
 
-
 # select
 SELECTED_TOLERANCE = 2
+
+# pages
+LAST_PAGE_INDEX = -1
+PREV_PAGE = 1
+NEXT_PAGE = 1
+NO_PAGES = 0
+
+# scroll
+NO_ENGLE = 0
 
 
 COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
           "#FFB662", "#F6ED6B", "#98FB98", "#9AD7FF", "#4983E6",
-          "#A873F7", "#F0AEEA",]
+          "#A873F7", "#F0AEEA"]
 COLORS_NAMES = ["black", "gray", "white", "silver", "gold", "red", "orange",
                 "yellow", "green", "light blue", "blue",
                 "purple", "pink"]
@@ -123,6 +133,12 @@ MAIN_WINDOW = """
             QMainWindow {
                 background: #D3E9FF;
             }
+            QStackedWidget {
+                background-color: #D3E9FF;
+            }
+            QWidget {
+                background-color: #D3E9FF;
+            }
             QToolBar {
                 background: #6894EB;
                 padding: 0px;
@@ -136,16 +152,16 @@ MAIN_WINDOW = """
                 border-width: 2px;
                 border-radius: 1px;
                 border-color: #D3E9FF;
-            }  
+            }
             QPushButton:hover{
                 background: #D3E9FF;
                 color: #FFFFFF;
                 font: bold 14px;
-            }  
-            QSpinBox::down-button:hover { 
+            }
+            QSpinBox::down-button:hover {
                 background-color: #D0E0FF;
             }
-            QSpinBox::up-button:hover { 
+            QSpinBox::up-button:hover {
                 background-color: #D0E0FF;
             }
             QSpinBox{
@@ -209,14 +225,14 @@ MAIN_WINDOW = """
                 background-color: #D3E9FF;
             }
             QMessageBox {
-                background-color: #7BA5F9;                
+                background-color: #7BA5F9;
             }
             QMessageBox QLabel {
                 color: #FFFFFF;
                 font: bold 16px
             }
             QScrollArea {
-                background-color: #D3E9FF;   
+                background-color: #D3E9FF;
             }
             QScrollBar:vertical {
                 background: #D3E9FF;
