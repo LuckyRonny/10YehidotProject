@@ -15,11 +15,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.notebook_widget = Notebook()
         self.current_page = self.notebook_widget.pages.currentIndex()
         # central_widget
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        central_layout = QVBoxLayout()
-        central_layout.setContentsMargins(*MARGIN)
-        central_widget.setLayout(central_layout)
+        central_layout = self.create_central_layout()
         # toolbar
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
@@ -31,10 +27,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_buttons()
         button_layout = self.create_buttons_layout()
         # organize widgets
+        self.add_to_central_layout(central_layout, button_layout)
+
+    def add_to_central_layout(self, central_layout, button_layout):
+        """add notebook scroll area buttons layout to the central layout"""
         scroll_area = CenteredScrollArea(self.notebook_widget)
         central_layout.addWidget(scroll_area)
         central_layout.addLayout(button_layout)
         central_layout.setStretch(SCROLL_AREA, SCROLL_STRETCH)
+
+    def create_central_layout(self):
+        """create central layout"""
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        central_layout = QVBoxLayout()
+        central_layout.setContentsMargins(*MARGIN)
+        central_widget.setLayout(central_layout)
+        return central_layout
 
     def show_sub_toolbar(self, index):
         """change between the sub toolbars"""
