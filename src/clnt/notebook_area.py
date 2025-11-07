@@ -4,10 +4,13 @@ main window
 """
 
 from notebook import *
+from scroll_area import *
+from client import *
 
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
+        """constructor"""
         super().__init__()
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
@@ -28,6 +31,8 @@ class MainWindow(QtWidgets.QMainWindow):
         button_layout = self.create_buttons_layout()
         # organize widgets
         self.add_to_central_layout(central_layout, button_layout)
+        # create client
+        self.client = Client()
 
     def add_to_central_layout(self, central_layout, button_layout):
         """add notebook scroll area buttons layout to the central layout"""

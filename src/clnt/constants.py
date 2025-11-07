@@ -1,0 +1,19 @@
+"""
+Ronny getz
+constants client
+"""
+
+PORT = 1800
+IP = "127.0.0.1"
+MSG_LEN = 4
+PARAMETERS = 1
+REQUEST = 0
+HAVE_PARAMETERS = 1
+FOLDER = 0
+FILE = 0
+COPY_TO_FOLDER = 1
+SOFTWARE = 0
+CHUNK = 1024
+FILE_SEND_FILE = 1
+NAME_INDEX = -1
+EOF = b"-1"

@@ -3,12 +3,12 @@ Ronny Getz
 canvas and canvas container
 """
 
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
 import math
 import time
-from style import *
+from stroke import *
 
 
 class DrawingCanvas(QWidget):

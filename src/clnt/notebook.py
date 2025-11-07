@@ -3,11 +3,12 @@ Getz Ronny
 notebook
 """
 
-from canvas import *
+from src.clnt.canvas import *
 
 
 class Notebook(QtWidgets.QWidget):
     def __init__(self):
+        """constructor"""
         super().__init__()
         self.pages = QtWidgets.QStackedWidget()
         self.pages_list = []

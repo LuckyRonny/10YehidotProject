@@ -4,14 +4,25 @@ stroke
 """
 
 from style import *
+from PyQt6 import QtGui
+from PyQt6.QtCore import QPoint
 
 
 class Stroke(object):
     def __init__(self, points, times, pen_color, pen_size):
         """constructor"""
-        self.points = points
+        if any(isinstance(point, QPoint) for point in points):
+            self.points = points
+        else:
+            new_points = []
+            for p in points:
+                new_points.append(QPoint(*p))
+            self.points = new_points
         self.times = times
-        self.pen_color = pen_color
+        if isinstance(pen_color, QtGui.QColor):
+            self.pen_color = pen_color
+        else:
+            self.pen_color = QtGui.QColor(pen_color)
         self.pen_size = pen_size
         self.selected = False
 
@@ -40,3 +51,30 @@ class Stroke(object):
         closest_y = ay + t*dy
         return (((px - closest_x)**SQUARED + (py - closest_y)**SQUARED) **
                 SQUARE_ROOT)
+
+    def __dict__(self):
+        """convert stroke to dictionary"""
+        points_l = []
+        for p in self.points:
+            points_l.append((p.x(), p.y()))
+        stroke_dict = {
+            "points": points_l,
+            "times": self.times,
+            "pen_color": self.pen_color.name(),
+            "pen_size": self.pen_size
+        }
+        return stroke_dict
+
+
+def main():
+    s = Stroke([QPoint(10, 20), QPoint(1, 2)], [1, 2],
+               QtGui.QColor("red"), 12)
+    s_dict = s.__dict__()
+    print(s_dict)
+    new_s = Stroke(**s_dict)
+    print(new_s)
+    print(new_s.points)
+
+
+if __name__ == "__main__":
+    main()

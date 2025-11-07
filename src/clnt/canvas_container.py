@@ -3,9 +3,9 @@ Ronny Getz
 canvas container
 """
 
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtGui
 from PyQt6.QtWidgets import *
-from style import *
+from src.clnt.style import *
 
 
 class CanvasContainer(QWidget):
