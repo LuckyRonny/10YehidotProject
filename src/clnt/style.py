@@ -140,32 +140,34 @@ MAIN_WINDOW = """
                 background-color: #D3E9FF;
             }
             QToolBar {
-                background: #6894EB;
+                background: #1B0BA6;
                 padding: 0px;
                 border: 0px;
             }
             QPushButton {
-                background: #6894EB;
+                background: #1B0BA6;
                 color: #FFFFFF;
-                font: bold 14px;
+                font: 14px;
                 border-style: outset;
                 border-width: 2px;
                 border-radius: 1px;
                 border-color: #D3E9FF;
+                font-family: broadway;
             }
             QPushButton:hover{
                 background: #D3E9FF;
                 color: #FFFFFF;
-                font: bold 14px;
+                font: 14px;
+                font-family: broadway;
             }
             QSpinBox::down-button:hover {
-                background-color: #D0E0FF;
+                background-color: #1B0BA6;
             }
             QSpinBox::up-button:hover {
-                background-color: #D0E0FF;
+                background-color: #1B0BA6;
             }
             QSpinBox{
-                background: #D0E0FF;
+                background: #1B0BA6;
                 min-height: 25px;
                 font: bold 14px;
                 color: #FFFFFF;
@@ -180,8 +182,11 @@ MAIN_WINDOW = """
             QSpinBox::up-button, QSpinBox::down-button {
                 width: 20px;
             }
+            QSpinBox::up-button:hover, QSpinBox::down-button:hover {
+                background: #D3E9FF;
+            }
             QComboBox{
-                background: #D0E0FF;
+                background: #1B0BA6;
                 min-height: 25px;
                 min-width: 45px;
                 font: bold 14px;
@@ -192,7 +197,7 @@ MAIN_WINDOW = """
                 border-color: #D3E9FF;
             }
             QComboBox::button{
-                background: #D0E0FF;
+                background: #1B0BA6;
                 font: bold 14px;
                 color: #FFFFFF;
                 border-style: outset;
@@ -201,7 +206,7 @@ MAIN_WINDOW = """
                 border-color: #D3E9FF;
             }
             QComboBox QAbstractItemView {
-                background: #D0E0FF;
+                background: #1B0BA6;
                 font: bold 14px;
                 color: #FFFFFF;
                 border-style: outset;
@@ -210,7 +215,7 @@ MAIN_WINDOW = """
                 border-color: #D3E9FF;
             }
             QComboBox::item {
-                background: #D0E0FF;
+                background: #1B0BA6;
                 font: bold 14px;
                 color: #FFFFFF;
                 border-style: outset;
@@ -238,20 +243,45 @@ MAIN_WINDOW = """
                 background: #D3E9FF;
             }
             QScrollBar::handle:vertical {
-                background: #769FF3;
+                background: #1B0BA6;
             }
             QScrollBar:horizontal {
                 background: #D3E9FF;
             }
             QScrollBar::handle:horizontal {
-                background: #769FF3;
+                background: #1B0BA6;
+            }
+            QLabel {
+                color: #1B0BA6;
+                font: bold 16px;
+                border-style: outset;
+                font-family: broadway;
+            }
+            QLineEdit {
+                border: 2px solid #1B0BA6;
+                border-radius: 2px;
+                padding: 3px;
+                background-color: #F0F0F0;
+                color: #1B0BA6;
+                font-size: 14px;
+                font-family: broadway;
             }
             """
 SUB_TOOLBAR = """
-                background: #7BA5F9;
+                background: #2E1EBC;
             """
 BUTTON = """
                 QPushButton:hover {
                     background-color: #D3E9FF;
                 }
             """
+LOGIN_BUTTON = """
+                background: #1B0BA6;
+                color: #FFFFFF;
+                font: bold 13px;
+                border-style: outset;
+                border-width: 2px;
+                border-radius: 1px;
+                border-color: #D3E9FF;
+                font-family: broadway;
+        """

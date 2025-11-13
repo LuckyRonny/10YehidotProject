@@ -23,7 +23,8 @@ class Client(object):
         and return the socket
         """
         try:
-            ip, port = winreg_file.Reg.read_reg()
+            #ip, port = winreg_file.Reg.read_reg()
+            ip, port = IP, PORT
             self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.my_socket.connect((ip, port))
         except socket.error as msg:
@@ -60,26 +61,13 @@ class Client(object):
         and if the number of parameters is legal
         """
         req_and_prms = request.split()
-        if (req_and_prms[REQUEST] == "EXIT" and
-                len(req_and_prms[PARAMETERS:]) == NO_PARAMETERS or
-                req_and_prms[REQUEST] == "QUIT" and
-                len(req_and_prms[PARAMETERS:]) == NO_PARAMETERS or
-                req_and_prms[REQUEST] == "TAKE_SCREENSHOT" and
-                len(req_and_prms[PARAMETERS:]) == NO_PARAMETERS or
-                req_and_prms[REQUEST] == "DIR" and
-                len(req_and_prms[PARAMETERS:]) == PARAMETER or
-                req_and_prms[REQUEST] == "DELETE" and
-                len(req_and_prms[PARAMETERS:]) == PARAMETER or
-                req_and_prms[REQUEST] == "COPY" and
-                len(req_and_prms[PARAMETERS:]) == TWO_PARAMETERS or
-                req_and_prms[REQUEST] == "EXECUTE" and
-                len(req_and_prms[PARAMETERS:]) == PARAMETER or
-                req_and_prms[REQUEST] == "SEND_FILE" and
-                len(req_and_prms[PARAMETERS:]) == PARAMETER or
-                req_and_prms[REQUEST] == "RELOAD" and
-                len(req_and_prms[PARAMETERS:]) == NO_PARAMETERS or
-                req_and_prms[REQUEST] == "HISTORY" and
-                len(req_and_prms[PARAMETERS:]) == NO_PARAMETERS):
+        if (req_and_prms[REQUEST] == "login" and
+                not "--" in req_and_prms[1] and not ";" in req_and_prms[1] and
+                not "--" in req_and_prms[2] and not ";" in req_and_prms[2] or
+            req_and_prms[REQUEST] == "signin" and
+                not "--" in req_and_prms[1] and not ";" in req_and_prms[1] and
+                not "--" in req_and_prms[2] and not ";" in req_and_prms[2]
+        ):
             return True
         return False
 

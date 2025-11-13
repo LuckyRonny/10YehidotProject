@@ -13,6 +13,7 @@ import protocol
 import importlib
 import sys
 from constants import *
+import sqlite3
 
 FILE_SENT = "file sent"
 RECEIVED_FILE_LOCATION = "c:\\test_folder\\client"
@@ -189,3 +190,36 @@ class Methods(object):
         history = str(Methods.hist[address])
         Methods.lock.release()
         return history
+
+    @staticmethod
+    def LOGIN(params, socket, address):
+        """
+        check if has a user with this username and password
+        """
+        username = params[0]
+        password = params[1]
+        conn = sqlite3.connect('project.db')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, password))
+        user = cursor.fetchone()
+        conn.close()
+        if user:
+            return "OK"
+        else:
+            return "False"
+
+    @staticmethod
+    def SIGNIN(params, socket, address):
+        """
+
+        """
+        username = params[0]
+        password = params[1]
+        conn = sqlite3.connect('project.db')
+        cursor = conn.cursor()
+        try:
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            conn.commit()
+            return "OK"
+        except sqlite3.IntegrityError:
+            return "False"

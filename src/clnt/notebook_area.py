@@ -12,10 +12,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self):
         """constructor"""
         super().__init__()
+        self.setWindowTitle("Ronny Getz")
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
         # create canvas
-        self.notebook_widget = Notebook()
+        self.notebook_widget = Notebook(None)
         self.current_page = self.notebook_widget.pages.currentIndex()
         # central_widget
         central_layout = self.create_central_layout()

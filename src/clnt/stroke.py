@@ -64,17 +64,3 @@ class Stroke(object):
             "pen_size": self.pen_size
         }
         return stroke_dict
-
-
-def main():
-    s = Stroke([QPoint(10, 20), QPoint(1, 2)], [1, 2],
-               QtGui.QColor("red"), 12)
-    s_dict = s.__dict__()
-    print(s_dict)
-    new_s = Stroke(**s_dict)
-    print(new_s)
-    print(new_s.points)
-
-
-if __name__ == "__main__":
-    main()

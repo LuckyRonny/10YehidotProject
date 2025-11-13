@@ -7,25 +7,42 @@ from src.clnt.canvas import *
 
 
 class Notebook(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, pages_list):
         """constructor"""
         super().__init__()
         self.pages = QtWidgets.QStackedWidget()
         self.pages_list = []
+        if pages_list:
+            for page in pages_list:
+                self.add_page(page)
+
         self.global_scale_factor = START_SCALE_FACTOR
 
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addWidget(self.pages)
+        if not pages_list:
+            self.add_page(None)
 
-        self.add_page()
+    def __dict__(self):
+        """convert notebook to dictionary"""
+        page_l = []
+        for p in self.pages_list:
+            page_l.append(p.__dict__())
+        notebook_dict = {
+            "pages_list": page_l,
+        }
+        return notebook_dict
 
     def current_canvas(self):
         """return current canvas"""
         return self.pages.currentWidget()
 
-    def add_page(self):
+    def add_page(self, page):
         """add another canvas"""
-        canvas = DrawingCanvas(*CANVAS_SIZE)
+        if page:
+            canvas = page
+        else:
+            canvas = DrawingCanvas(*CANVAS_SIZE, None, None)
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
             canvas.scale_factor = prev_canvas.scale_factor

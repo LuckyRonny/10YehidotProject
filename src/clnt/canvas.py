@@ -1,6 +1,6 @@
 """
 Ronny Getz
-canvas and canvas container
+canvas
 """
 
 from PyQt6 import QtCore, QtWidgets
@@ -12,19 +12,32 @@ from stroke import *
 
 
 class DrawingCanvas(QWidget):
-    def __init__(self, width, height):
+    def __init__(self, width, height, strokes, page_type):
         """constructor"""
         super().__init__()
         # background layer
         self.create_background_layer(width, height)
         # Add strokes
-        self.create_strokes_params()
+        self.create_strokes_params(strokes)
         # points and history
         self.create_history_params()
         # type and color
-        self.create_pen_params()
+        self.create_pen_params(page_type)
         # zoom in
         self.create_zoom_in_params(width, height)
+
+    def __dict__(self):
+        """convert canvas to dictionary"""
+        strokes_l = []
+        for s in self.strokes:
+            strokes_l.append(s.__dict__())
+        canvas_dict = {
+            "width": self.base_width,
+            "height": self.base_height,
+            "strokes": strokes_l,
+            "page_type": self.page_type
+        }
+        return canvas_dict
 
     def create_background_layer(self, width, height):
         """create background layer"""
@@ -32,10 +45,12 @@ class DrawingCanvas(QWidget):
         self.background_layer = QtGui.QPixmap(self.size())
         self.background_layer.fill(Qt.GlobalColor.white)
 
-    def create_strokes_params(self):
+    def create_strokes_params(self, strokes):
         """create strokes parameters"""
         self.strokes = []
-        self.history = []
+        if strokes:
+            for s in strokes:
+                self.strokes.append(s.__dict__())
         self.current_stroke_points = []
         self.current_stroke_times = []
         self.selected_stroke = None
@@ -47,14 +62,14 @@ class DrawingCanvas(QWidget):
         self.drawing = False
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
-        self.points = []
 
-    def create_pen_params(self):
+    def create_pen_params(self,page_type):
         """create pen parameters"""
         self.pen_color = QtGui.QColor("black")
         self.pen_size = PEN_START_VALUE / PEN_SIZE_FACTOR
         self.tool = "pen"
-        self.page_type = "blank"
+        if page_type:
+            self.page_type = page_type
 
     def create_zoom_in_params(self, width, height):
         """creates parameters for zoom in"""
