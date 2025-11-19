@@ -114,6 +114,14 @@ NO_PAGES = 0
 # scroll
 NO_ENGLE = 0
 
+# log in & sign up
+LOGIN_STRETCH = 15
+LINE_EDIT_MAX_LENGTH = 10
+BUTTON_HEIGHT = 25
+
+# main window
+ADD_NOTEBOOK_SIZE = 40
+
 
 COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
           "#FFB662", "#F6ED6B", "#98FB98", "#9AD7FF", "#4983E6",
@@ -266,6 +274,29 @@ MAIN_WINDOW = """
                 font-size: 14px;
                 font-family: broadway;
             }
+            """
+ADD_NOTEBOOK_BUTTON = """
+                        background-color: #1B0BA6;
+                        border: 0px
+                    """
+LOGOUT_BUTTON = """
+                    QPushButton {
+                    background-color: #1B0BA6;
+                    font: bold 14px;
+                    padding: 3px;
+                    font-family: broadway;
+                    border: 0px
+                }
+                    QPushButton:hover {
+                    background-color: #5B4CE6;
+                }
+                """
+NAME_LABEL = """
+                background-color: #1B0BA6;
+                color: #FFFFFF;
+                font: bold 14px;
+                border-style: outset;
+                font-family: broadway;
             """
 SUB_TOOLBAR = """
                 background: #2E1EBC;

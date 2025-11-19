@@ -7,7 +7,8 @@ import socket
 import sys
 import threading
 import protocol
-import methods
+import user_manager
+import notebook_manager
 from constants import *
 
 
@@ -38,7 +39,6 @@ class Server(object):
         while not done:
             try:
                 client_socket, address = self.server_socket.accept()
-                methods.Methods.new_hist(address)
                 clnt_thread = threading.Thread(
                     target=self.handle_single_client,
                     args=(client_socket, address))
@@ -61,7 +61,6 @@ class Server(object):
                 response = Server.handle_client_request(request, params,
                                                         client_socket, address)
                 Server.send_response_to_client(response, client_socket)
-                done = request.upper() == "QUIT"
             except socket.error as msg:
                 print("booz!!", msg)
                 done = True
@@ -78,8 +77,7 @@ class Server(object):
         request = protocol.Protocol.recv(client_socket)
         if request == "":
             return None, None
-        methods.Methods.add_to_hist(address, request)
-        req_and_prms = request.split()
+        req_and_prms = request.split("$")
         if len(req_and_prms) > HAVE_PARAMETERS:
             return req_and_prms[REQUEST].upper(), req_and_prms[PARAMETERS:]
         else:
@@ -91,20 +89,20 @@ class Server(object):
         gets a request and check which request to do and
         call the function and returns the response
         """
-        try:
-            cls = getattr(methods, "Methods")
+        if params[REQUEST_TYPE] == "1":
+            cls = getattr(user_manager, "UserManager")
             return getattr(cls, request)(params, client_socket, address)
-        except Exception:
-            if request == "SEND_FILE":
-                Server.send_response_to_client(EOF.decode(), client_socket)
-            return "illegal command"
+        elif params[REQUEST_TYPE] == "2":
+            cls = getattr(notebook_manager, "NotebookManager")
+            return getattr(cls, request)(params, client_socket, address)
+        else:
+            return "false"
 
     @staticmethod
     def send_response_to_client(response, client_socket):
         """
         gets a response and a socket and send the response to the socket
         """
-        response = response.upper()
         protocol.Protocol.send(client_socket, response)
 
 

@@ -2,14 +2,15 @@
 Ronny Getz
 main window
 """
+import ast
 
 from notebook import *
 from scroll_area import *
 from client import *
 
 
-class MainWindow(QtWidgets.QMainWindow):
-    def __init__(self):
+class notebookArea(QtWidgets.QMainWindow):
+    def __init__(self, id, client):
         """constructor"""
         super().__init__()
         self.setWindowTitle("Ronny Getz")
@@ -19,7 +20,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.notebook_widget = Notebook(None)
         self.current_page = self.notebook_widget.pages.currentIndex()
         # central_widget
-        central_layout = self.create_central_layout()
+        central_layout, central_widget = self.create_central_layout()
         # toolbar
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
@@ -28,18 +29,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.sub_toolbars = []
         self.create_sub_toolbars(central_layout)
         # pages button layout
-        self.create_buttons()
-        button_layout = self.create_buttons_layout()
+        self.create_buttons_layout()
+        self.create_buttons(central_widget)
         # organize widgets
-        self.add_to_central_layout(central_layout, button_layout)
+        self.add_to_central_layout(central_layout)
         # create client
-        self.client = Client()
+        self.id = id
+        self.client = client
 
-    def add_to_central_layout(self, central_layout, button_layout):
+    def add_to_central_layout(self, central_layout):
         """add notebook scroll area buttons layout to the central layout"""
-        scroll_area = CenteredScrollArea(self.notebook_widget)
-        central_layout.addWidget(scroll_area)
-        central_layout.addLayout(button_layout)
+        self.scroll_area = CenteredScrollArea(self.notebook_widget)
+        central_layout.setContentsMargins(*MARGIN)
+        central_layout.addWidget(self.scroll_area)
+        central_layout.addLayout(self.button_layout)
         central_layout.setStretch(SCROLL_AREA, SCROLL_STRETCH)
 
     def create_central_layout(self):
@@ -47,9 +50,8 @@ class MainWindow(QtWidgets.QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_layout = QVBoxLayout()
-        central_layout.setContentsMargins(*MARGIN)
         central_widget.setLayout(central_layout)
-        return central_layout
+        return central_layout, central_widget
 
     def show_sub_toolbar(self, index):
         """change between the sub toolbars"""
@@ -90,15 +92,20 @@ class MainWindow(QtWidgets.QMainWindow):
         if color:
             self.set_size_for_current(color)
 
-    def create_buttons(self):
+    def create_buttons(self,central_widget):
         """create clear, save, back, prev, next, add page buttons"""
         clear_button = QPushButton("clear", self)
         self.main_toolbar_button(clear_button, self.clear_current_page)
         save_button = QPushButton("save", self)
         self.main_toolbar_button(save_button, self.save_current_page)
+        get_notebook_button = QPushButton("get notebook", self)
+        self.main_toolbar_button(get_notebook_button, lambda: self.get_notebook(central_widget))
         back_button = QPushButton("back", self)
         self.main_toolbar_button(back_button, self.back_current_page)
 
+
+    def create_buttons_layout(self):
+        """create button layout"""
         self.btn_prev = QtWidgets.QPushButton("⟨ Prev Page")
         self.btn_next = QtWidgets.QPushButton("Next Page ⟩")
         self.btn_add = QtWidgets.QPushButton("+ Add Page")
@@ -106,15 +113,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_next.clicked.connect(self.notebook_widget.next_page)
         self.btn_add.clicked.connect(self.notebook_widget.add_page)
 
-    def create_buttons_layout(self):
-        """create button layout"""
-        button_layout = QtWidgets.QHBoxLayout()
-        button_layout.addStretch()
-        button_layout.addWidget(self.btn_prev)
-        button_layout.addWidget(self.btn_add)
-        button_layout.addWidget(self.btn_next)
-        button_layout.addStretch()
-        return button_layout
+        self.button_layout = QtWidgets.QHBoxLayout()
+        self.button_layout.addStretch()
+        self.button_layout.addWidget(self.btn_prev)
+        self.button_layout.addWidget(self.btn_add)
+        self.button_layout.addWidget(self.btn_next)
+        self.button_layout.addStretch()
 
     def create_sub_toolbars(self, central_layout):
         """create the sub toolbars and their buttons"""
@@ -201,9 +205,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def save_current_page(self):
         """calls the save func on current page"""
-        canvas = self.notebook_widget.current_canvas()
-        if canvas:
-            canvas.save_canvas()
+        command = "add_notebook$" + str(self.id) + "$" + repr(self.notebook_widget.__dict__()) + "$2"
+        print(self.client.send_command(command))
+
+    def get_notebook(self, central_widget):
+        """calls the save func on current page"""
+        command = "get_notebook$" + str(self.id) + "$2"
+        notebook = ast.literal_eval(self.client.send_command(command))
+        self.notebook_widget = Notebook(**notebook)
 
     def back_current_page(self):
         """calls the back func on current page"""
@@ -361,6 +370,6 @@ class MainWindow(QtWidgets.QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
-    window = MainWindow()
+    window = notebookArea("ronny", Client())
     window.show()
     app.exec()

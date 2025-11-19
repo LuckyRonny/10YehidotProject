@@ -3,7 +3,7 @@ Getz Ronny
 notebook
 """
 
-from src.clnt.canvas import *
+from canvas import *
 
 
 class Notebook(QtWidgets.QWidget):
@@ -14,7 +14,7 @@ class Notebook(QtWidgets.QWidget):
         self.pages_list = []
         if pages_list:
             for page in pages_list:
-                self.add_page(page)
+                self.add_page(DrawingCanvas(**page))
 
         self.global_scale_factor = START_SCALE_FACTOR
 

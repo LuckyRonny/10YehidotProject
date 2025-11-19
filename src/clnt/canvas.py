@@ -50,7 +50,7 @@ class DrawingCanvas(QWidget):
         self.strokes = []
         if strokes:
             for s in strokes:
-                self.strokes.append(s.__dict__())
+                self.strokes.append(Stroke(**s))
         self.current_stroke_points = []
         self.current_stroke_times = []
         self.selected_stroke = None
@@ -68,6 +68,7 @@ class DrawingCanvas(QWidget):
         self.pen_color = QtGui.QColor("black")
         self.pen_size = PEN_START_VALUE / PEN_SIZE_FACTOR
         self.tool = "pen"
+        self.page_type = "blank"
         if page_type:
             self.page_type = page_type
 

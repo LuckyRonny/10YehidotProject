@@ -60,13 +60,15 @@ class Client(object):
         gets a request and checks if the request legal
         and if the number of parameters is legal
         """
-        req_and_prms = request.split()
-        if (req_and_prms[REQUEST] == "login" and
+        req_and_prms = request.split("$")
+        if (req_and_prms[REQUEST] == "login" and len(req_and_prms) == 4 and
                 not "--" in req_and_prms[1] and not ";" in req_and_prms[1] and
                 not "--" in req_and_prms[2] and not ";" in req_and_prms[2] or
-            req_and_prms[REQUEST] == "signin" and
+            req_and_prms[REQUEST] == "signup" and len(req_and_prms) == 5 and
                 not "--" in req_and_prms[1] and not ";" in req_and_prms[1] and
-                not "--" in req_and_prms[2] and not ";" in req_and_prms[2]
+                not "--" in req_and_prms[2] and not ";" in req_and_prms[2] or
+            req_and_prms[REQUEST] == "add_notebook" and len(req_and_prms) == 4 or
+            req_and_prms[REQUEST] == "get_notenook" and len(req_and_prms) == 3
         ):
             return True
         return False
@@ -81,7 +83,7 @@ class Client(object):
         """
         gets a socket and gets a data from the server and prints it
         """
-        req_and_prms = request.split()
+        req_and_prms = request.split("$")
         if req_and_prms[REQUEST] == "SEND_FILE":
             methods.Methods.receive_file_request(request, self.my_socket)
             data = protocol.Protocol.recv(self.my_socket)
