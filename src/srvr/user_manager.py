@@ -19,12 +19,15 @@ class UserManager(object):
         password = params[PASSWORD]
         conn = sqlite3.connect('NotebookDB.db')
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM Users WHERE user_name = ? AND password = ?", (username, password))
+        cursor.execute(
+            "SELECT * FROM Users WHERE user_name = ? AND password = ?",
+            (username, password))
         user = cursor.fetchone()
         conn.close()
         if user:
-            return str(user[NAME_OF_USER])
+            return str(user[ID_OF_USER]) + "!" + str(user[1])
         else:
+
             return "False"
 
 
@@ -39,15 +42,14 @@ class UserManager(object):
         conn = sqlite3.connect('NotebookDB.db')
         cursor = conn.cursor()
         try:
-            cursor.execute("INSERT INTO Users (user_name, password, name) VALUES (?, ?, ?)",
-                           (username, password, name))
+            cursor.execute(
+                "INSERT INTO Users (user_name, password, name) VALUES (?, ?, ?)",
+                (username, password, name))
             conn.commit()
-            cursor.execute("SELECT * FROM Users WHERE user_name = ? AND password = ?",
-                           (username, password))
-            user = cursor.fetchone()
+            id = cursor.lastrowid
             conn.close()
-            if user:
-                return str(user[NAME_OF_USER])
+            if id:
+                return str(id)
             else:
                 return "False"
         except sqlite3.IntegrityError:

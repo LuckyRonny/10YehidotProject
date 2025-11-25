@@ -7,17 +7,16 @@ from canvas import *
 
 
 class Notebook(QtWidgets.QWidget):
-    def __init__(self, pages_list):
+    def __init__(self, pages_list, notebook_area):
         """constructor"""
         super().__init__()
+        self.notebook_area = notebook_area
         self.pages = QtWidgets.QStackedWidget()
         self.pages_list = []
         if pages_list:
             for page in pages_list:
-                self.add_page(DrawingCanvas(**page))
-
+                self.add_page(DrawingCanvas(**page, notebook_area=notebook_area))
         self.global_scale_factor = START_SCALE_FACTOR
-
         main_layout = QtWidgets.QVBoxLayout(self)
         main_layout.addWidget(self.pages)
         if not pages_list:
@@ -42,7 +41,7 @@ class Notebook(QtWidgets.QWidget):
         if page:
             canvas = page
         else:
-            canvas = DrawingCanvas(*CANVAS_SIZE, None, None)
+            canvas = DrawingCanvas(*CANVAS_SIZE, None, None, self.notebook_area)
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
             canvas.scale_factor = prev_canvas.scale_factor

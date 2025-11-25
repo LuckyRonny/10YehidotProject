@@ -12,7 +12,7 @@ from stroke import *
 
 
 class DrawingCanvas(QWidget):
-    def __init__(self, width, height, strokes, page_type):
+    def __init__(self, width, height, strokes, page_type, notebook_area):
         """constructor"""
         super().__init__()
         # background layer
@@ -25,6 +25,7 @@ class DrawingCanvas(QWidget):
         self.create_pen_params(page_type)
         # zoom in
         self.create_zoom_in_params(width, height)
+        self.notebook_area = notebook_area
 
     def __dict__(self):
         """convert canvas to dictionary"""
@@ -68,9 +69,14 @@ class DrawingCanvas(QWidget):
         self.pen_color = QtGui.QColor("black")
         self.pen_size = PEN_START_VALUE / PEN_SIZE_FACTOR
         self.tool = "pen"
-        self.page_type = "blank"
-        if page_type:
-            self.page_type = page_type
+        self.page_type = page_type
+        if page_type == "grid":
+            self.grid()
+        elif page_type == "lines":
+            self.lines()
+        else:
+            self.blank()
+
 
     def create_zoom_in_params(self, width, height):
         """creates parameters for zoom in"""
@@ -93,6 +99,8 @@ class DrawingCanvas(QWidget):
                     len(self.current_stroke_points) > ONLY_ONE_POINT):
                 self.draw_current_stroke(painter)
             painter.restore()
+            if self.notebook_area:
+                self.notebook_area.save_notebook()
         except Exception as e:
             print("paintEvent crash:", e)
             return

@@ -116,11 +116,12 @@ NO_ENGLE = 0
 
 # log in & sign up
 LOGIN_STRETCH = 15
-LINE_EDIT_MAX_LENGTH = 10
+LINE_EDIT_MAX_LENGTH = 20
 BUTTON_HEIGHT = 25
 
 # main window
 ADD_NOTEBOOK_SIZE = 40
+ADD_BUTTON_SIZE = (40, 40)
 
 
 COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
@@ -276,18 +277,23 @@ MAIN_WINDOW = """
             }
             """
 ADD_NOTEBOOK_BUTTON = """
-                        background-color: #1B0BA6;
-                        border: 0px
+                        QPushButton {
+                            background-color: #1B0BA6;
+                            border: 0px
+                        }
+                        QPushButton:hover {
+                            background-color: #5B4CE6;
+                        }
                     """
 LOGOUT_BUTTON = """
-                    QPushButton {
+                QPushButton {
                     background-color: #1B0BA6;
                     font: bold 14px;
                     padding: 3px;
                     font-family: broadway;
                     border: 0px
                 }
-                    QPushButton:hover {
+                QPushButton:hover {
                     background-color: #5B4CE6;
                 }
                 """
@@ -316,3 +322,38 @@ LOGIN_BUTTON = """
                 border-color: #D3E9FF;
                 font-family: broadway;
         """
+ADD_NOTEBOOK_FRAME = """
+                    QFrame {
+                        background-color: #D3E9FF;
+                        border-style: outset;
+                        border-width: 3px;
+                        border-radius: 1px;
+                        border-color: #1B0BA6 
+                    }
+                    QPushButton {
+                        background-color: #1B0BA6;
+                        font: bold 14px;
+                        padding: 3px;
+                        font-family: broadway;
+                        border: 0px
+                    }
+                    QPushButton:hover {
+                        background-color: #5B4CE6;
+                    }
+                    QLabel {
+                        color: #1B0BA6;
+                        font: bold 16px;
+                        border-style: outset;
+                        font-family: broadway;
+                        border: false
+                    }
+                    QLineEdit {
+                        border: 2px solid #1B0BA6;
+                        border-radius: 2px;
+                        padding: 3px;
+                        background-color: #F0F0F0;
+                        color: #1B0BA6;
+                        font-size: 14px;
+                        font-family: broadway;
+                    }
+                    """

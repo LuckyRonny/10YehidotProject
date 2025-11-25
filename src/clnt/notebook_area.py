@@ -2,22 +2,22 @@
 Ronny Getz
 main window
 """
-import ast
-
 from notebook import *
 from scroll_area import *
-from client import *
 
 
-class notebookArea(QtWidgets.QMainWindow):
-    def __init__(self, id, client):
+class NotebookArea(QtWidgets.QMainWindow):
+    def __init__(self, mainwindow, id, client, notebook, name):
         """constructor"""
         super().__init__()
         self.setWindowTitle("Ronny Getz")
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
         # create canvas
-        self.notebook_widget = Notebook(None)
+        if notebook:
+            self.notebook_widget = Notebook(**notebook, notebook_area=self)
+        else:
+            self.notebook_widget = Notebook(None, notebook_area=self)
         self.current_page = self.notebook_widget.pages.currentIndex()
         # central_widget
         central_layout, central_widget = self.create_central_layout()
@@ -36,6 +36,14 @@ class notebookArea(QtWidgets.QMainWindow):
         # create client
         self.id = id
         self.client = client
+        self.name = name
+        self.main_window = mainwindow
+
+    def save_notebook(self):
+        """"""
+        command = ("add_notebook$" + self.name + "$" +
+                   repr(self.notebook_widget.__dict__()) + "$2")
+        self.client.send_command(command)
 
     def add_to_central_layout(self, central_layout):
         """add notebook scroll area buttons layout to the central layout"""
@@ -96,10 +104,6 @@ class notebookArea(QtWidgets.QMainWindow):
         """create clear, save, back, prev, next, add page buttons"""
         clear_button = QPushButton("clear", self)
         self.main_toolbar_button(clear_button, self.clear_current_page)
-        save_button = QPushButton("save", self)
-        self.main_toolbar_button(save_button, self.save_current_page)
-        get_notebook_button = QPushButton("get notebook", self)
-        self.main_toolbar_button(get_notebook_button, lambda: self.get_notebook(central_widget))
         back_button = QPushButton("back", self)
         self.main_toolbar_button(back_button, self.back_current_page)
 
@@ -202,17 +206,6 @@ class notebookArea(QtWidgets.QMainWindow):
         canvas = self.notebook_widget.current_canvas()
         if canvas:
             canvas.clear_canvas()
-
-    def save_current_page(self):
-        """calls the save func on current page"""
-        command = "add_notebook$" + str(self.id) + "$" + repr(self.notebook_widget.__dict__()) + "$2"
-        print(self.client.send_command(command))
-
-    def get_notebook(self, central_widget):
-        """calls the save func on current page"""
-        command = "get_notebook$" + str(self.id) + "$2"
-        notebook = ast.literal_eval(self.client.send_command(command))
-        self.notebook_widget = Notebook(**notebook)
 
     def back_current_page(self):
         """calls the back func on current page"""
@@ -367,9 +360,7 @@ class notebookArea(QtWidgets.QMainWindow):
             self.set_color_for_current)
         return color_button
 
-
-if __name__ == '__main__':
-    app = QApplication([])
-    window = notebookArea("ronny", Client())
-    window.show()
-    app.exec()
+    def closeEvent(self, event):
+        """open back the main window"""
+        self.main_window.show()
+        event.accept()

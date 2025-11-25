@@ -23,8 +23,7 @@ class Client(object):
         and return the socket
         """
         try:
-            #ip, port = winreg_file.Reg.read_reg()
-            ip, port = IP, PORT
+            ip, port = winreg_file.Reg.read_reg()
             self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.my_socket.connect((ip, port))
         except socket.error as msg:
@@ -67,8 +66,14 @@ class Client(object):
             req_and_prms[REQUEST] == "signup" and len(req_and_prms) == 5 and
                 not "--" in req_and_prms[1] and not ";" in req_and_prms[1] and
                 not "--" in req_and_prms[2] and not ";" in req_and_prms[2] or
-            req_and_prms[REQUEST] == "add_notebook" and len(req_and_prms) == 4 or
-            req_and_prms[REQUEST] == "get_notenook" and len(req_and_prms) == 3
+            req_and_prms[REQUEST] == "add_notebook"
+                or
+            req_and_prms[REQUEST] == "get_notebook" and len(req_and_prms) == 3
+                or
+            req_and_prms[REQUEST] == "add_notebook_to_db" and
+                len(req_and_prms) == 5 or
+            req_and_prms[REQUEST] == "clients_notebooks" and
+                len(req_and_prms) == 3
         ):
             return True
         return False

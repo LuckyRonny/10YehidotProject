@@ -9,6 +9,7 @@ import threading
 import protocol
 import user_manager
 import notebook_manager
+import user_notebook_manager
 from constants import *
 
 
@@ -94,6 +95,9 @@ class Server(object):
             return getattr(cls, request)(params, client_socket, address)
         elif params[REQUEST_TYPE] == "2":
             cls = getattr(notebook_manager, "NotebookManager")
+            return getattr(cls, request)(params, client_socket, address)
+        elif params[REQUEST_TYPE] == "3":
+            cls = getattr(user_notebook_manager, "UserNotebookManager")
             return getattr(cls, request)(params, client_socket, address)
         else:
             return "false"

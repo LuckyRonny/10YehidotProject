@@ -6,6 +6,8 @@ window log in
 from sign_up import *
 from style import *
 from main_window import *
+from client import *
+
 
 class LoginWindow(QtWidgets.QMainWindow):
     def __init__(self):
@@ -19,17 +21,21 @@ class LoginWindow(QtWidgets.QMainWindow):
         central_layout = QVBoxLayout()
         central_widget.setLayout(central_layout)
         username_layout = QHBoxLayout()
-        self.username_line_edit = self.create_layout(username_layout, "Username: ")
+        self.username_line_edit = self.create_layout(username_layout,
+                                                     "Username: ")
         password_layout = QHBoxLayout()
-        self.password_line_edit = self.create_layout(password_layout, "Password: ")
+        self.password_line_edit = self.create_layout(password_layout,
+                                                     "Password: ")
         error_layout = QHBoxLayout()
         self.error_label = self.create_error_layout(error_layout)
         button_layout = QHBoxLayout()
         self.create_button_layout(button_layout)
-        self.create_central_layout(central_layout, username_layout, password_layout, button_layout, error_layout)
+        self.create_central_layout(central_layout, username_layout,
+                                   password_layout, button_layout, error_layout)
         self.client = Client()
 
-    def create_central_layout(self, central_layout, username_layout, password_layout, button_layout, error_layout):
+    def create_central_layout(self, central_layout, username_layout,
+                              password_layout, button_layout, error_layout):
         """create central layout"""
         central_layout.setContentsMargins(*MARGIN)
         central_layout.addStretch(LOGIN_STRETCH)
@@ -84,18 +90,21 @@ class LoginWindow(QtWidgets.QMainWindow):
         username = self.username_line_edit.text()
         password = self.password_line_edit.text()
         request = "login$" + username + "$" + password + "$1"
-        response = self.client.send_command(request)
+        response = self.client.send_command(request).split("!")
+        name = response[1]
+        response = response[0]
         if response == "ILLEGAL REQUEST" or response == "FALSE":
-           self.error_label.setText("Login Failed, one or more of the parameters is incorrect")
+           self.error_label.setText(
+               "Login Failed, one or more of the parameters is incorrect")
         else:
             print(response)
-            self.main_window = MainWindow(self.client, response, self)
+            self.main_window = MainWindow(self.client, response, self, name)
             self.main_window.show()
             self.hide()
 
     def signin_button_clicked(self):
         """switch to sign up window"""
-        self.signup_window = SignupWindow()
+        self.signup_window = SignupWindow(self)
         self.signup_window.show()
         self.hide()
 
