@@ -138,6 +138,8 @@ class MainWindow(QtWidgets.QMainWindow):
         if self.client.send_command(command) == "ok":
             self.box.setVisible(False)
             button = self.create_notebook_button(notebook_name)
+            self.notebooks_buttons.append(button)
+            button.clicked.connect(lambda: self.open_notebook(notebook_name))
             self.notebooks_layout.addWidget(button)
 
     def resizeEvent(self, event):

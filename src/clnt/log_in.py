@@ -91,14 +91,15 @@ class LoginWindow(QtWidgets.QMainWindow):
         password = self.password_line_edit.text()
         request = "login$" + username + "$" + password + "$1"
         response = self.client.send_command(request).split("!")
-        name = response[1]
-        response = response[0]
-        if response == "ILLEGAL REQUEST" or response == "FALSE":
+        response_name = response[0]
+        if (response_name.upper() == "ILLEGAL REQUEST" or
+                response_name.upper() == "FALSE"):
            self.error_label.setText(
                "Login Failed, one or more of the parameters is incorrect")
         else:
             print(response)
-            self.main_window = MainWindow(self.client, response, self, name)
+            name = response[1]
+            self.main_window = MainWindow(self.client, response_name, self, name)
             self.main_window.show()
             self.hide()
 
