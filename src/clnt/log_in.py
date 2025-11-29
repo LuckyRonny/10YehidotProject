@@ -33,6 +33,8 @@ class LoginWindow(QtWidgets.QMainWindow):
         password_layout = QHBoxLayout()
         self.password_line_edit = self.create_layout(password_layout,
                                                      "Password: ")
+        self.password_line_edit.setEchoMode(
+            QtWidgets.QLineEdit.EchoMode.Password)
         error_layout = QHBoxLayout()
         self.error_label = self.create_error_layout(error_layout)
         button_layout = QHBoxLayout()
