@@ -6,6 +6,7 @@ user manager server
 import threading
 import sqlite3
 from constants import *
+NAME_OF_USER = 1
 
 
 class UserManager(object):
@@ -25,11 +26,10 @@ class UserManager(object):
         user = cursor.fetchone()
         conn.close()
         if user:
-            return str(user[ID_OF_USER]) + "!" + str(user[1])
+            return str(user[ID_OF_USER]) + "!" + str(user[NAME_OF_USER])
         else:
 
             return "False"
-
 
     @staticmethod
     def SIGNUP(params, socket, address):
@@ -41,10 +41,9 @@ class UserManager(object):
         name = params[SIGNUP_NAME]
         conn = sqlite3.connect('NotebookDB.db')
         cursor = conn.cursor()
+        sql = "INSERT INTO Users (user_name, password, name) VALUES (?, ?, ?)"
         try:
-            cursor.execute(
-                "INSERT INTO Users (user_name, password, name) VALUES (?, ?, ?)",
-                (username, password, name))
+            cursor.execute(sql, (username, password, name))
             conn.commit()
             id = cursor.lastrowid
             conn.close()

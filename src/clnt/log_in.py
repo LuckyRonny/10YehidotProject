@@ -4,9 +4,11 @@ window log in
 """
 
 from sign_up import *
-from style import *
 from main_window import *
 from client import *
+
+RETURNED_USERNAME = 0
+RETURNED_NAME = 1
 
 
 class LoginWindow(QtWidgets.QMainWindow):
@@ -16,6 +18,11 @@ class LoginWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("Sign in")
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
+        self.create_central_widget()
+        self.client = Client()
+
+    def create_central_widget(self):
+        """creates central widget"""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_layout = QVBoxLayout()
@@ -31,8 +38,8 @@ class LoginWindow(QtWidgets.QMainWindow):
         button_layout = QHBoxLayout()
         self.create_button_layout(button_layout)
         self.create_central_layout(central_layout, username_layout,
-                                   password_layout, button_layout, error_layout)
-        self.client = Client()
+                                   password_layout, button_layout,
+                                   error_layout)
 
     def create_central_layout(self, central_layout, username_layout,
                               password_layout, button_layout, error_layout):
@@ -67,23 +74,24 @@ class LoginWindow(QtWidgets.QMainWindow):
     def create_button_layout(self, button_layout):
         """create button layout"""
         button_layout.addStretch(STRETCH)
-        login_button = QPushButton("Login")
-        login_button.setStyleSheet(LOGIN_BUTTON)
-        login_button.setMinimumWidth(BUTTON_WIDTH)
-        login_button.setMaximumWidth(BUTTON_WIDTH)
-        login_button.setMaximumHeight(BUTTON_HEIGHT)
-        login_button.setMinimumHeight(BUTTON_HEIGHT)
-        login_button.clicked.connect(self.login_button_clicked)
-        button = QPushButton("Sign up")
+        login_button = self.create_button("Login",
+                                          self.login_button_clicked)
+        signup_button = self.create_button("Sign up",
+                                           self.signin_button_clicked)
+        button_layout.addWidget(login_button)
+        button_layout.addWidget(signup_button)
+        button_layout.addStretch(STRETCH)
+
+    def create_button(self, name, func):
+        """create a button"""
+        button = QPushButton(name)
         button.setStyleSheet(LOGIN_BUTTON)
         button.setMinimumWidth(BUTTON_WIDTH)
         button.setMaximumWidth(BUTTON_WIDTH)
         button.setMaximumHeight(BUTTON_HEIGHT)
         button.setMinimumHeight(BUTTON_HEIGHT)
-        button.clicked.connect(self.signin_button_clicked)
-        button_layout.addWidget(login_button)
-        button_layout.addWidget(button)
-        button_layout.addStretch(STRETCH)
+        button.clicked.connect(func)
+        return button
 
     def login_button_clicked(self):
         """if parameters are ok switch main window"""
@@ -91,15 +99,16 @@ class LoginWindow(QtWidgets.QMainWindow):
         password = self.password_line_edit.text()
         request = "login$" + username + "$" + password + "$1"
         response = self.client.send_command(request).split("!")
-        response_name = response[0]
+        response_name = response[RETURNED_USERNAME]
         if (response_name.upper() == "ILLEGAL REQUEST" or
                 response_name.upper() == "FALSE"):
-           self.error_label.setText(
-               "Login Failed, one or more of the parameters is incorrect")
+            self.error_label.setText(
+                "Login Failed, one or more of the parameters is incorrect")
         else:
             print(response)
-            name = response[1]
-            self.main_window = MainWindow(self.client, response_name, self, name)
+            name = response[RETURNED_NAME]
+            self.main_window = MainWindow(self.client, response_name,
+                                          self, name)
             self.main_window.show()
             self.hide()
 

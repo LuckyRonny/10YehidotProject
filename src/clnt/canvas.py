@@ -64,7 +64,7 @@ class DrawingCanvas(QWidget):
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
 
-    def create_pen_params(self,page_type):
+    def create_pen_params(self, page_type):
         """create pen parameters"""
         self.pen_color = QtGui.QColor("black")
         self.pen_size = PEN_START_VALUE / PEN_SIZE_FACTOR
@@ -76,7 +76,6 @@ class DrawingCanvas(QWidget):
             self.lines()
         else:
             self.blank()
-
 
     def create_zoom_in_params(self, width, height):
         """creates parameters for zoom in"""
@@ -295,22 +294,6 @@ class DrawingCanvas(QWidget):
         self.current_stroke_points = []
         self.selected_stroke = None
         self.update()
-
-    def save_canvas(self):
-        """Open a file dialog to save the canvas with a custom name"""
-        filename, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save Image", "drawing.png",
-            "PNG Files (*.png);;JPEG Files (*.jpg);;All Files (*)"
-        )
-        if not filename:
-            return
-        result = self.draw_all_canvas()
-        ext = filename.split(".")[FILE_EXTENSION].lower()
-        if ext not in ["png", "jpg", "jpeg"]:
-            filename += ".png"
-        result.save(filename)
-        QtWidgets.QMessageBox.information(self, "Saved",
-                                          f"Saved to:\n{filename}")
 
     def draw_all_canvas(self):
         """ draws all the canvas"""

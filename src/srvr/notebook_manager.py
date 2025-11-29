@@ -10,11 +10,10 @@ from constants import *
 
 
 class NotebookManager(object):
-
-
     @staticmethod
     def GET_NOTEBOOK(params, socket, address):
         """
+        gets the notebook from the db
         """
         name = params[NAME]
         with open("notebook_DB.json", "r") as f:
@@ -22,12 +21,9 @@ class NotebookManager(object):
         notebook = notebook_db[name]
         return repr(notebook)
 
-
     @staticmethod
     def ADD_NOTEBOOK(params, socket, address):
-        """
-
-        """
+        """adds the notebook to the db"""
         name = params[NAME]
         notebook = ast.literal_eval(params[NOTE_BOOK])
         with open("notebook_DB.json", "r") as f:

@@ -13,15 +13,12 @@ class CanvasContainer(QWidget):
         """constructor"""
         super().__init__()
         self.child_widget = child_widget
-
         layout = QVBoxLayout()
         layout.addStretch(STRETCH)
-
         h_layout = QHBoxLayout()
         h_layout.addStretch(STRETCH)
         h_layout.addWidget(self.child_widget)
         h_layout.addStretch(STRETCH)
-
         layout.addLayout(h_layout)
         layout.addStretch(STRETCH)
         self.setLayout(layout)

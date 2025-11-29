@@ -5,15 +5,9 @@ client
 
 import socket
 import sys
-
 import protocol
 from constants import *
 import winreg_file
-import methods
-
-NO_PARAMETERS = 0
-PARAMETER = 1
-TWO_PARAMETERS = 2
 
 
 class Client(object):
@@ -42,9 +36,6 @@ class Client(object):
                 request = input("please enter a request ").upper()
                 if self.valid_request(request):
                     self.send_request_to_server(request)
-                    if request == "RELOAD":
-                        methods.Methods.send_file("methods.py",
-                                                  self.my_socket)
                     self.handle_server_response(request)
                 else:
                     print("illegal request")
@@ -60,23 +51,38 @@ class Client(object):
         and if the number of parameters is legal
         """
         req_and_prms = request.split("$")
-        if (req_and_prms[REQUEST] == "login" and len(req_and_prms) == 4 and
-                not "--" in req_and_prms[1] and not ";" in req_and_prms[1] and
-                not "--" in req_and_prms[2] and not ";" in req_and_prms[2] or
-            req_and_prms[REQUEST] == "signup" and len(req_and_prms) == 5 and
-                not "--" in req_and_prms[1] and not ";" in req_and_prms[1] and
-                not "--" in req_and_prms[2] and not ";" in req_and_prms[2] or
-            req_and_prms[REQUEST] == "add_notebook"
-                or
-            req_and_prms[REQUEST] == "get_notebook" and len(req_and_prms) == 3
-                or
+        if (Client.login_check(req_and_prms) or
+            Client.signup_check(req_and_prms) or
+            req_and_prms[REQUEST] == "add_notebook" and
+                len(req_and_prms) == ADD_NOTEBOOK_PARAMS or
+            req_and_prms[REQUEST] == "get_notebook" and
+                len(req_and_prms) == GET_NOTEBOOK_PARAMS or
             req_and_prms[REQUEST] == "add_notebook_to_db" and
-                len(req_and_prms) == 5 or
+                len(req_and_prms) == ADD_NOTEBOOK_DB_PARAMS or
             req_and_prms[REQUEST] == "clients_notebooks" and
-                len(req_and_prms) == 3
-        ):
+                len(req_and_prms) == CLIENTS_NOTEBOOKS_PARAMS):
             return True
         return False
+
+    @staticmethod
+    def login_check(req_and_prms):
+        """login check if valid"""
+        return (req_and_prms[REQUEST] == "login" and
+                len(req_and_prms) == LOGIN_PARAMS and
+                "--" not in req_and_prms[USERNAME] and
+                ";" not in req_and_prms[USERNAME] and
+                "--" not in req_and_prms[PASSWORD] and
+                ";" not in req_and_prms[PASSWORD])
+
+    @staticmethod
+    def signup_check(req_and_prms):
+        """signup check if valid"""
+        return (req_and_prms[REQUEST] == "signup" and
+                len(req_and_prms) == SIGNUP_PARAMS and
+                "--" not in req_and_prms[USERNAME] and
+                ";" not in req_and_prms[USERNAME] and
+                "--" not in req_and_prms[PASSWORD] and
+                ";" not in req_and_prms[PASSWORD])
 
     def send_request_to_server(self, request):
         """
@@ -89,11 +95,7 @@ class Client(object):
         gets a socket and gets a data from the server and prints it
         """
         req_and_prms = request.split("$")
-        if req_and_prms[REQUEST] == "SEND_FILE":
-            methods.Methods.receive_file_request(request, self.my_socket)
-            data = protocol.Protocol.recv(self.my_socket)
-        else:
-            data = protocol.Protocol.recv(self.my_socket)
+        data = protocol.Protocol.recv(self.my_socket)
         return data  # returns string
 
     def send_command(self, request):
@@ -109,15 +111,3 @@ class Client(object):
         else:
             rsp = "ILLEGAL REQUEST"
         return rsp
-
-
-def main():
-    """
-    construct a client and runs it
-    """
-    client = Client()
-    client.handle_user_input()
-
-
-if __name__ == "__main__":
-    main()

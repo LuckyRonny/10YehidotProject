@@ -16,23 +16,25 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
         self.login_window = login_window
-        # central widget (use the same widget for the whole window)
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         # main layout attached to central_widget (important)
         self.layout = QVBoxLayout(self.central_widget)
         self.create_toolbar(name)
-        # create the floating box (but don't add it to the layout)
-        # create_add_frame will set parent=self.central_widget so it can float
+        # create the floating box
         self.create_add_frame()
         self.client = client
         # FlowLayout: must be wrapped in a QWidget before adding to main layout
+        self.create_flow_layout()
+        self.id = id
+        self.load_notebooks_for_user(self.id)
+
+    def create_flow_layout(self):
+        """creates flow layout"""
         self.notebooks_layout = FlowLayout()
         container_flow_layout = QWidget(self.central_widget)
         container_flow_layout.setLayout(self.notebooks_layout)
         self.layout.addWidget(container_flow_layout)
-        self.id = id
-        self.load_notebooks_for_user(self.id)
 
     def create_toolbar(self, name):
         """create toolbar"""
@@ -87,14 +89,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.close()
 
     def create_add_frame(self):
-        """create floating frame (box) —
-        parented to central_widget so it floats"""
-        # NOTE: parent=self.central_widget so box is NOT part of the main layout
-        self.box = QFrame(self.central_widget)
-        self.box.setStyleSheet(ADD_NOTEBOOK_FRAME)
-        self.box.setFrameShape(QFrame.Shape.Box)
-        self.box.setLineWidth(2)
-        self.box.setFixedSize(250, 150)
+        """create floating frame parented to central_widget so, it floats"""
+        self.create_box()
         box_layout = QVBoxLayout(self.box)
         label = QLabel("notebook name:")
         line_edit = QtWidgets.QLineEdit()
@@ -103,6 +99,23 @@ class MainWindow(QtWidgets.QMainWindow):
         box_layout.addWidget(label)
         box_layout.addWidget(line_edit)
         box_layout.addStretch(STRETCH)
+        button = self.create_button(line_edit)
+        box_layout.addWidget(button)
+        self.box.setVisible(False)
+        self.box_margin_right = BOX_MARGIN_RIGHT
+        self.box_margin_top = BOX_MARGIN_LEFT
+        self.reposition_box()
+
+    def create_box(self):
+        """creates box"""
+        self.box = QFrame(self.central_widget)
+        self.box.setStyleSheet(ADD_NOTEBOOK_FRAME)
+        self.box.setFrameShape(QFrame.Shape.Box)
+        self.box.setLineWidth(BOX_LINE_SIZE)
+        self.box.setFixedSize(*BOX_SIZE)
+
+    def create_button(self, line_edit):
+        """creates create button"""
         button = QPushButton("create")
         button.setStyleSheet(LOGIN_BUTTON)
         button.setMinimumWidth(BUTTON_WIDTH)
@@ -111,15 +124,7 @@ class MainWindow(QtWidgets.QMainWindow):
         button.setMinimumHeight(BUTTON_HEIGHT)
         button.clicked.connect(lambda: self.create_new_notebook(
             self.id, line_edit.text()))
-        box_layout.addWidget(button)
-        # DON'T add the box to the main layout (that would push other widgets).
-        # Instead place it manually and keep it hidden initially.
-        self.box.setVisible(False)
-        # initial placement (will be corrected in resizeEvent)
-        self._box_margin_right = 20
-        self._box_margin_top = 10
-        # place it now (width of central_widget may still be default)
-        self._reposition_box()
+        return button
 
     def create_new_notebook_frame(self):
         """toggle floating box visibility"""
@@ -127,7 +132,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.box.setVisible(not is_visible)
         if not is_visible:
             self.box.raise_()  # ensure it's above the flow widgets
-            self._reposition_box()
+            self.reposition_box()
 
     def create_new_notebook(self, id, notebook_name):
         """creates a new notebook"""
@@ -145,15 +150,15 @@ class MainWindow(QtWidgets.QMainWindow):
     def resizeEvent(self, event):
         """when window resizes, reposition the floating box to top-right"""
         super().resizeEvent(event)
-        self._reposition_box()
+        self.reposition_box()
 
-    def _reposition_box(self):
+    def reposition_box(self):
         """helper to position the box at top-right inside central_widget"""
         if not hasattr(self, "box"):
             return
         w = self.central_widget.width()
-        x = max(0, w - self.box.width() - self._box_margin_right)
-        y = self._box_margin_top
+        x = max(BOX_MIN_MARGIN, w - self.box.width() - self.box_margin_right)
+        y = self.box_margin_top
         self.box.move(x, y)
         # ensure box is above everything
         self.box.raise_()
@@ -161,8 +166,8 @@ class MainWindow(QtWidgets.QMainWindow):
     def create_notebook_button(self, name):
         """create the notebook button"""
         button = QPushButton(name)
-        button.setMinimumSize(150, 225)
-        button.setMaximumSize(150, 225)
+        button.setMinimumSize(*NOTEBOOK_BUTTON_SIZE)
+        button.setMaximumSize(*NOTEBOOK_BUTTON_SIZE)
         return button
 
     def load_notebooks_for_user(self, user_id):
@@ -174,14 +179,15 @@ class MainWindow(QtWidgets.QMainWindow):
             if not name == "":
                 button = self.create_notebook_button(name)
                 self.notebooks_buttons.append(button)
-                button.clicked.connect(lambda checked,
-                                              n=name: self.open_notebook(n))
+                button.clicked.connect(lambda checked, n=name:
+                                       self.open_notebook(n))
                 self.notebooks_layout.addWidget(button)
 
     def open_notebook(self, name):
-        """"""
+        """get the notebook from the server and opens it"""
         command = "get_notebook$" + name + "$2"
         notebook = ast.literal_eval(self.client.send_command(command))
-        self.notebook_area = NotebookArea(self, self.id, self.client, notebook, name)
+        self.notebook_area = NotebookArea(self, self.id, self.client,
+                                          notebook, name)
         self.notebook_area.show()
         self.hide()

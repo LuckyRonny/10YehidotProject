@@ -4,6 +4,7 @@ window sign up
 """
 
 from main_window import *
+from client import *
 
 
 class SignupWindow(QtWidgets.QMainWindow):
@@ -35,8 +36,9 @@ class SignupWindow(QtWidgets.QMainWindow):
         self.client = Client()
         self.login = login
 
-    def create_central_layout(self, central_layout, username_layout, name_layout,
-                              password_layout, button_layout, error_layout):
+    def create_central_layout(self, central_layout, username_layout,
+                              name_layout, password_layout, button_layout,
+                              error_layout):
         """create central layout"""
         central_layout.setContentsMargins(*MARGIN)
         central_layout.addStretch(LOGIN_STRETCH)

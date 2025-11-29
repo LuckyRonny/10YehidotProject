@@ -122,6 +122,12 @@ BUTTON_HEIGHT = 25
 # main window
 ADD_NOTEBOOK_SIZE = 40
 ADD_BUTTON_SIZE = (40, 40)
+NOTEBOOK_BUTTON_SIZE = (150, 225)
+BOX_LINE_SIZE = 2
+BOX_SIZE = (250, 150)
+BOX_MARGIN_RIGHT = 20
+BOX_MARGIN_LEFT = 10
+BOX_MIN_MARGIN = 0
 
 
 COLORS = ["#393939", "#A1A1A1", "#FFFFFF", "#C0C0C0", "#F7CF49", "#DC143C",
@@ -328,7 +334,7 @@ ADD_NOTEBOOK_FRAME = """
                         border-style: outset;
                         border-width: 3px;
                         border-radius: 1px;
-                        border-color: #1B0BA6 
+                        border-color: #1B0BA6;
                     }
                     QPushButton {
                         background-color: #1B0BA6;

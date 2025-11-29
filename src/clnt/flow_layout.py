@@ -51,7 +51,8 @@ class FlowLayout(QLayout):
         return None
 
     def takeAt(self, index):
-        """Remove and return the item at the given index, or None if not found."""
+        """Remove and return the item at the given index,
+        or None if not found."""
         if FIRST_ITEM <= index < len(self.itemList):
             return self.itemList.pop(index)
         return None
@@ -68,15 +69,15 @@ class FlowLayout(QLayout):
         """
         Compute needed height for a given width.
         """
-        return self.doLayout(
+        return self.do_layout(
             QRect(INITIAL_OFFSET_X, INITIAL_OFFSET_Y, width, RECT_TEST_HEIGHT),
-            testOnly=True
+            test_only=True
         )
 
     def setGeometry(self, rect):
         """Apply geometry and place items."""
         super().setGeometry(rect)
-        self.doLayout(rect, testOnly=False)
+        self.do_layout(rect, test_only=False)
 
     def sizeHint(self):
         """General recommended size."""
@@ -95,33 +96,31 @@ class FlowLayout(QLayout):
         )
         return size
 
-    def doLayout(self, rect, testOnly):
-        """
-        Perform layout calculation and optionally place widgets.
-        """
-        x = rect.x()
-        y = rect.y()
-        lineHeight = START_LINE_HEIGHT
-
-        spacingX = self.spacing()
-        spacingY = self.spacing()
-
+    def do_layout(self, rect, test_only):
+        """Compute or apply the item layout depending on test_only."""
+        x, y = rect.x(), rect.y()
+        spacing_x = spacing_y = self.spacing()
+        line_height = START_LINE_HEIGHT
         for item in self.itemList:
-            itemWidth = item.sizeHint().width()
-            itemHeight = item.sizeHint().height()
+            item_width, item_height = (item.sizeHint().width(),
+                                       item.sizeHint().height())
+            x, y, line_height = self.process_item(
+                item, rect, x, y, line_height, spacing_x, spacing_y, test_only
+            )
+        return y + line_height - rect.y()
 
-            nextX = x + itemWidth + spacingX
-
-            if nextX - spacingX - SUBTRACT_SPACING > rect.right() - RIGHT_EDGE_CORRECTION and lineHeight > 0:
-                x = rect.x()
-                y += lineHeight + spacingY
-                nextX = x + itemWidth + spacingX
-                lineHeight = START_LINE_HEIGHT
-
-            if not testOnly:
-                item.setGeometry(QRect(QPoint(x, y), item.sizeHint()))
-
-            x = nextX
-            lineHeight = max(lineHeight, itemHeight)
-
-        return y + lineHeight - rect.y()
+    def process_item(self, item, rect, x, y, line_height, spacing_x, spacing_y,
+                     test_only):
+        """Handle placement and wrapping logic for a single item."""
+        next_x = x + item.sizeHint().width() + spacing_x
+        if (
+                next_x - spacing_x - SUBTRACT_SPACING > rect.right() -
+                RIGHT_EDGE_CORRECTION and line_height > START_LINE_HEIGHT):
+            x = rect.x()
+            y += line_height + spacing_y
+            next_x = x + item.sizeHint().width() + spacing_x
+            line_height = START_LINE_HEIGHT
+        if not test_only:
+            item.setGeometry(QRect(QPoint(x, y), item.sizeHint()))
+        line_height = max(line_height, item.sizeHint().height())
+        return next_x, y, line_height

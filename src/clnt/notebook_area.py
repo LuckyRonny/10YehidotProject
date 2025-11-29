@@ -13,34 +13,27 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.setWindowTitle("Ronny Getz")
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
-        # create canvas
         if notebook:
             self.notebook_widget = Notebook(**notebook, notebook_area=self)
         else:
             self.notebook_widget = Notebook(None, notebook_area=self)
         self.current_page = self.notebook_widget.pages.currentIndex()
-        # central_widget
         central_layout, central_widget = self.create_central_layout()
-        # toolbar
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
-        # sub toolbars
         self.sub_toolbars = []
         self.create_sub_toolbars(central_layout)
-        # pages button layout
         self.create_buttons_layout()
-        self.create_buttons(central_widget)
-        # organize widgets
+        self.create_buttons()
         self.add_to_central_layout(central_layout)
-        # create client
         self.id = id
         self.client = client
         self.name = name
         self.main_window = mainwindow
 
     def save_notebook(self):
-        """"""
+        """saves the notebook in the db"""
         command = ("add_notebook$" + self.name + "$" +
                    repr(self.notebook_widget.__dict__()) + "$2")
         self.client.send_command(command)
@@ -100,13 +93,12 @@ class NotebookArea(QtWidgets.QMainWindow):
         if color:
             self.set_size_for_current(color)
 
-    def create_buttons(self,central_widget):
+    def create_buttons(self):
         """create clear, save, back, prev, next, add page buttons"""
         clear_button = QPushButton("clear", self)
         self.main_toolbar_button(clear_button, self.clear_current_page)
         back_button = QPushButton("back", self)
         self.main_toolbar_button(back_button, self.back_current_page)
-
 
     def create_buttons_layout(self):
         """create button layout"""
