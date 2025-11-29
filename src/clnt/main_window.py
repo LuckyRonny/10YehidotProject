@@ -7,6 +7,8 @@ from flow_layout import *
 from notebook_area import *
 import ast
 
+BUTTON_NOTEBOOK_NAME = 0
+
 
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, client, id, login_window, name):
@@ -138,10 +140,12 @@ class MainWindow(QtWidgets.QMainWindow):
         """creates a new notebook"""
         notebook = Notebook(None, None)
         notebook = repr(notebook.__dict__())
+        notebook_name = notebook_name + "_" + id
         command = ("add_notebook_to_db$" + id + "$" + notebook_name +
                    "$" + notebook + "$3")
         if self.client.send_command(command) == "ok":
             self.box.setVisible(False)
+            notebook_name = notebook_name.split("_")[BUTTON_NOTEBOOK_NAME]
             button = self.create_notebook_button(notebook_name)
             self.notebooks_buttons.append(button)
             button.clicked.connect(lambda: self.open_notebook(notebook_name))
@@ -177,6 +181,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.notebooks_buttons = []
         for name in notebooks:
             if not name == "":
+                name = name.split("_")[BUTTON_NOTEBOOK_NAME]
                 button = self.create_notebook_button(name)
                 self.notebooks_buttons.append(button)
                 button.clicked.connect(lambda checked, n=name:
@@ -185,6 +190,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def open_notebook(self, name):
         """get the notebook from the server and opens it"""
+        name = name + "_" + self.id
         command = "get_notebook$" + name + "$2"
         notebook = ast.literal_eval(self.client.send_command(command))
         self.notebook_area = NotebookArea(self, self.id, self.client,

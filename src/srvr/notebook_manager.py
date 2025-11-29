@@ -3,7 +3,6 @@ Ronny Gets
 notebook manager server
 """
 
-import threading
 import json
 import ast
 from constants import *
