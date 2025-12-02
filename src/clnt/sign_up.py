@@ -86,7 +86,7 @@ class SignupWindow(QtWidgets.QMainWindow):
         username = self.username_line_edit.text()
         password = self.password_line_edit.text()
         name = self.name_line_edit.text()
-        request = "signup$" + username + "$" + password + "$" + name + "$1"
+        request = "signup$" + username + "$" + password + "$" + name + "$USERS"
         response = self.client.send_command(request)
         if response == "ILLEGAL REQUEST":
             self.error_label.setText(

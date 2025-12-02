@@ -99,7 +99,7 @@ class LoginWindow(QtWidgets.QMainWindow):
         """if parameters are ok switch main window"""
         username = self.username_line_edit.text()
         password = self.password_line_edit.text()
-        request = "login$" + username + "$" + password + "$1"
+        request = "login$" + username + "$" + password + "$USERS"
         response = self.client.send_command(request).split("!")
         response_name = response[RETURNED_USERNAME]
         if (response_name.upper() == "ILLEGAL REQUEST" or

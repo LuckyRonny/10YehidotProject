@@ -142,7 +142,7 @@ class MainWindow(QtWidgets.QMainWindow):
         notebook = repr(notebook.__dict__())
         notebook_name = notebook_name + "_" + id
         command = ("add_notebook_to_db$" + id + "$" + notebook_name +
-                   "$" + notebook + "$3")
+                   "$" + notebook + "$USERS_NOTEBOOKS")
         if self.client.send_command(command) == "ok":
             self.box.setVisible(False)
             notebook_name = notebook_name.split("_")[BUTTON_NOTEBOOK_NAME]
@@ -176,7 +176,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def load_notebooks_for_user(self, user_id):
         """add the notebooks of a client to the flow layout"""
-        command = "clients_notebooks$" + user_id + "$3"
+        command = "clients_notebooks$" + user_id + "$USERS_NOTEBOOKS"
         notebooks = (self.client.send_command(command)).split("!")
         self.notebooks_buttons = []
         for name in notebooks:
@@ -191,7 +191,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def open_notebook(self, name):
         """get the notebook from the server and opens it"""
         name = name + "_" + self.id
-        command = "get_notebook$" + name + "$2"
+        command = "get_notebook$" + name + "$NOTEBOOKS"
         notebook = ast.literal_eval(self.client.send_command(command))
         self.notebook_area = NotebookArea(self, self.id, self.client,
                                           notebook, name)

@@ -7,9 +7,7 @@ import socket
 import sys
 import threading
 import protocol
-import user_manager
-import notebook_manager
-import user_notebook_manager
+import methods
 from constants import *
 
 
@@ -90,17 +88,9 @@ class Server(object):
         gets a request and check which request to do and
         call the function and returns the response
         """
-        if params[REQUEST_TYPE] == "1":
-            cls = getattr(user_manager, "UserManager")
-            return getattr(cls, request)(params, client_socket, address)
-        elif params[REQUEST_TYPE] == "2":
-            cls = getattr(notebook_manager, "NotebookManager")
-            return getattr(cls, request)(params, client_socket, address)
-        elif params[REQUEST_TYPE] == "3":
-            cls = getattr(user_notebook_manager, "UserNotebookManager")
-            return getattr(cls, request)(params, client_socket, address)
-        else:
-            return "false"
+        cls = getattr(methods, "Methods")
+        return (getattr(cls, params[REQUEST_TYPE])
+                (request, params, client_socket, address))
 
     @staticmethod
     def send_response_to_client(response, client_socket):

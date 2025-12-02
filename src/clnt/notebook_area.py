@@ -35,7 +35,7 @@ class NotebookArea(QtWidgets.QMainWindow):
     def save_notebook(self):
         """saves the notebook in the db"""
         command = ("add_notebook$" + self.name + "$" +
-                   repr(self.notebook_widget.__dict__()) + "$2")
+                   repr(self.notebook_widget.__dict__()) + "$NOTEBOOKS")
         self.client.send_command(command)
 
     def add_to_central_layout(self, central_layout):
