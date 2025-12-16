@@ -18,8 +18,8 @@ class Notebook(QtWidgets.QWidget):
                 self.add_page(DrawingCanvas(**page,
                                             notebook_area=notebook_area))
         self.global_scale_factor = START_SCALE_FACTOR
-        main_layout = QtWidgets.QVBoxLayout(self)
-        main_layout.addWidget(self.pages)
+        self.main_layout = QtWidgets.QVBoxLayout(self)
+        self.main_layout.addWidget(self.pages)
         if not pages_list:
             self.add_page(None)
 
@@ -43,11 +43,13 @@ class Notebook(QtWidgets.QWidget):
             canvas = page
         else:
             canvas = DrawingCanvas(*CANVAS_SIZE, None,
-                                   None, self.notebook_area)
+                                   None, self.notebook_area, None)
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
             canvas.scale_factor = prev_canvas.scale_factor
             canvas._update_size()
+            if self.notebook_area:
+                self.notebook_area.save_notebook()
 
         self.pages_list.append(canvas)
         self.pages.addWidget(canvas)
@@ -87,3 +89,30 @@ class Notebook(QtWidgets.QWidget):
             page.scale_factor = self.global_scale_factor
             page._update_size()
             page.update()
+
+    def update_notebook(self, pages_list, notebook_area):
+        """update the notebook from the DB"""
+        self.notebook_area = notebook_area
+        self.delete_old_data()
+        if pages_list:
+            for page in pages_list:
+                canvas = DrawingCanvas(**page, notebook_area=notebook_area)
+                self.pages.addWidget(canvas)
+                self.pages_list.append(canvas)
+        else:
+            self.add_page(None)
+        self.global_scale_factor = START_SCALE_FACTOR
+        self.pages.setCurrentIndex(FIRST_PAGE)
+
+    def delete_old_data(self):
+        """delete the old data of the notebook"""
+        if hasattr(self, "pages"):
+            while self.pages.count():
+                widget = self.pages.widget(FIRST_PAGE)
+                self.pages.removeWidget(widget)
+                widget.deleteLater()
+        else:
+            self.pages = QtWidgets.QStackedWidget()
+            self.main_layout = QtWidgets.QVBoxLayout(self)
+            self.main_layout.addWidget(self.pages)
+        self.pages_list = []

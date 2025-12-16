@@ -5,6 +5,7 @@ notebook user manager server
 
 import sqlite3
 from notebook_manager import *
+PERMISSION = 3
 
 
 class UserNotebookManager(object):
@@ -14,8 +15,9 @@ class UserNotebookManager(object):
         user_id = params[USER_ID]
         notebook_name = params[NOTEBOOK_NAME]
         notebook = params[NOTEBOOK]
+        per = int(params[PERMISSION])
         try:
-            UserNotebookManager.add_to_db(notebook_name, user_id)
+            UserNotebookManager.add_to_db(notebook_name, user_id, per)
         except sqlite3.IntegrityError as e:
             return str(e)
         NotebookManager.ADD_NOTEBOOK([notebook_name, notebook],
@@ -23,7 +25,7 @@ class UserNotebookManager(object):
         return "ok"
 
     @staticmethod
-    def add_to_db(notebook_name, user_id):
+    def add_to_db(notebook_name, user_id, per):
         """adds the notebook to db"""
         conn = sqlite3.connect('NotebookDB.db')
         cursor = conn.cursor()
@@ -32,8 +34,9 @@ class UserNotebookManager(object):
             (notebook_name,))
         conn.commit()
         notebook_id = cursor.lastrowid
-        sql = "INSERT INTO UsersNotebooks (user, notebook) VALUES (?, ?)"
-        cursor.execute(sql, (user_id, notebook_id))
+        sql = ("INSERT INTO UsersNotebooks (user, notebook, permission) "
+               "VALUES (?, ?, ?)")
+        cursor.execute(sql, (user_id, notebook_id, per))
         conn.commit()
         conn.close()
 

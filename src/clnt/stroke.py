@@ -9,7 +9,7 @@ from PyQt6.QtCore import QPoint
 
 
 class Stroke(object):
-    def __init__(self, points, times, pen_color, pen_size):
+    def __init__(self, points, times, pen_color, pen_size, id):
         """constructor"""
         if any(isinstance(point, QPoint) for point in points):
             self.points = points
@@ -25,6 +25,7 @@ class Stroke(object):
             self.pen_color = QtGui.QColor(pen_color)
         self.pen_size = pen_size
         self.selected = False
+        self.id = id
 
     def contains_point(self, pt, tolerance):
         """check if the distance from the point to the stroke
@@ -61,6 +62,7 @@ class Stroke(object):
             "points": points_l,
             "times": self.times,
             "pen_color": self.pen_color.name(),
-            "pen_size": self.pen_size
+            "pen_size": self.pen_size,
+            "id": self.id
         }
         return stroke_dict

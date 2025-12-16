@@ -9,10 +9,13 @@ from PyQt6.QtCore import Qt
 import math
 import time
 from stroke import *
+START_ID = 0
+ID_CHANGE = 1
 
 
 class DrawingCanvas(QWidget):
-    def __init__(self, width, height, strokes, page_type, notebook_area):
+    def __init__(self, width, height, strokes, page_type,
+                 notebook_area, stroke_id):
         """constructor"""
         super().__init__()
         # background layer
@@ -26,6 +29,9 @@ class DrawingCanvas(QWidget):
         # zoom in
         self.create_zoom_in_params(width, height)
         self.notebook_area = notebook_area
+        self.stroke_id = START_ID
+        if stroke_id:
+            self.stroke_id = stroke_id
 
     def __dict__(self):
         """convert canvas to dictionary"""
@@ -36,7 +42,8 @@ class DrawingCanvas(QWidget):
             "width": self.base_width,
             "height": self.base_height,
             "strokes": strokes_l,
-            "page_type": self.page_type
+            "page_type": self.page_type,
+            "stroke_id": self.stroke_id
         }
         return canvas_dict
 
@@ -98,8 +105,6 @@ class DrawingCanvas(QWidget):
                     len(self.current_stroke_points) > ONLY_ONE_POINT):
                 self.draw_current_stroke(painter)
             painter.restore()
-            if self.notebook_area:
-                self.notebook_area.save_notebook()
         except Exception as e:
             print("paintEvent crash:", e)
             return
@@ -257,11 +262,14 @@ class DrawingCanvas(QWidget):
                 self.create_straight_line()
             elif self.tool in ["pen", "marker"] and self.drawing:
                 self.end_stroke()
+            self.stroke_id += ID_CHANGE
         elif self.tool == "select":
             if self.selected_stroke:
                 self.selected_stroke.selected = False
                 self.selected_stroke = None
             self.update()
+        if self.notebook_area:
+            self.notebook_area.save_notebook()
 
     def create_straight_line(self):
         """create a straight line and resset the parameters"""
@@ -270,7 +278,7 @@ class DrawingCanvas(QWidget):
                 self.current_stroke_points[STROKE_POINT_END]],
             [self.current_stroke_times[STROKE_POINT_START],
                 self.current_stroke_times[STROKE_POINT_END]],
-            self.pen_color, self.pen_size)
+            self.pen_color, self.pen_size, self.stroke_id)
         self.strokes.append(new_stroke)
         self.current_stroke_points = []
         self.current_stroke_times = []
@@ -280,7 +288,7 @@ class DrawingCanvas(QWidget):
         """add the stroke and resset the parameters"""
         stroke = Stroke(self.current_stroke_points[:],
                         self.current_stroke_times,
-                        self.pen_color, self.pen_size)
+                        self.pen_color, self.pen_size, self.stroke_id)
         self.drawing = False
         self.strokes.append(stroke)
         self.current_stroke_points = []
@@ -294,6 +302,8 @@ class DrawingCanvas(QWidget):
         self.current_stroke_points = []
         self.selected_stroke = None
         self.update()
+        if self.notebook_area:
+            self.notebook_area.save_notebook()
 
     def draw_all_canvas(self):
         """ draws all the canvas"""
@@ -346,6 +356,8 @@ class DrawingCanvas(QWidget):
             self.strokes = self.history
             self.history = []
             self.update()
+        if self.notebook_area:
+            self.notebook_area.save_notebook()
 
     def zoom_in(self):
         """change the scale factor *1.2"""

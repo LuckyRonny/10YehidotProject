@@ -29,6 +29,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # FlowLayout: must be wrapped in a QWidget before adding to main layout
         self.create_flow_layout()
         self.id = id
+        self.notebooks_dict = {}
         self.load_notebooks_for_user(self.id)
 
     def create_flow_layout(self):
@@ -142,12 +143,12 @@ class MainWindow(QtWidgets.QMainWindow):
         notebook = repr(notebook.__dict__())
         notebook_name = notebook_name + "_" + id
         command = ("add_notebook_to_db$" + id + "$" + notebook_name +
-                   "$" + notebook + "$USERS_NOTEBOOKS")
+                   "$" + notebook + "$0$USERS_NOTEBOOKS")
         if self.client.send_command(command) == "ok":
             self.box.setVisible(False)
-            notebook_name = notebook_name.split("_")[BUTTON_NOTEBOOK_NAME]
-            button = self.create_notebook_button(notebook_name)
-            self.notebooks_buttons.append(button)
+            name = notebook_name.split("_")[BUTTON_NOTEBOOK_NAME]
+            button = self.create_notebook_button(name)
+            self.notebooks_dict[notebook_name] = button
             button.clicked.connect(lambda: self.open_notebook(notebook_name))
             self.notebooks_layout.addWidget(button)
 
@@ -178,19 +179,18 @@ class MainWindow(QtWidgets.QMainWindow):
         """add the notebooks of a client to the flow layout"""
         command = "clients_notebooks$" + user_id + "$USERS_NOTEBOOKS"
         notebooks = (self.client.send_command(command)).split("!")
-        self.notebooks_buttons = []
         for name in notebooks:
             if not name == "":
+                notebook_name = name
                 name = name.split("_")[BUTTON_NOTEBOOK_NAME]
                 button = self.create_notebook_button(name)
-                self.notebooks_buttons.append(button)
-                button.clicked.connect(lambda checked, n=name:
+                self.notebooks_dict[notebook_name] = button
+                button.clicked.connect(lambda checked, n=notebook_name:
                                        self.open_notebook(n))
                 self.notebooks_layout.addWidget(button)
 
     def open_notebook(self, name):
         """get the notebook from the server and opens it"""
-        name = name + "_" + self.id
         command = "get_notebook$" + name + "$NOTEBOOKS"
         notebook = ast.literal_eval(self.client.send_command(command))
         self.notebook_area = NotebookArea(self, self.id, self.client,

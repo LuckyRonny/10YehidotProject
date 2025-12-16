@@ -4,6 +4,7 @@ main window
 """
 from notebook import *
 from scroll_area import *
+import ast
 
 
 class NotebookArea(QtWidgets.QMainWindow):
@@ -13,6 +14,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.setWindowTitle("Ronny Getz")
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
+        self.name = name
         if notebook:
             self.notebook_widget = Notebook(**notebook, notebook_area=self)
         else:
@@ -29,7 +31,6 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.add_to_central_layout(central_layout)
         self.id = id
         self.client = client
-        self.name = name
         self.main_window = mainwindow
 
     def save_notebook(self):
@@ -99,6 +100,8 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.main_toolbar_button(clear_button, self.clear_current_page)
         back_button = QPushButton("back", self)
         self.main_toolbar_button(back_button, self.back_current_page)
+        upload_button = QPushButton("upload", self)
+        self.main_toolbar_button(upload_button, self.upload_notebook)
 
     def create_buttons_layout(self):
         """create button layout"""
@@ -233,6 +236,7 @@ class NotebookArea(QtWidgets.QMainWindow):
                 canvas.lines()
             else:
                 canvas.blank()
+        self.save_notebook()
 
     def toolbar_features(self, toolbar):
         """set features of sub toolbars"""
@@ -356,3 +360,16 @@ class NotebookArea(QtWidgets.QMainWindow):
         """open back the main window"""
         self.main_window.show()
         event.accept()
+
+    def upload_notebook(self):
+        """"""
+        command = "get_notebook$" + self.name + "$NOTEBOOKS"
+        self.reload_notebook(ast.literal_eval(
+            self.client.send_command(command)))
+
+    def reload_notebook(self, notebook_data):
+        """Replace the current notebook with a new one from the server."""
+        self.notebook_widget.update_notebook(**notebook_data,
+                                             notebook_area=self)
+        for page in self.notebook_widget.pages_list:
+            page.update()
