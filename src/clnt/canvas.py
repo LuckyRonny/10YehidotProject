@@ -15,7 +15,7 @@ ID_CHANGE = 1
 
 class DrawingCanvas(QWidget):
     def __init__(self, width, height, strokes, page_type,
-                 notebook_area, stroke_id, id, history):
+                 notebook_area, stroke_id, id):
         """constructor"""
         super().__init__()
         # background layer
@@ -23,7 +23,7 @@ class DrawingCanvas(QWidget):
         # Add strokes
         self.create_strokes_params(strokes)
         # points and history
-        self.create_history_params(history)
+        self.create_history_params()
         # type and color
         self.create_pen_params(page_type)
         # zoom in
@@ -48,8 +48,7 @@ class DrawingCanvas(QWidget):
             "strokes": strokes_dict,
             "page_type": self.page_type,
             "stroke_id": self.stroke_id,
-            "id": self.id,
-            "history": history_dict
+            "id": self.id
         }
         return canvas_dict
 
@@ -70,12 +69,9 @@ class DrawingCanvas(QWidget):
         self.selected_stroke = None
         self.drawing = False
 
-    def create_history_params(self, history):
+    def create_history_params(self):
         """create history parameters"""
         self.history = []
-        if history:
-            for s in history:
-                self.strokes.append(Stroke(**(history[s])))
         self.drawing = False
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
@@ -372,15 +368,10 @@ class DrawingCanvas(QWidget):
         if self.strokes:
             stroke = self.strokes.pop()
             self.update()
-            if self.notebook_area:
-                self.notebook_area.delete_stroke(self.id,
-                                                 stroke.id)
         else:
             self.strokes = self.history
             self.history = []
             self.update()
-            if self.notebook_area:
-                self.notebook_area.return_strokes(self.strokes)
 
 
     def zoom_in(self):

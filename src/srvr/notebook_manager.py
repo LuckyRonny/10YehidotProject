@@ -68,7 +68,7 @@ class NotebookManager(object):
         notebook_db[name]["pages"][id_page]["strokes"].pop(id)
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
-            NotebookManager.CHANGE_TIME_STAMP(name, params[3])
+        NotebookManager.CHANGE_TIME_STAMP(name, params[3])
         return "ok"
 
     @staticmethod
@@ -83,7 +83,7 @@ class NotebookManager(object):
         notebook_db[name]["pages"][id_page]["page_type"] = type
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
-            NotebookManager.CHANGE_TIME_STAMP(name, params[3])
+        NotebookManager.CHANGE_TIME_STAMP(name, params[3])
         return "ok"
 
     @staticmethod

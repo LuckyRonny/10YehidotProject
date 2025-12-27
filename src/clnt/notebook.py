@@ -47,8 +47,7 @@ class Notebook(QtWidgets.QWidget):
         else:
             canvas = DrawingCanvas(*CANVAS_SIZE, None,
                                    None, self.notebook_area,
-                                   None, self.pages.currentIndex() + 1,
-                                   {})
+                                   None, self.pages.currentIndex() + 1)
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
             canvas.scale_factor = prev_canvas.scale_factor
