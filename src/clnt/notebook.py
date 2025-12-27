@@ -57,18 +57,21 @@ class Notebook(QtWidgets.QWidget):
         self.pages.setCurrentWidget(canvas)
         if self.notebook_area and self.notebook_area.notebook_widget:
             self.notebook_area.add_page(canvas.id, canvas)
+        self.notebook_area.current_page = self.pages.currentIndex()
 
     def prev_page(self):
         """move to the prev canvas"""
         index = self.pages.currentIndex()
         if index > NO_PAGES:
             self.pages.setCurrentIndex(index - PREV_PAGE)
+            self.notebook_area.current_page = self.pages.currentIndex()
 
     def next_page(self):
         """move to the next canvas"""
         index = self.pages.currentIndex()
         if index < len(self.pages_list) + LAST_PAGE_INDEX:
             self.pages.setCurrentIndex(index + NEXT_PAGE)
+            self.notebook_area.current_page = self.pages.currentIndex()
 
     def zoom_in(self):
         """change the global scale factor by 1.2 (more)"""
@@ -106,7 +109,6 @@ class Notebook(QtWidgets.QWidget):
                 self.pages_list.append(canvas)
         else:
             self.add_page(None)
-        self.global_scale_factor = START_SCALE_FACTOR
         self.pages.setCurrentIndex(FIRST_PAGE)
 
     def delete_old_data(self):

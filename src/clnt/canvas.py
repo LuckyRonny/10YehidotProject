@@ -318,8 +318,8 @@ class DrawingCanvas(QWidget):
         self.current_stroke_points = []
         self.selected_stroke = None
         self.update()
-        # if self.notebook_area:
-            # self.notebook_area.clear_page(self.id)
+        if self.notebook_area:
+            self.notebook_area.clear_page(self.id)
 
     def draw_all_canvas(self):
         """ draws all the canvas"""
