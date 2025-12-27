@@ -2,34 +2,37 @@
 Getz Ronny
 notebook
 """
+import ast
 
 from canvas import *
 
 
 class Notebook(QtWidgets.QWidget):
-    def __init__(self, pages_list, notebook_area):
+    def __init__(self, pages, last_change, notebook_area):
         """constructor"""
         super().__init__()
         self.notebook_area = notebook_area
         self.pages = QtWidgets.QStackedWidget()
         self.pages_list = []
-        if pages_list:
-            for page in pages_list:
-                self.add_page(DrawingCanvas(**page,
+        if pages:
+            for page in pages:
+                self.add_page(DrawingCanvas(**(pages[page]),
                                             notebook_area=notebook_area))
         self.global_scale_factor = START_SCALE_FACTOR
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.addWidget(self.pages)
-        if not pages_list:
+        if not pages:
             self.add_page(None)
+        self.last_change = last_change
 
     def __dict__(self):
         """convert notebook to dictionary"""
-        page_l = []
+        page_dict = {}
         for p in self.pages_list:
-            page_l.append(p.__dict__())
+            page_dict[p.id] = p.__dict__()
         notebook_dict = {
-            "pages_list": page_l,
+            "pages": page_dict,
+            "last_change": self.last_change
         }
         return notebook_dict
 
@@ -43,17 +46,18 @@ class Notebook(QtWidgets.QWidget):
             canvas = page
         else:
             canvas = DrawingCanvas(*CANVAS_SIZE, None,
-                                   None, self.notebook_area, None)
+                                   None, self.notebook_area,
+                                   None, self.pages.currentIndex() + 1,
+                                   {})
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
             canvas.scale_factor = prev_canvas.scale_factor
             canvas._update_size()
-            if self.notebook_area:
-                self.notebook_area.save_notebook()
-
         self.pages_list.append(canvas)
         self.pages.addWidget(canvas)
         self.pages.setCurrentWidget(canvas)
+        if self.notebook_area and self.notebook_area.notebook_widget:
+            self.notebook_area.add_page(canvas.id, canvas)
 
     def prev_page(self):
         """move to the prev canvas"""
@@ -90,13 +94,15 @@ class Notebook(QtWidgets.QWidget):
             page._update_size()
             page.update()
 
-    def update_notebook(self, pages_list, notebook_area):
+    def update_notebook(self, pages, last_change, notebook_area):
         """update the notebook from the DB"""
         self.notebook_area = notebook_area
+        self.last_change = last_change
         self.delete_old_data()
-        if pages_list:
-            for page in pages_list:
-                canvas = DrawingCanvas(**page, notebook_area=notebook_area)
+        if pages:
+            for page in pages:
+                canvas = DrawingCanvas(**(pages[page]),
+                                       notebook_area=notebook_area)
                 self.pages.addWidget(canvas)
                 self.pages_list.append(canvas)
         else:

@@ -5,7 +5,7 @@ constants client
 
 PORT = 1800
 IP = "127.0.0.1"
-MSG_LEN = 10
+MSG_LEN = 100
 PARAMETERS = 1
 REQUEST = 0
 HAVE_PARAMETERS = 1

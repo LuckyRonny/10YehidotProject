@@ -2,12 +2,16 @@
 Ronny Getz
 main window
 """
+import threading
+
 from notebook import *
 from scroll_area import *
 import ast
 
 
 class NotebookArea(QtWidgets.QMainWindow):
+    notebook_update_signal = QtCore.pyqtSignal(dict, int)
+
     def __init__(self, mainwindow, id, client, notebook, name):
         """constructor"""
         super().__init__()
@@ -15,10 +19,13 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
         self.name = name
+        self.notebook_widget = None
         if notebook:
-            self.notebook_widget = Notebook(**notebook, notebook_area=self)
+            self.notebook_widget = Notebook(notebook["pages"],
+                                            notebook["last_change"],
+                                            notebook_area=self)
         else:
-            self.notebook_widget = Notebook(None, notebook_area=self)
+            self.notebook_widget = Notebook(None, time.time(), self)
         self.current_page = self.notebook_widget.pages.currentIndex()
         central_layout, central_widget = self.create_central_layout()
         self.main_toolbar = QToolBar("Main Toolbar")
@@ -32,11 +39,71 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.id = id
         self.client = client
         self.main_window = mainwindow
+        self.running = True
+        loop_thread = threading.Thread(target=self.loop)
+        loop_thread.start()
+        self.notebook_update_signal.connect(self.reload_notebook)
+
+    def loop(self):
+        """"""
+        while self.running:
+            command = ("check_updates$" + self.name + "$" +
+                       str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+            resp = self.client.send_command(command)
+            if resp.startswith("{"):
+                try:
+                    data = ast.literal_eval(resp)
+                except (SyntaxError, ValueError) as t:
+                    print(t)
+                    print("RESP FROM SERVER:", resp)
+                    continue
+                self.notebook_update_signal.emit(data,
+                                                 self.current_page)
+            time.sleep(0.5)
 
     def save_notebook(self):
         """saves the notebook in the db"""
         command = ("add_notebook$" + self.name + "$" +
                    repr(self.notebook_widget.__dict__()) + "$NOTEBOOKS")
+        self.client.send_command(command)
+
+    def clear_page(self, page_id):
+        """clears the notebook in the db"""
+        self.notebook_widget.last_change = time.time()
+        command = ("clear$" + self.name + "$" + str(page_id) + "$" +
+                   str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+        self.client.send_command(command)
+
+    def change_background(self, type, page_id):
+        """change the background in the db"""
+        self.notebook_widget.last_change = time.time()
+        command = ("change_background$" + self.name + "$" + str(page_id) +
+                   "$" + type + "$" + str(self.notebook_widget.last_change) +
+                   "$NOTEBOOKS")
+        self.client.send_command(command)
+
+    def add_stroke(self, stroke, id_page, id, stroke_id):
+        """add the stroke to the db"""
+        self.notebook_widget.last_change = time.time()
+        command = ("add_stroke$" + self.name + "$" + repr(stroke.__dict__()) +
+                   "$" + str(id_page) + "$" + str(id) + "$" + str(stroke_id) +
+                   "$" + str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+        self.client.send_command(command)
+
+    def add_page(self, id_page, page):
+        """add the page to the db"""
+        self.notebook_widget.last_change = time.time()
+        command = ("add_page$" + self.name + "$" + repr(page.__dict__()) +
+                   "$" + str(id_page) + "$" +
+                   str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+        self.client.send_command(command)
+
+    def delete_stroke(self, id_page, id):
+        """delete the stroke from the db"""
+        self.notebook_widget.last_change = time.time()
+        command = ("delete_stroke$" + self.name + "$" + str(id_page) + "$" +
+                   str(id) + "$" + str(self.notebook_widget.last_change) +
+                   "$NOTEBOOKS")
         self.client.send_command(command)
 
     def add_to_central_layout(self, central_layout):
@@ -236,6 +303,7 @@ class NotebookArea(QtWidgets.QMainWindow):
                 canvas.lines()
             else:
                 canvas.blank()
+        self.change_background(background, canvas.id)
         self.save_notebook()
 
     def toolbar_features(self, toolbar):
@@ -359,17 +427,21 @@ class NotebookArea(QtWidgets.QMainWindow):
     def closeEvent(self, event):
         """open back the main window"""
         self.main_window.show()
+        self.running = False
         event.accept()
 
     def upload_notebook(self):
         """"""
         command = "get_notebook$" + self.name + "$NOTEBOOKS"
+        current_page = self.current_page
         self.reload_notebook(ast.literal_eval(
-            self.client.send_command(command)))
+            self.client.send_command(command)), current_page)
 
-    def reload_notebook(self, notebook_data):
+    def reload_notebook(self, notebook_data, current_page):
         """Replace the current notebook with a new one from the server."""
-        self.notebook_widget.update_notebook(**notebook_data,
+        self.notebook_widget.update_notebook(notebook_data["pages"],
+                                             notebook_data["last_change"],
                                              notebook_area=self)
         for page in self.notebook_widget.pages_list:
             page.update()
+        self.notebook_widget.pages.setCurrentIndex(current_page)

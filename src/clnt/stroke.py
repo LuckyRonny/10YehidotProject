@@ -2,6 +2,7 @@
 Ronny Getz
 stroke
 """
+from PyQt6.QtGui import QColor
 
 from style import *
 from PyQt6 import QtGui
@@ -25,7 +26,7 @@ class Stroke(object):
             self.pen_color = QtGui.QColor(pen_color)
         self.pen_size = pen_size
         self.selected = False
-        self.id = id
+        self.id = int(id)
 
     def contains_point(self, pt, tolerance):
         """check if the distance from the point to the stroke
@@ -61,7 +62,7 @@ class Stroke(object):
         stroke_dict = {
             "points": points_l,
             "times": self.times,
-            "pen_color": self.pen_color.name(),
+            "pen_color": self.pen_color.name(QColor.NameFormat.HexArgb),
             "pen_size": self.pen_size,
             "id": self.id
         }

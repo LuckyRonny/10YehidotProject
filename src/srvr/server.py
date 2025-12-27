@@ -49,7 +49,7 @@ class Server(object):
     def handle_single_client(client_socket, address):
         """
         gets a socket and while response is not QUIT or EXIT
-        the function call the functions receive_client_request,
+        the function calls the functions receive_client_request,
         request_client_handle, send_response_to_client
         """
         done = False

@@ -15,7 +15,7 @@ ID_CHANGE = 1
 
 class DrawingCanvas(QWidget):
     def __init__(self, width, height, strokes, page_type,
-                 notebook_area, stroke_id):
+                 notebook_area, stroke_id, id, history):
         """constructor"""
         super().__init__()
         # background layer
@@ -23,27 +23,33 @@ class DrawingCanvas(QWidget):
         # Add strokes
         self.create_strokes_params(strokes)
         # points and history
-        self.create_history_params()
+        self.create_history_params(history)
         # type and color
         self.create_pen_params(page_type)
         # zoom in
         self.create_zoom_in_params(width, height)
         self.notebook_area = notebook_area
+        self.id = int(id)
         self.stroke_id = START_ID
         if stroke_id:
-            self.stroke_id = stroke_id
+            self.stroke_id = int(stroke_id)
 
     def __dict__(self):
         """convert canvas to dictionary"""
-        strokes_l = []
+        strokes_dict = {}
         for s in self.strokes:
-            strokes_l.append(s.__dict__())
+            strokes_dict[s.id] = s.__dict__()
+        history_dict = {}
+        for s in self.history:
+            history_dict[s.id] = s.__dict__()
         canvas_dict = {
             "width": self.base_width,
             "height": self.base_height,
-            "strokes": strokes_l,
+            "strokes": strokes_dict,
             "page_type": self.page_type,
-            "stroke_id": self.stroke_id
+            "stroke_id": self.stroke_id,
+            "id": self.id,
+            "history": history_dict
         }
         return canvas_dict
 
@@ -58,15 +64,18 @@ class DrawingCanvas(QWidget):
         self.strokes = []
         if strokes:
             for s in strokes:
-                self.strokes.append(Stroke(**s))
+                self.strokes.append(Stroke(**(strokes[s])))
         self.current_stroke_points = []
         self.current_stroke_times = []
         self.selected_stroke = None
         self.drawing = False
 
-    def create_history_params(self):
+    def create_history_params(self, history):
         """create history parameters"""
         self.history = []
+        if history:
+            for s in history:
+                self.strokes.append(Stroke(**(history[s])))
         self.drawing = False
         self.last_point = QtCore.QPoint()
         self.first_point = QtCore.QPoint()
@@ -250,26 +259,35 @@ class DrawingCanvas(QWidget):
     def mouseReleaseEvent(self, event):
         """when mouse released resset the tool
         and check if it needs to straighten the line """
+        stroke = None
         if self.is_gesturing:
             return
         if self.current_stroke_points:
-            start_to_end = DrawingCanvas.distance(
-                self.current_stroke_points[STROKE_POINT_START],
-                self.current_stroke_points[STROKE_POINT_END])
-            if (self.drawing and DrawingCanvas._are_last_points_close(
-                    self.current_stroke_points, self.current_stroke_times,
-                    start_to_end / CLOSE_POINTS_DISTANCE, CLOSE_POINTS_TIME)):
-                self.create_straight_line()
-            elif self.tool in ["pen", "marker"] and self.drawing:
-                self.end_stroke()
-            self.stroke_id += ID_CHANGE
+            stroke = self.add_new_stroke()
         elif self.tool == "select":
             if self.selected_stroke:
+                stroke = self.selected_stroke
                 self.selected_stroke.selected = False
                 self.selected_stroke = None
             self.update()
-        if self.notebook_area:
-            self.notebook_area.save_notebook()
+        if self.notebook_area and stroke:
+            self.notebook_area.add_stroke(stroke, self.id, stroke.id,
+                                          self.stroke_id)
+
+    def add_new_stroke(self):
+        """adds the new stroke to the list of strokes"""
+        stroke = None
+        start_to_end = DrawingCanvas.distance(
+            self.current_stroke_points[STROKE_POINT_START],
+            self.current_stroke_points[STROKE_POINT_END])
+        if (self.drawing and DrawingCanvas._are_last_points_close(
+                self.current_stroke_points, self.current_stroke_times,
+                start_to_end / CLOSE_POINTS_DISTANCE, CLOSE_POINTS_TIME)):
+            stroke = self.create_straight_line()
+        elif self.tool in ["pen", "marker"] and self.drawing:
+            stroke = self.end_stroke()
+        self.stroke_id += ID_CHANGE
+        return stroke
 
     def create_straight_line(self):
         """create a straight line and resset the parameters"""
@@ -283,6 +301,7 @@ class DrawingCanvas(QWidget):
         self.current_stroke_points = []
         self.current_stroke_times = []
         self.update()
+        return new_stroke
 
     def end_stroke(self):
         """add the stroke and resset the parameters"""
@@ -294,6 +313,7 @@ class DrawingCanvas(QWidget):
         self.current_stroke_points = []
         self.current_stroke_times = []
         self.update()
+        return stroke
 
     def clear_canvas(self):
         """cleans the canvas"""
@@ -302,8 +322,8 @@ class DrawingCanvas(QWidget):
         self.current_stroke_points = []
         self.selected_stroke = None
         self.update()
-        if self.notebook_area:
-            self.notebook_area.save_notebook()
+        # if self.notebook_area:
+            # self.notebook_area.clear_page(self.id)
 
     def draw_all_canvas(self):
         """ draws all the canvas"""
@@ -350,14 +370,18 @@ class DrawingCanvas(QWidget):
     def back(self):
         """remove the last stroke or if empty get history"""
         if self.strokes:
-            self.strokes.pop()
+            stroke = self.strokes.pop()
             self.update()
+            if self.notebook_area:
+                self.notebook_area.delete_stroke(self.id,
+                                                 stroke.id)
         else:
             self.strokes = self.history
             self.history = []
             self.update()
-        if self.notebook_area:
-            self.notebook_area.save_notebook()
+            if self.notebook_area:
+                self.notebook_area.return_strokes(self.strokes)
+
 
     def zoom_in(self):
         """change the scale factor *1.2"""

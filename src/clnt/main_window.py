@@ -139,7 +139,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_new_notebook(self, id, notebook_name):
         """creates a new notebook"""
-        notebook = Notebook(None, None)
+        notebook = Notebook(None, time.time(), None)
         notebook = repr(notebook.__dict__())
         notebook_name = notebook_name + "_" + id
         command = ("add_notebook_to_db$" + id + "$" + notebook_name +
