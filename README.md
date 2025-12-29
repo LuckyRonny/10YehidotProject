@@ -1,6 +1,8 @@
 # project
 
 ## TODO
+- add history when clear
+- change to take the id of the stroke from db
 - add a button to give permissions
 - add time stemp of last change
 - create loop of every second check if there is an update

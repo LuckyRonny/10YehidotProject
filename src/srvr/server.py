@@ -57,8 +57,7 @@ class Server(object):
             try:
                 request, params = Server.receive_client_request(client_socket,
                                                                 address)
-                response = Server.handle_client_request(request, params,
-                                                        client_socket, address)
+                response = Server.handle_client_request(request, params)
                 Server.send_response_to_client(response, client_socket)
             except socket.error as msg:
                 print("booz!!", msg)
@@ -83,14 +82,14 @@ class Server(object):
             return req_and_prms[REQUEST].upper(), None
 
     @staticmethod
-    def handle_client_request(request, params, client_socket, address):
+    def handle_client_request(request, params):
         """
         gets a request and check which request to do and
         call the function and returns the response
         """
         cls = getattr(methods, "Methods")
         return (getattr(cls, params[REQUEST_TYPE])
-                (request, params, client_socket, address))
+                (request, params))
 
     @staticmethod
     def send_response_to_client(response, client_socket):

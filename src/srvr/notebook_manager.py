@@ -12,7 +12,7 @@ from constants import *
 class NotebookManager(object):
     lock = threading.Lock()
     @staticmethod
-    def GET_NOTEBOOK(params, socket, address):
+    def GET_NOTEBOOK(params):
         """
         gets the notebook from the db
         """
@@ -25,7 +25,7 @@ class NotebookManager(object):
         return repr(notebook)
 
     @staticmethod
-    def ADD_NOTEBOOK(params, socket, address):
+    def ADD_NOTEBOOK(params):
         """adds the notebook to the db"""
         NotebookManager.lock.acquire()
         name = params[NAME]
@@ -39,7 +39,7 @@ class NotebookManager(object):
         return "ok"
 
     @staticmethod
-    def ADD_STROKE(params, socket, address):
+    def ADD_STROKE(params):
         """adds a stroke to the notebook from the db"""
         NotebookManager.lock.acquire()
         name = params[NAME]
@@ -57,7 +57,7 @@ class NotebookManager(object):
         return "ok"
 
     @staticmethod
-    def DELETE_STROKE(params, socket, address):
+    def DELETE_STROKE(params):
         """adds a stroke to the notebook from the db"""
         NotebookManager.lock.acquire()
         name = params[NAME]
@@ -72,7 +72,7 @@ class NotebookManager(object):
         return "ok"
 
     @staticmethod
-    def CHANGE_BACKGROUND(params, socket, address):
+    def CHANGE_BACKGROUND(params):
         """change the background of the notebook from the db"""
         NotebookManager.lock.acquire()
         name = params[NAME]
@@ -87,7 +87,7 @@ class NotebookManager(object):
         return "ok"
 
     @staticmethod
-    def CLEAR(params, socket, address):
+    def CLEAR(params):
         """clears the strokes of the notebook from the db"""
         NotebookManager.lock.acquire()
         name = params[NAME]
@@ -101,7 +101,7 @@ class NotebookManager(object):
         return "ok"
 
     @staticmethod
-    def ADD_PAGE(params, socket, address):
+    def ADD_PAGE(params):
         """adds a stroke to the notebook from the db"""
         NotebookManager.lock.acquire()
         name = params[NAME]
@@ -116,7 +116,7 @@ class NotebookManager(object):
         return "ok"
 
     @staticmethod
-    def CHECK_UPDATES(params, socket, address):
+    def CHECK_UPDATES(params):
         """adds a stroke to the notebook from the db"""
         NotebookManager.lock.acquire()
         name = params[NAME]
@@ -125,9 +125,20 @@ class NotebookManager(object):
             notebook_db = json.load(f)
         NotebookManager.lock.release()
         if str(time_stamp) < str(notebook_db[name]["last_change"]):
-            return NotebookManager.GET_NOTEBOOK(params, socket, address)
+            return NotebookManager.GET_NOTEBOOK(params)
         else:
             return "NO"
+
+    @staticmethod
+    def ADD_STROKES(params):
+        """adds a stroke to the notebook from the db"""
+        name = params[NAME]
+        id_page = params[1]
+        stroke_dict = ast.literal_eval(params[2])
+        for s in stroke_dict:
+            NotebookManager.ADD_STROKE([name, repr(stroke_dict[s]), id_page, s,
+                                        20])
+        return "ok"
 
     @staticmethod
     def CHANGE_TIME_STAMP(name, time_stamp):
@@ -139,3 +150,18 @@ class NotebookManager(object):
             json.dump(notebook_db, f)
         NotebookManager.lock.release()
         return "ok"
+
+    @staticmethod
+    def GET_NEXT_STROKE_ID(params):
+        """gets the next stroke id from the notebook from the db"""
+        NotebookManager.lock.acquire()
+        name = params[NAME]
+        page_id = params[1]
+        with open("notebook_DB.json", "r") as f:
+            notebook_db = json.load(f)
+        next_stroke_id = notebook_db[name]["pages"][page_id]["stroke_id"]
+        notebook_db[name]["pages"][page_id]["stroke_id"] = next_stroke_id + 1
+        with open("notebook_DB.json", "w") as f:
+            json.dump(notebook_db, f)
+        NotebookManager.lock.release()
+        return next_stroke_id

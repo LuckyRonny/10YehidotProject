@@ -10,7 +10,7 @@ PERMISSION = 3
 
 class UserNotebookManager(object):
     @staticmethod
-    def ADD_NOTEBOOK_TO_DB(params, socket, address):
+    def ADD_NOTEBOOK_TO_DB(params):
         """add the notebook to both dbs """
         user_id = params[USER_ID]
         notebook_name = params[NOTEBOOK_NAME]
@@ -41,7 +41,7 @@ class UserNotebookManager(object):
         conn.close()
 
     @staticmethod
-    def CLIENTS_NOTEBOOKS(params, socket, address):
+    def CLIENTS_NOTEBOOKS(params):
         """gets all the notebooks of the user"""
         user_id = params[USER_ID]
         conn = sqlite3.connect('NotebookDB.db')

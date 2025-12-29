@@ -90,6 +90,8 @@ class Client(object):
         """"""
         return (req_and_prms[REQUEST] == "add_stroke" and
                 len(req_and_prms) == 8 or
+                req_and_prms[REQUEST] == "add_strokes" and
+                len(req_and_prms) == 6 or
                 req_and_prms[REQUEST] == "delete_stroke" and
                 len(req_and_prms) == 6 or
                 req_and_prms[REQUEST] == "change_background" and

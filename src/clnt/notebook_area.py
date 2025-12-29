@@ -106,6 +106,14 @@ class NotebookArea(QtWidgets.QMainWindow):
                    "$NOTEBOOKS")
         self.client.send_command(command)
 
+    def add_strokes(self, id_page, history_dict):
+        """add the strokes from history to db"""
+        self.notebook_widget.last_change = time.time()
+        command = ("add_strokes$" + self.name + "$" + str(id_page) + "$" +
+                   repr(history_dict) + "$" +
+                   str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+        self.client.send_command(command)
+
     def add_to_central_layout(self, central_layout):
         """add notebook scroll area buttons layout to the central layout"""
         self.scroll_area = CenteredScrollArea(self.notebook_widget)
