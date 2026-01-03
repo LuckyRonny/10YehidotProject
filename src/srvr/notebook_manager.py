@@ -46,14 +46,14 @@ class NotebookManager(object):
         stroke = ast.literal_eval(params[NOTE_BOOK])
         id_page = params[2]
         id = params[3]
-        stroke_id = params[4]
+        if id == "0":
+            id = NotebookManager.GET_STROKE_ID([name, id_page])
         with open("notebook_DB.json", "r") as f:
             notebook_db = json.load(f)
         notebook_db[name]["pages"][id_page]["strokes"][id] = stroke
-        notebook_db[name]["pages"][id_page]["stroke_id"] = stroke_id
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
-        NotebookManager.CHANGE_TIME_STAMP(name, params[5])
+        NotebookManager.CHANGE_TIME_STAMP(name, params[4])
         return "ok"
 
     @staticmethod
@@ -139,3 +139,19 @@ class NotebookManager(object):
             json.dump(notebook_db, f)
         NotebookManager.lock.release()
         return "ok"
+
+    @staticmethod
+    def GET_STROKE_ID(params):
+        """gets the next stroke id from the notebook from the db"""
+        name = params[NAME]
+        page_id = params[1]
+        with open("notebook_DB.json", "r") as f:
+            notebook_db = json.load(f)
+        next_stroke_id = notebook_db[name]["pages"][page_id]["stroke_id"]
+        print(f"Next Stroke is: ={next_stroke_id}=")
+        temp = repr(int(next_stroke_id) + 1)
+        print(f"Next next stroke id is ={temp}=")
+        notebook_db[name]["pages"][page_id]["stroke_id"] = temp
+        with open("notebook_DB.json", "w") as f:
+            json.dump(notebook_db, f)
+        return next_stroke_id

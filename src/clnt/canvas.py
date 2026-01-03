@@ -260,15 +260,17 @@ class DrawingCanvas(QWidget):
             return
         if self.current_stroke_points:
             stroke = self.add_new_stroke()
+            if self.notebook_area and stroke:
+                self.notebook_area.add_stroke(stroke, self.id, "0")
         elif self.tool == "select":
             if self.selected_stroke:
                 stroke = self.selected_stroke
                 self.selected_stroke.selected = False
                 self.selected_stroke = None
             self.update()
-        if self.notebook_area and stroke:
-            self.notebook_area.add_stroke(stroke, self.id, stroke.id,
-                                          self.stroke_id)
+            if self.notebook_area and stroke:
+                self.notebook_area.add_stroke(stroke, self.id, stroke.id)
+
 
     def add_new_stroke(self):
         """adds the new stroke to the list of strokes"""
@@ -292,7 +294,7 @@ class DrawingCanvas(QWidget):
                 self.current_stroke_points[STROKE_POINT_END]],
             [self.current_stroke_times[STROKE_POINT_START],
                 self.current_stroke_times[STROKE_POINT_END]],
-            self.pen_color, self.pen_size, self.stroke_id)
+            self.pen_color, self.pen_size, "0")
         self.strokes.append(new_stroke)
         self.current_stroke_points = []
         self.current_stroke_times = []
@@ -303,7 +305,7 @@ class DrawingCanvas(QWidget):
         """add the stroke and resset the parameters"""
         stroke = Stroke(self.current_stroke_points[:],
                         self.current_stroke_times,
-                        self.pen_color, self.pen_size, self.stroke_id)
+                        self.pen_color, self.pen_size, "0")
         self.drawing = False
         self.strokes.append(stroke)
         self.current_stroke_points = []

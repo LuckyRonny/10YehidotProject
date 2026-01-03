@@ -89,7 +89,7 @@ class Client(object):
     def funcs_check(req_and_prms):
         """"""
         return (req_and_prms[REQUEST] == "add_stroke" and
-                len(req_and_prms) == 8 or
+                len(req_and_prms) == 7 or
                 req_and_prms[REQUEST] == "delete_stroke" and
                 len(req_and_prms) == 6 or
                 req_and_prms[REQUEST] == "change_background" and

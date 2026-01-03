@@ -82,12 +82,12 @@ class NotebookArea(QtWidgets.QMainWindow):
                    "$NOTEBOOKS")
         self.client.send_command(command)
 
-    def add_stroke(self, stroke, id_page, id, stroke_id):
+    def add_stroke(self, stroke, id_page, id):
         """add the stroke to the db"""
         self.notebook_widget.last_change = time.time()
         command = ("add_stroke$" + self.name + "$" + repr(stroke.__dict__()) +
-                   "$" + str(id_page) + "$" + str(id) + "$" + str(stroke_id) +
-                   "$" + str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+                   "$" + str(id_page) + "$" + str(id) + "$" +
+                   str(self.notebook_widget.last_change) + "$NOTEBOOKS")
         self.client.send_command(command)
 
     def add_page(self, id_page, page):
