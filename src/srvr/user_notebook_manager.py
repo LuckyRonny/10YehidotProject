@@ -4,7 +4,16 @@ notebook user manager server
 """
 
 import sqlite3
-from notebook_manager import *
+
+from constants import (
+    NAME_NOTEBOOK,
+    NOTEBOOK,
+    NOTEBOOK_ID,
+    NOTEBOOK_NAME,
+    USER_ID,
+)
+from notebook_manager import NotebookManager
+
 PERMISSION = 3
 
 

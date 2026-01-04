@@ -6,9 +6,17 @@ server
 import socket
 import sys
 import threading
-import protocol
+
 import methods
-from constants import *
+import protocol
+from constants import (
+    HAVE_PARAMETERS,
+    IP,
+    PARAMETERS,
+    PORT,
+    REQUEST,
+    REQUEST_TYPE,
+)
 
 
 NUMBER_OF_CLIENTS = 1

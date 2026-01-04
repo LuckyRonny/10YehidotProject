@@ -3,9 +3,10 @@ Ronny Gets
 user manager server
 """
 
-import threading
 import sqlite3
-from constants import *
+
+from constants import ID_OF_USER, PASSWORD, SIGNUP_NAME, USER_NAME
+
 NAME_OF_USER = 1
 
 
