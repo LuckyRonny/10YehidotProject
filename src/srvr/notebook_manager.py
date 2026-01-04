@@ -3,10 +3,11 @@ Ronny Getz
 Notebook manager server
 """
 
-import json
 import ast
+import json
 import threading
-from constants import *
+
+from constants import NAME, NOTE_BOOK
 
 
 class NotebookManager(object):
@@ -145,6 +146,7 @@ class NotebookManager(object):
         """gets the next stroke id from the notebook from the db"""
         name = params[NAME]
         page_id = params[1]
+        NotebookManager.lock.acquire()
         with open("notebook_DB.json", "r") as f:
             notebook_db = json.load(f)
         next_stroke_id = notebook_db[name]["pages"][page_id]["stroke_id"]
@@ -154,4 +156,5 @@ class NotebookManager(object):
         notebook_db[name]["pages"][page_id]["stroke_id"] = temp
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
+        NotebookManager.lock.release()
         return next_stroke_id
