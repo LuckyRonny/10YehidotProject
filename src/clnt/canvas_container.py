@@ -4,8 +4,9 @@ canvas container
 """
 
 from PyQt6 import QtGui
-from PyQt6.QtWidgets import *
-from src.clnt.style import *
+from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
+
+from style import STRETCH
 
 
 class CanvasContainer(QWidget):

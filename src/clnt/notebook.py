@@ -2,9 +2,22 @@
 Getz Ronny
 notebook
 """
-import ast
 
-from canvas import *
+from PyQt6 import QtWidgets
+
+from canvas import DrawingCanvas
+from style import (
+    CANVAS_SIZE,
+    FIRST_PAGE,
+    LAST_PAGE_INDEX,
+    NEXT_PAGE,
+    NO_PAGES,
+    PREV_PAGE,
+    SCALE_CHANGE,
+    SCALE_MAX,
+    SCALE_MIN,
+    START_SCALE_FACTOR,
+)
 
 
 class Notebook(QtWidgets.QWidget):

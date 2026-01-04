@@ -2,11 +2,46 @@
 Ronny Getz
 main window
 """
-import threading
-
-from notebook import *
-from scroll_area import *
 import ast
+import threading
+import time
+
+from PyQt6 import QtCore, QtWidgets
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QComboBox,
+    QPushButton,
+    QSpinBox,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
+
+from notebook import Notebook
+from scroll_area import CenteredScrollArea
+from style import (
+    BUTTON,
+    BUTTON_SIZE,
+    BUTTON_WIDTH,
+    COLORS_NAMES,
+    ERASER_RANGE,
+    ERASER_START_VALUE,
+    ERASER_STEP,
+    MAIN_WINDOW,
+    MARGIN,
+    MARKER_COLORS_NAMES,
+    MARKER_RANGE,
+    MARKER_START_VALUE,
+    MARKER_STEP,
+    PEN_RANGE,
+    PEN_START_VALUE,
+    PEN_STEP,
+    SCROLL_AREA,
+    SCROLL_STRETCH,
+    SUB_TOOLBAR,
+    ToolbarsEnum,
+    WINDOW_SIZE,
+)
 
 
 class NotebookArea(QtWidgets.QMainWindow):
@@ -203,7 +238,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         """create page sub toolbar and button"""
         self.page_toolbar = self.create_page_toolbar()
         central_layout.addWidget(self.page_toolbar)
-        self.page_button = QPushButton(f"page", self)
+        self.page_button = QPushButton("page", self)
         self.toolbar_button(self.page_button, ToolbarsEnum.PAGE.value)
         self.main_toolbar.addWidget(self.page_button)
 
@@ -212,7 +247,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.pen_toolbar, self.pen_size_button, self.pen_color_button = (
             self.create_pen_toolbar_and_size_and_color())
         central_layout.addWidget(self.pen_toolbar)
-        self.pen_button = QPushButton(f"pen", self)
+        self.pen_button = QPushButton("pen", self)
         self.toolbar_button(self.pen_button, ToolbarsEnum.PEN.value)
         self.main_toolbar.addWidget(self.pen_button)
 
@@ -221,7 +256,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.marker_toolbar, self.marker_size_button, self.marker_color_button\
             = (self.create_marker_toolbar_and_size_and_color())
         central_layout.addWidget(self.marker_toolbar)
-        self.marker_button = QPushButton(f"marker", self)
+        self.marker_button = QPushButton("marker", self)
         self.toolbar_button(self.marker_button, ToolbarsEnum.MARKER.value)
         self.main_toolbar.addWidget(self.marker_button)
 
@@ -230,7 +265,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.eraser_toolbar, self.eraser_size_button = (
             self.create_eraser_toolbar_and_size())
         central_layout.addWidget(self.eraser_toolbar)
-        self.eraser_button = QPushButton(f"eraser", self)
+        self.eraser_button = QPushButton("eraser", self)
         self.toolbar_button(self.eraser_button, ToolbarsEnum.ERASER.value)
         self.main_toolbar.addWidget(self.eraser_button)
 
@@ -238,7 +273,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         """create select sub toolbar and button"""
         self.select_toolbar = self.create_select_toolbar()
         central_layout.addWidget(self.select_toolbar)
-        self.select_button = QPushButton(f"select", self)
+        self.select_button = QPushButton("select", self)
         self.toolbar_button(self.select_button, ToolbarsEnum.SELECT.value)
         self.main_toolbar.addWidget(self.select_button)
 
@@ -344,7 +379,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         """create page toolbar"""
         blank_button, lines_button, grid_button = self.create_page_buttons()
 
-        page_toolbar = QToolBar(f"page")
+        page_toolbar = QToolBar("page")
         self.toolbar_features(page_toolbar)
 
         page_toolbar.addWidget(blank_button)
@@ -355,7 +390,7 @@ class NotebookArea(QtWidgets.QMainWindow):
 
     def create_select_toolbar(self):
         """create select toolbar"""
-        select_toolbar = QToolBar(f"select")
+        select_toolbar = QToolBar("select")
         self.toolbar_features(select_toolbar)
         return select_toolbar
 
@@ -368,7 +403,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         # create combo box pen colors
         pen_color_button = self.create_color_button(COLORS_NAMES)
 
-        pen_toolbar = QToolBar(f"pen")
+        pen_toolbar = QToolBar("pen")
         self.toolbar_features(pen_toolbar)
         pen_toolbar.addWidget(pen_size_button)
         pen_toolbar.addWidget(pen_color_button)
@@ -384,7 +419,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         # create combo box marker colors
         marker_color_button = self.create_color_button(MARKER_COLORS_NAMES)
 
-        marker_toolbar = QToolBar(f"marker")
+        marker_toolbar = QToolBar("marker")
         self.toolbar_features(marker_toolbar)
         marker_toolbar.addWidget(marker_size_button)
         marker_toolbar.addWidget(marker_color_button)
@@ -398,7 +433,7 @@ class NotebookArea(QtWidgets.QMainWindow):
                                                      ERASER_START_VALUE,
                                                      ERASER_STEP)
 
-        eraser_toolbar = QToolBar(f"eraser")
+        eraser_toolbar = QToolBar("eraser")
         self.toolbar_features(eraser_toolbar)
         eraser_toolbar.addWidget(eraser_size_button)
 

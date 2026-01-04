@@ -3,10 +3,11 @@ Ronny Getz
 scroll area
 """
 
-from style import *
 from PyQt6 import QtCore, QtWidgets
-from PyQt6.QtWidgets import *
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QApplication
+
+from style import NO_ENGLE
 
 
 class CenteredScrollArea(QtWidgets.QScrollArea):

@@ -3,12 +3,54 @@ Ronny Getz
 canvas
 """
 
-from PyQt6 import QtCore, QtWidgets
-from PyQt6.QtWidgets import *
-from PyQt6.QtCore import Qt
 import math
 import time
-from stroke import *
+
+from PyQt6 import QtCore, QtGui
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QWidget
+
+from stroke import Stroke
+from style import (
+    ADD_SELECTED_PEN_SIZE,
+    BACKGROUND_PEN_SIZE,
+    CLOSE_POINTS_DISTANCE,
+    CLOSE_POINTS_TIME,
+    COLORS,
+    COLUMN_INDEX,
+    COLUMN_LIMITS,
+    EMPTY_POINT_LIST,
+    END_GRID,
+    END_LINE,
+    ERASER_TOLERANCE,
+    LAST_POINT,
+    LEFT_LINE,
+    LIGHTER_COLOR,
+    MARKER_COLORS,
+    NUMBER_LINES,
+    NUMBER_LINES_GRID,
+    ONLY_ONE_POINT,
+    PEN_SIZE_FACTOR,
+    PEN_START_VALUE,
+    POINT_BEFORE,
+    RIGHT_LINE,
+    ROW_INDEX,
+    ROW_LIMITS,
+    SCALE_CHANGE,
+    SCALE_MAX,
+    SCALE_MIN,
+    SECOND_POINT,
+    SELECTED_TOLERANCE,
+    SQUARED,
+    START_GRID,
+    START_LINE,
+    START_PIXMAP,
+    START_SCALE_FACTOR,
+    STROKE_POINT_END,
+    STROKE_POINT_START,
+    TRANSPARENCY_MARKER,
+    TRANSPARENCY_PEN,
+)
 START_ID = 0
 ID_CHANGE = 1
 
@@ -368,7 +410,7 @@ class DrawingCanvas(QWidget):
     def back(self):
         """remove the last stroke or if empty get history"""
         if self.strokes:
-            stroke = self.strokes.pop()
+            _ = self.strokes.pop()
             self.update()
             self.notebook_area.delete_stroke(self.id, stroke.id)
         else:

@@ -2,10 +2,45 @@
 Ronny Getz
 main window
 """
-from PyQt6.QtGui import QIcon
-from flow_layout import *
-from notebook_area import *
 import ast
+import time
+
+from PyQt6 import QtWidgets
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import (
+    QFrame,
+    QLabel,
+    QPushButton,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
+
+from flow_layout import FlowLayout
+from notebook_area import NotebookArea
+from notebook import Notebook
+from style import (
+    ADD_BUTTON_SIZE,
+    ADD_NOTEBOOK_BUTTON,
+    ADD_NOTEBOOK_FRAME,
+    ADD_NOTEBOOK_SIZE,
+    BOX_LINE_SIZE,
+    BOX_MARGIN_LEFT,
+    BOX_MARGIN_RIGHT,
+    BOX_MIN_MARGIN,
+    BOX_SIZE,
+    BUTTON_HEIGHT,
+    BUTTON_WIDTH,
+    LINE_EDIT_MAX_LENGTH,
+    LOGIN_BUTTON,
+    LOGOUT_BUTTON,
+    MAIN_WINDOW,
+    NAME_LABEL,
+    NOTEBOOK_BUTTON_SIZE,
+    STRETCH,
+    WINDOW_SIZE,
+)
 
 BUTTON_NOTEBOOK_NAME = 0
 

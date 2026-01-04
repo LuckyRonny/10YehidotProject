@@ -5,9 +5,20 @@ client
 
 import socket
 import sys
+
 import protocol
-from constants import *
 import winreg_file
+from constants import (
+    ADD_NOTEBOOK_DB_PARAMS,
+    ADD_NOTEBOOK_PARAMS,
+    CLIENTS_NOTEBOOKS_PARAMS,
+    GET_NOTEBOOK_PARAMS,
+    LOGIN_PARAMS,
+    PASSWORD,
+    REQUEST,
+    SIGNUP_PARAMS,
+    USERNAME,
+)
 
 
 class Client(object):
@@ -107,11 +118,10 @@ class Client(object):
         """
         protocol.Protocol.send(self.my_socket, request)
 
-    def handle_server_response(self, request):
+    def handle_server_response(self):
         """
         gets a socket and gets a data from the server and prints it
         """
-        req_and_prms = request.split("$")
         data = protocol.Protocol.recv(self.my_socket)
         return data  # returns string
 
@@ -124,7 +134,7 @@ class Client(object):
         rsp = ""
         if self.valid_request(request):
             self.send_request_to_server(request)
-            rsp = self.handle_server_response(request)
+            rsp = self.handle_server_response()
         else:
             rsp = "ILLEGAL REQUEST"
         return rsp

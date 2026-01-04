@@ -5,7 +5,6 @@ protocol server
 from constants import MSG_LEN
 
 STOP_RECV = 0
-END_DATA = b"-1"
 
 
 class Protocol(object):

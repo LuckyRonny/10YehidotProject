@@ -2,11 +2,19 @@
 Ronny Getz
 stroke
 """
-from PyQt6.QtGui import QColor
-
-from style import *
 from PyQt6 import QtGui
 from PyQt6.QtCore import QPoint
+from PyQt6.QtGui import QColor
+
+from style import (
+    LINE_POINT_END,
+    LINE_POINT_START,
+    POINT_BEFORE,
+    SAME_POINT,
+    SECOND_POINT,
+    SQUARE_ROOT,
+    SQUARED,
+)
 
 
 class Stroke(object):

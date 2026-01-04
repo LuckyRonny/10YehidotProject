@@ -3,9 +3,30 @@ Ronny Getz
 window log in
 """
 
-from sign_up import *
-from main_window import *
-from client import *
+from PyQt6 import QtWidgets
+from PyQt6.QtWidgets import (
+    QApplication,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+from client import Client
+from main_window import MainWindow
+from sign_up import SignupWindow
+from style import (
+    BUTTON_HEIGHT,
+    BUTTON_WIDTH,
+    LINE_EDIT_MAX_LENGTH,
+    LOGIN_BUTTON,
+    LOGIN_STRETCH,
+    MAIN_WINDOW,
+    MARGIN,
+    STRETCH,
+    WINDOW_SIZE,
+)
 
 RETURNED_USERNAME = 0
 RETURNED_NAME = 1

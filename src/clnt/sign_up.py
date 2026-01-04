@@ -3,8 +3,28 @@ Ronny Getz
 window sign up
 """
 
-from main_window import *
-from client import *
+from PyQt6 import QtWidgets
+from PyQt6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+from client import Client
+from main_window import MainWindow
+from style import (
+    BUTTON_HEIGHT,
+    BUTTON_WIDTH,
+    LINE_EDIT_MAX_LENGTH,
+    LOGIN_BUTTON,
+    LOGIN_STRETCH,
+    MAIN_WINDOW,
+    MARGIN,
+    STRETCH,
+    WINDOW_SIZE,
+)
 
 
 class SignupWindow(QtWidgets.QMainWindow):

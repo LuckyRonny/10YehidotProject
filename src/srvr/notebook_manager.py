@@ -6,6 +6,7 @@ Notebook manager server
 import ast
 import json
 import threading
+import time
 
 from constants import NAME, NOTE_BOOK
 
@@ -55,7 +56,7 @@ class NotebookManager(object):
         notebook_db[name]["pages"][id_page]["strokes"][id] = stroke
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
-        NotebookManager.CHANGE_TIME_STAMP(name, float(params[4]) + 1.0)
+        NotebookManager.CHANGE_TIME_STAMP(name, float(params[4]))
         return "ok"
 
     @staticmethod
@@ -126,7 +127,7 @@ class NotebookManager(object):
         with open("notebook_DB.json", "r") as f:
             notebook_db = json.load(f)
         NotebookManager.lock.release()
-        if float(time_stamp) < float(notebook_db[name]["last_change"]):
+        if float(time_stamp) <= float(notebook_db[name]["last_change"]):
             return NotebookManager.GET_NOTEBOOK(params, socket, address)
         else:
             return "NO"
@@ -136,7 +137,7 @@ class NotebookManager(object):
         """adds a stroke to the notebook from the db"""
         with open("notebook_DB.json", "r") as f:
             notebook_db = json.load(f)
-        notebook_db[name]["last_change"] = float(time_stamp)
+        notebook_db[name]["last_change"] = time.time() #float(time_stamp)
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
         NotebookManager.lock.release()
@@ -151,7 +152,6 @@ class NotebookManager(object):
         with open("notebook_DB.json", "r") as f:
             notebook_db = json.load(f)
         next_stroke_id = notebook_db[name]["pages"][page_id]["stroke_id"]
-        print(f"Next Stroke is: ={next_stroke_id}=")
         temp = str(int(next_stroke_id) + 1)
         print(f"New Stroke is: ={next_stroke_id}= , Next stroke will be ={temp}=")
         notebook_db[name]["pages"][page_id]["stroke_id"] = temp

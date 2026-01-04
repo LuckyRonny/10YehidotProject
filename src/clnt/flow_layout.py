@@ -3,7 +3,7 @@ Ronny Getz
 flow layout
 """
 
-from PyQt6.QtWidgets import QLayout, QSizePolicy
+from PyQt6.QtWidgets import QLayout
 from PyQt6.QtCore import QRect, QPoint, QSize, Qt
 
 DEFAULT_MARGIN = (0, 0, 0, 0)
