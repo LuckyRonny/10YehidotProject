@@ -370,6 +370,7 @@ class DrawingCanvas(QWidget):
         if self.strokes:
             stroke = self.strokes.pop()
             self.update()
+            self.notebook_area.delete_stroke(self.id, stroke.id)
         else:
             self.strokes = self.history
             self.history = []
