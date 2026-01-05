@@ -330,7 +330,7 @@ class DrawingCanvas(QWidget):
         return stroke
 
     def create_straight_line(self):
-        """create a straight line and resset the parameters"""
+        """create a straight line and reset the parameters"""
         new_stroke = Stroke(
             [self.current_stroke_points[STROKE_POINT_START],
                 self.current_stroke_points[STROKE_POINT_END]],

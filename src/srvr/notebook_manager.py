@@ -6,7 +6,6 @@ Notebook manager server
 import ast
 import json
 import threading
-import time
 
 from constants import NAME, NOTE_BOOK
 
@@ -52,7 +51,7 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page]["strokes"][id] = stroke
-            notebook_db[name]["last_change"] = time.time()
+            notebook_db[name]["last_change"] = str(float(params[4])+1.0)
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
@@ -67,7 +66,7 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page]["strokes"].pop(id)
-            notebook_db[name]["last_change"] = time.time()
+            notebook_db[name]["last_change"] = params[3]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
@@ -82,7 +81,7 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page]["page_type"] = page_type
-            notebook_db[name]["last_change"] = time.time()
+            notebook_db[name]["last_change"] = params[3]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
@@ -96,7 +95,7 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id]["strokes"] = {}
-            notebook_db[name]["last_change"] = time.time()
+            notebook_db[name]["last_change"] = params[2]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
@@ -111,7 +110,7 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page] = page
-            notebook_db[name]["last_change"] = time.time()
+            notebook_db[name]["last_change"] = params[3]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
@@ -125,7 +124,7 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             last_change = float(notebook_db[name]["last_change"])
-        if float(time_stamp) <= last_change:
+        if float(time_stamp) < last_change:
             return NotebookManager.GET_NOTEBOOK(params, socket, address)
         else:
             return "NO"
@@ -137,7 +136,7 @@ class NotebookManager(object):
         with NotebookManager.lock:
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
-            notebook_db[name]["last_change"] = time.time()
+            notebook_db[name]["last_change"] = time_stamp
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"

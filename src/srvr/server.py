@@ -65,14 +65,18 @@ class Server(object):
             try:
                 request, params = Server.receive_client_request(client_socket,
                                                                 address)
+                if request != "CHECK_UPDATES":
+                    print(f"{address[1]} LOG REQUEST : {request[:50]}")
                 response = Server.handle_client_request(request, params,
                                                         client_socket, address)
                 Server.send_response_to_client(response, client_socket)
+                if response != "NO":
+                    print(f"{address[1]} LOG RESPONSE: {response[:50]}")
             except socket.error as msg:
-                print("booz!!", msg)
+                print("Server Error: ", msg)
                 done = True
             except Exception as msg:
-                print("booozzz!!!", msg)
+                print("Client request error: ", msg)
                 done = True
         return False
 
