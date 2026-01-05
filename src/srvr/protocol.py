@@ -43,10 +43,13 @@ class Protocol(object):
             length = MSG_LEN - len(data_len)
         data_len = data_len.decode()
         if data_len.isdigit():
-            size = int(data_len)
-            while size > STOP_RECV:
-                data += socket.recv(size)
-                size = int(data_len) - len(data)
+            total_size = int(data_len)
+            while len(data) < total_size:
+                remaining = total_size - len(data)
+                chunk = socket.recv(remaining)
+                if not chunk:
+                    break
+                data += chunk
         return data.decode()
 
     @staticmethod
@@ -63,8 +66,11 @@ class Protocol(object):
             length = MSG_LEN - len(data_len)
         data_len = data_len.decode()
         if data_len.isdigit():
-            size = int(data_len)
-            while size > STOP_RECV:
-                data += socket.recv(size)
-                size = int(data_len) - len(data)
+            total_size = int(data_len)
+            while len(data) < total_size:
+                remaining = total_size - len(data)
+                chunk = socket.recv(remaining)
+                if not chunk:
+                    break
+                data += chunk
         return data

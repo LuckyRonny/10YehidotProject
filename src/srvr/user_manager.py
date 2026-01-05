@@ -19,17 +19,15 @@ class UserManager(object):
         """
         username = params[USER_NAME]
         password = params[PASSWORD]
-        conn = sqlite3.connect('NotebookDB.db')
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT * FROM Users WHERE user_name = ? AND password = ?",
-            (username, password))
-        user = cursor.fetchone()
-        conn.close()
+        with sqlite3.connect('NotebookDB.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT * FROM Users WHERE user_name = ? AND password = ?",
+                (username, password))
+            user = cursor.fetchone()
         if user:
             return str(user[ID_OF_USER]) + "!" + str(user[NAME_OF_USER])
         else:
-
             return "False"
 
     @staticmethod
@@ -40,14 +38,13 @@ class UserManager(object):
         username = params[USER_NAME]
         password = params[PASSWORD]
         name = params[SIGNUP_NAME]
-        conn = sqlite3.connect('NotebookDB.db')
-        cursor = conn.cursor()
-        sql = "INSERT INTO Users (user_name, password, name) VALUES (?, ?, ?)"
         try:
-            cursor.execute(sql, (username, password, name))
-            conn.commit()
-            id = cursor.lastrowid
-            conn.close()
+            with sqlite3.connect('NotebookDB.db') as conn:
+                cursor = conn.cursor()
+                sql = "INSERT INTO Users (user_name, password, name) VALUES (?, ?, ?)"
+                cursor.execute(sql, (username, password, name))
+                conn.commit()
+                id = cursor.lastrowid
             if id:
                 return str(id)
             else:

@@ -410,9 +410,10 @@ class DrawingCanvas(QWidget):
     def back(self):
         """remove the last stroke or if empty get history"""
         if self.strokes:
-            _ = self.strokes.pop()
+            stroke = self.strokes.pop()
             self.update()
-            self.notebook_area.delete_stroke(self.id, stroke.id)
+            if self.notebook_area:
+                self.notebook_area.delete_stroke(self.id, stroke.id)
         else:
             self.strokes = self.history
             self.history = []

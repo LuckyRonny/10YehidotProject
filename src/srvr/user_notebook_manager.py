@@ -36,34 +36,32 @@ class UserNotebookManager(object):
     @staticmethod
     def add_to_db(notebook_name, user_id, per):
         """adds the notebook to db"""
-        conn = sqlite3.connect('NotebookDB.db')
-        cursor = conn.cursor()
-        cursor.execute(
-            "INSERT INTO Notebooks (name) VALUES (?)",
-            (notebook_name,))
-        conn.commit()
-        notebook_id = cursor.lastrowid
-        sql = ("INSERT INTO UsersNotebooks (user, notebook, permission) "
-               "VALUES (?, ?, ?)")
-        cursor.execute(sql, (user_id, notebook_id, per))
-        conn.commit()
-        conn.close()
+        with sqlite3.connect('NotebookDB.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "INSERT INTO Notebooks (name) VALUES (?)",
+                (notebook_name,))
+            conn.commit()
+            notebook_id = cursor.lastrowid
+            sql = ("INSERT INTO UsersNotebooks (user, notebook, permission) "
+                   "VALUES (?, ?, ?)")
+            cursor.execute(sql, (user_id, notebook_id, per))
+            conn.commit()
 
     @staticmethod
     def CLIENTS_NOTEBOOKS(params, socket, address):
         """gets all the notebooks of the user"""
         user_id = params[USER_ID]
-        conn = sqlite3.connect('NotebookDB.db')
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT notebook FROM UsersNotebooks WHERE user = ?",
-            (user_id,))
-        notebooks_id_tuple = cursor.fetchall()
-        notebooks_id = [row[NOTEBOOK_ID] for row in notebooks_id_tuple]
-        notebooks_names = []
-        for id in notebooks_id:
-            UserNotebookManager.get_all_notebooks(id, cursor, notebooks_names)
-        conn.close()
+        with sqlite3.connect('NotebookDB.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT notebook FROM UsersNotebooks WHERE user = ?",
+                (user_id,))
+            notebooks_id_tuple = cursor.fetchall()
+            notebooks_id = [row[NOTEBOOK_ID] for row in notebooks_id_tuple]
+            notebooks_names = []
+            for id in notebooks_id:
+                UserNotebookManager.get_all_notebooks(id, cursor, notebooks_names)
         names = "!".join(notebooks_names)
         return names
 
