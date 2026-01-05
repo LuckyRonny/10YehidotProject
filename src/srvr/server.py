@@ -69,10 +69,10 @@ class Server(object):
                                                         client_socket, address)
                 Server.send_response_to_client(response, client_socket)
             except socket.error as msg:
-                print("booz!!", msg)
+                print("Socket Error: ", msg)
                 done = True
             except Exception as msg:
-                print("booozzz!!!", msg)
+                print("Error processing client request: ", msg)
                 done = True
         return False
 

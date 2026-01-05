@@ -57,7 +57,7 @@ class Notebook(QtWidgets.QWidget):
         self.pages.setCurrentWidget(canvas)
         if self.notebook_area and self.notebook_area.notebook_widget:
             self.notebook_area.add_page(canvas.id, canvas)
-        self.notebook_area.current_page = self.pages.currentIndex()
+            self.notebook_area.current_page = self.pages.currentIndex()
 
     def prev_page(self):
         """move to the prev canvas"""
