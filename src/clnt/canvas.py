@@ -11,46 +11,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget
 
 from stroke import Stroke
-from style import (
-    ADD_SELECTED_PEN_SIZE,
-    BACKGROUND_PEN_SIZE,
-    CLOSE_POINTS_DISTANCE,
-    CLOSE_POINTS_TIME,
-    COLORS,
-    COLUMN_INDEX,
-    COLUMN_LIMITS,
-    EMPTY_POINT_LIST,
-    END_GRID,
-    END_LINE,
-    ERASER_TOLERANCE,
-    LAST_POINT,
-    LEFT_LINE,
-    LIGHTER_COLOR,
-    MARKER_COLORS,
-    NUMBER_LINES,
-    NUMBER_LINES_GRID,
-    ONLY_ONE_POINT,
-    PEN_SIZE_FACTOR,
-    PEN_START_VALUE,
-    POINT_BEFORE,
-    RIGHT_LINE,
-    ROW_INDEX,
-    ROW_LIMITS,
-    SCALE_CHANGE,
-    SCALE_MAX,
-    SCALE_MIN,
-    SECOND_POINT,
-    SELECTED_TOLERANCE,
-    SQUARED,
-    START_GRID,
-    START_LINE,
-    START_PIXMAP,
-    START_SCALE_FACTOR,
-    STROKE_POINT_END,
-    STROKE_POINT_START,
-    TRANSPARENCY_MARKER,
-    TRANSPARENCY_PEN,
-)
+from style import *
 START_ID = 0
 ID_CHANGE = 1
 
@@ -313,7 +274,6 @@ class DrawingCanvas(QWidget):
             if self.notebook_area and stroke:
                 self.notebook_area.add_stroke(stroke, self.id, stroke.id)
 
-
     def add_new_stroke(self):
         """adds the new stroke to the list of strokes"""
         stroke = None
@@ -419,7 +379,6 @@ class DrawingCanvas(QWidget):
             self.history = []
             self.update()
 
-
     def zoom_in(self):
         """change the scale factor *1.2"""
         self.scale_factor *= SCALE_CHANGE
@@ -517,3 +476,30 @@ class DrawingCanvas(QWidget):
             painter.drawLine(i, column_start, i, column_end)
         painter.end()
         self.update()
+
+    def ADD_STROKE(self, stroke):
+        """adds a stroke to the notebook from the db"""
+        for s in self.strokes:
+            if s.id == stroke.id:
+                self.strokes.remove(s)
+        self.strokes.append(stroke)
+
+    def DELETE_STROKE(self, stroke):
+        """deletes a stroke from the notebook in the db"""
+        for s in self.strokes:
+            if s.id == stroke.id:
+                self.strokes.remove(s)
+
+    def CHANGE_BACKGROUND(self, type):
+        """change the background of the notebook from the db"""
+        self.page_type = type
+        if type == "grid":
+            self.grid()
+        elif type == "lines":
+            self.lines()
+        else:
+            self.blank()
+
+    def CLEAR(self, nothing):
+        """clears the strokes of the notebook from the db"""
+        self.strokes = []

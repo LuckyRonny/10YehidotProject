@@ -8,17 +8,14 @@ import sys
 
 import protocol
 import winreg_file
-from constants import (
-    ADD_NOTEBOOK_DB_PARAMS,
-    ADD_NOTEBOOK_PARAMS,
-    CLIENTS_NOTEBOOKS_PARAMS,
-    GET_NOTEBOOK_PARAMS,
-    LOGIN_PARAMS,
-    PASSWORD,
-    REQUEST,
-    SIGNUP_PARAMS,
-    USERNAME,
-)
+from constants import *
+
+ADD_STROKE_PRMS = 7
+DELETE_STROKE_PRMS = 6
+CHANGE_BACKGROUND_PRMS = 6
+CLEAR_PRMS = 5
+ADD_PAGE_PRMS = 6
+CHECK_UPDATES_PRMS = 4
 
 
 class Client(object):
@@ -98,19 +95,19 @@ class Client(object):
 
     @staticmethod
     def funcs_check(req_and_prms):
-        """"""
+        """notebooks check request"""
         return (req_and_prms[REQUEST] == "add_stroke" and
-                len(req_and_prms) == 7 or
+                len(req_and_prms) == ADD_STROKE_PRMS or
                 req_and_prms[REQUEST] == "delete_stroke" and
-                len(req_and_prms) == 6 or
+                len(req_and_prms) == DELETE_STROKE_PRMS or
                 req_and_prms[REQUEST] == "change_background" and
-                len(req_and_prms) == 6 or
+                len(req_and_prms) == CHANGE_BACKGROUND_PRMS or
                 req_and_prms[REQUEST] == "clear" and
-                len(req_and_prms) == 5 or
+                len(req_and_prms) == CLEAR_PRMS or
                 req_and_prms[REQUEST] == "add_page" and
-                len(req_and_prms) == 6 or
+                len(req_and_prms) == ADD_PAGE_PRMS or
                 req_and_prms[REQUEST] == "check_updates" and
-                len(req_and_prms) == 4)
+                len(req_and_prms) == CHECK_UPDATES_PRMS)
 
     def send_request_to_server(self, request):
         """

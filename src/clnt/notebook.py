@@ -6,18 +6,7 @@ notebook
 from PyQt6 import QtWidgets
 
 from canvas import DrawingCanvas
-from style import (
-    CANVAS_SIZE,
-    FIRST_PAGE,
-    LAST_PAGE_INDEX,
-    NEXT_PAGE,
-    NO_PAGES,
-    PREV_PAGE,
-    SCALE_CHANGE,
-    SCALE_MAX,
-    SCALE_MIN,
-    START_SCALE_FACTOR,
-)
+from style import *
 
 
 class Notebook(QtWidgets.QWidget):
@@ -60,7 +49,8 @@ class Notebook(QtWidgets.QWidget):
         else:
             canvas = DrawingCanvas(*CANVAS_SIZE, None,
                                    None, self.notebook_area,
-                                   None, self.pages.currentIndex() + 1)
+                                   None,
+                                   self.pages.currentIndex() + NEXT_PAGE)
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
             canvas.scale_factor = prev_canvas.scale_factor

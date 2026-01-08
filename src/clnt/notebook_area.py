@@ -8,40 +8,13 @@ import time
 
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (
-    QComboBox,
-    QPushButton,
-    QSpinBox,
-    QToolBar,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt6.QtWidgets import *
 
 from notebook import Notebook
 from scroll_area import CenteredScrollArea
-from style import (
-    BUTTON,
-    BUTTON_SIZE,
-    BUTTON_WIDTH,
-    COLORS_NAMES,
-    ERASER_RANGE,
-    ERASER_START_VALUE,
-    ERASER_STEP,
-    MAIN_WINDOW,
-    MARGIN,
-    MARKER_COLORS_NAMES,
-    MARKER_RANGE,
-    MARKER_START_VALUE,
-    MARKER_STEP,
-    PEN_RANGE,
-    PEN_START_VALUE,
-    PEN_STEP,
-    SCROLL_AREA,
-    SCROLL_STRETCH,
-    SUB_TOOLBAR,
-    ToolbarsEnum,
-    WINDOW_SIZE,
-)
+from style import *
+
+WAIT_TIME = 0.5
 
 
 class NotebookArea(QtWidgets.QMainWindow):
@@ -63,14 +36,7 @@ class NotebookArea(QtWidgets.QMainWindow):
             self.notebook_widget = Notebook(None, time.time(), self)
         self.current_page = self.notebook_widget.pages.currentIndex()
         central_layout, central_widget = self.create_central_layout()
-        self.main_toolbar = QToolBar("Main Toolbar")
-        self.main_toolbar.setMovable(False)
-        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
-        self.sub_toolbars = []
-        self.create_sub_toolbars(central_layout)
-        self.create_buttons_layout()
-        self.create_buttons()
-        self.add_to_central_layout(central_layout)
+        self.create_toolbars(central_layout)
         self.id = id
         self.client = client
         self.main_window = mainwindow
@@ -80,7 +46,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.notebook_update_signal.connect(self.reload_notebook)
 
     def loop(self):
-        """"""
+        """check if there are updates and update them"""
         while self.running:
             command = ("check_updates$" + self.name + "$" +
                        str(self.notebook_widget.last_change) + "$NOTEBOOKS")
@@ -94,7 +60,18 @@ class NotebookArea(QtWidgets.QMainWindow):
                     continue
                 self.notebook_update_signal.emit(data,
                                                  self.current_page)
-            time.sleep(0.5)
+            time.sleep(WAIT_TIME)
+
+    def create_toolbars(self, central_layout):
+        """create toolbars"""
+        self.main_toolbar = QToolBar("Main Toolbar")
+        self.main_toolbar.setMovable(False)
+        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
+        self.sub_toolbars = []
+        self.create_sub_toolbars(central_layout)
+        self.create_buttons_layout()
+        self.create_buttons()
+        self.add_to_central_layout(central_layout)
 
     def save_notebook(self):
         """saves the notebook in the db"""

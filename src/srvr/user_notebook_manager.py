@@ -19,7 +19,7 @@ PERMISSION = 3
 
 class UserNotebookManager(object):
     @staticmethod
-    def ADD_NOTEBOOK_TO_DB(params, socket, address):
+    def ADD_NOTEBOOK_TO_DB(params):
         """add the notebook to both dbs """
         user_id = params[USER_ID]
         notebook_name = params[NOTEBOOK_NAME]
@@ -29,8 +29,7 @@ class UserNotebookManager(object):
             UserNotebookManager.add_to_db(notebook_name, user_id, per)
         except sqlite3.IntegrityError as e:
             return str(e)
-        NotebookManager.ADD_NOTEBOOK([notebook_name, notebook],
-                                     None, None)
+        NotebookManager.ADD_NOTEBOOK([notebook_name, notebook])
         return "ok"
 
     @staticmethod
@@ -49,7 +48,7 @@ class UserNotebookManager(object):
             conn.commit()
 
     @staticmethod
-    def CLIENTS_NOTEBOOKS(params, socket, address):
+    def CLIENTS_NOTEBOOKS(params):
         """gets all the notebooks of the user"""
         user_id = params[USER_ID]
         with sqlite3.connect('NotebookDB.db') as conn:
@@ -61,7 +60,8 @@ class UserNotebookManager(object):
             notebooks_id = [row[NOTEBOOK_ID] for row in notebooks_id_tuple]
             notebooks_names = []
             for id in notebooks_id:
-                UserNotebookManager.get_all_notebooks(id, cursor, notebooks_names)
+                UserNotebookManager.get_all_notebooks(id, cursor,
+                                                      notebooks_names)
         names = "!".join(notebooks_names)
         return names
 

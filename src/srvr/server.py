@@ -63,15 +63,9 @@ class Server(object):
         done = False
         while not done:
             try:
-                request, params = Server.receive_client_request(client_socket,
-                                                                address)
-                if request != "CHECK_UPDATES":
-                    print(f"{address[1]} LOG REQUEST : {request[:50]}")
-                response = Server.handle_client_request(request, params,
-                                                        client_socket, address)
+                request, params = Server.receive_client_request(client_socket)
+                response = Server.handle_client_request(request, params)
                 Server.send_response_to_client(response, client_socket)
-                if response != "NO":
-                    print(f"{address[1]} LOG RESPONSE: {response[:50]}")
             except socket.error as msg:
                 print("Server Error: ", msg)
                 done = True
@@ -81,7 +75,7 @@ class Server(object):
         return False
 
     @staticmethod
-    def receive_client_request(client_socket, address):
+    def receive_client_request(client_socket):
         """
         gets a socket and receives a request
         """
@@ -95,14 +89,14 @@ class Server(object):
             return req_and_prms[REQUEST].upper(), None
 
     @staticmethod
-    def handle_client_request(request, params, client_socket, address):
+    def handle_client_request(request, params):
         """
         gets a request and check which request to do and
         call the function and returns the response
         """
         cls = getattr(methods, "Methods")
         return (getattr(cls, params[REQUEST_TYPE])
-                (request, params, client_socket, address))
+                (request, params))
 
     @staticmethod
     def send_response_to_client(response, client_socket):

@@ -13,7 +13,7 @@ NAME_OF_USER = 1
 class UserManager(object):
 
     @staticmethod
-    def LOGIN(params, socket, address):
+    def LOGIN(params):
         """
         check if has a user with this username and password
         """
@@ -31,7 +31,7 @@ class UserManager(object):
             return "False"
 
     @staticmethod
-    def SIGNUP(params, socket, address):
+    def SIGNUP(params):
         """
         creates a new user
         """
@@ -41,7 +41,8 @@ class UserManager(object):
         try:
             with sqlite3.connect('NotebookDB.db') as conn:
                 cursor = conn.cursor()
-                sql = "INSERT INTO Users (user_name, password, name) VALUES (?, ?, ?)"
+                sql = ("INSERT INTO Users (user_name, password, name)" +
+                       "VALUES (?, ?, ?)")
                 cursor.execute(sql, (username, password, name))
                 conn.commit()
                 id = cursor.lastrowid

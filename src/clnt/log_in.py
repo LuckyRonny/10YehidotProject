@@ -16,17 +16,7 @@ from PyQt6.QtWidgets import (
 from client import Client
 from main_window import MainWindow
 from sign_up import SignupWindow
-from style import (
-    BUTTON_HEIGHT,
-    BUTTON_WIDTH,
-    LINE_EDIT_MAX_LENGTH,
-    LOGIN_BUTTON,
-    LOGIN_STRETCH,
-    MAIN_WINDOW,
-    MARGIN,
-    STRETCH,
-    WINDOW_SIZE,
-)
+from style import *
 
 RETURNED_USERNAME = 0
 RETURNED_NAME = 1

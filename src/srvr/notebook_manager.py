@@ -7,13 +7,24 @@ import ast
 import json
 import threading
 
-from constants import NAME, NOTE_BOOK
+from constants import *
+ID_PAGE = 2
+ID_STROKE = 3
+TIME_STAMP_STROKE = 4
+TIME_STAMP = 3
+PAGE_ID = 1
+STROKE_ID = 2
+PAGE_TYPE = 2
+NEXT_STROKE = 1
+LOADING_TIME = 1.0
+TIME_STAMP_CLEAR = 2
 
 
 class NotebookManager(object):
     lock = threading.Lock()
+
     @staticmethod
-    def GET_NOTEBOOK(params, socket, address):
+    def GET_NOTEBOOK(params):
         """
         gets the notebook from the db
         """
@@ -25,7 +36,7 @@ class NotebookManager(object):
         return repr(notebook)
 
     @staticmethod
-    def ADD_NOTEBOOK(params, socket, address):
+    def ADD_NOTEBOOK(params):
         """adds the notebook to the db"""
         name = params[NAME]
         notebook = ast.literal_eval(params[NOTE_BOOK])
@@ -38,12 +49,12 @@ class NotebookManager(object):
         return "ok"
 
     @staticmethod
-    def ADD_STROKE(params, socket, address):
+    def ADD_STROKE(params):
         """adds a stroke to the notebook from the db"""
         name = params[NAME]
         stroke = ast.literal_eval(params[NOTE_BOOK])
-        id_page = params[2]
-        id = params[3]
+        id_page = params[ID_PAGE]
+        id = params[ID_STROKE]
         with NotebookManager.lock:
             if id == "0":
                 id = NotebookManager._get_stroke_id_unlocked(name, id_page)
@@ -51,72 +62,73 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page]["strokes"][id] = stroke
-            notebook_db[name]["last_change"] = str(float(params[4])+1.0)
+            notebook_db[name]["last_change"] = str(
+                float(params[TIME_STAMP_STROKE]) + LOADING_TIME)
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
 
     @staticmethod
-    def DELETE_STROKE(params, socket, address):
+    def DELETE_STROKE(params):
         """deletes a stroke from the notebook in the db"""
         name = params[NAME]
-        id_page = params[1]
-        id = params[2]
+        id_page = params[PAGE_ID]
+        id = params[STROKE_ID]
         with NotebookManager.lock:
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page]["strokes"].pop(id)
-            notebook_db[name]["last_change"] = params[3]
+            notebook_db[name]["last_change"] = params[TIME_STAMP]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
 
     @staticmethod
-    def CHANGE_BACKGROUND(params, socket, address):
+    def CHANGE_BACKGROUND(params):
         """change the background of the notebook from the db"""
         name = params[NAME]
-        id_page = params[1]
-        page_type = params[2]
+        id_page = params[PAGE_ID]
+        page_type = params[PAGE_TYPE]
         with NotebookManager.lock:
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page]["page_type"] = page_type
-            notebook_db[name]["last_change"] = params[3]
+            notebook_db[name]["last_change"] = params[TIME_STAMP]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
 
     @staticmethod
-    def CLEAR(params, socket, address):
+    def CLEAR(params):
         """clears the strokes of the notebook from the db"""
         name = params[NAME]
-        id = params[1]
+        id = params[PAGE_ID]
         with NotebookManager.lock:
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id]["strokes"] = {}
-            notebook_db[name]["last_change"] = params[2]
+            notebook_db[name]["last_change"] = params[TIME_STAMP_CLEAR]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
 
     @staticmethod
-    def ADD_PAGE(params, socket, address):
+    def ADD_PAGE(params):
         """adds a page to the notebook in the db"""
         name = params[NAME]
         page = ast.literal_eval(params[NOTE_BOOK])
-        id_page = params[2]
+        id_page = params[ID_PAGE]
         with NotebookManager.lock:
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page] = page
-            notebook_db[name]["last_change"] = params[3]
+            notebook_db[name]["last_change"] = params[TIME_STAMP]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
         return "ok"
 
     @staticmethod
-    def CHECK_UPDATES(params, socket, address):
+    def CHECK_UPDATES(params):
         """checks if notebook has updates since the given timestamp"""
         name = params[NAME]
         time_stamp = params[1]
@@ -125,10 +137,9 @@ class NotebookManager(object):
                 notebook_db = json.load(f)
             last_change = float(notebook_db[name]["last_change"])
         if float(time_stamp) < last_change:
-            return NotebookManager.GET_NOTEBOOK(params, socket, address)
+            return NotebookManager.GET_NOTEBOOK(params)
         else:
             return "NO"
-
 
     @staticmethod
     def CHANGE_TIME_STAMP(name, time_stamp):
@@ -145,7 +156,7 @@ class NotebookManager(object):
     def GET_STROKE_ID(params):
         """gets the next stroke id from the notebook from the db"""
         name = params[NAME]
-        page_id = params[1]
+        page_id = params[PAGE_ID]
         with NotebookManager.lock:
             return NotebookManager._get_stroke_id_unlocked(name, page_id)
 
@@ -155,8 +166,9 @@ class NotebookManager(object):
         with open("notebook_DB.json", "r") as f:
             notebook_db = json.load(f)
         next_stroke_id = notebook_db[name]["pages"][page_id]["stroke_id"]
-        temp = str(int(next_stroke_id) + 1)
-        print(f"New Stroke is: ={next_stroke_id}= , Next stroke will be ={temp}=")
+        temp = str(int(next_stroke_id) + NEXT_STROKE)
+        print(f"New Stroke is: ={next_stroke_id}= , "
+              f"Next stroke will be ={temp}=")
         notebook_db[name]["pages"][page_id]["stroke_id"] = temp
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
