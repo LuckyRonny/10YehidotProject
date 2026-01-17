@@ -7,7 +7,8 @@ import ast
 import json
 import threading
 
-from constants import *
+from constants import NAME, NOTE_BOOK
+
 ID_PAGE = 2
 ID_STROKE = 3
 TIME_STAMP_STROKE = 4
@@ -69,8 +70,9 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP_STROKE]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
-        NotebookManager.create_update(name, params[TIME_STAMP_STROKE],
-                                      "ADD_STROKE", id_page, stroke)
+        NotebookManager.create_update(
+            name, params[TIME_STAMP_STROKE], "ADD_STROKE", id_page, stroke
+        )
         return id
 
     @staticmethod
@@ -172,8 +174,7 @@ class NotebookManager(object):
             notebook_db = json.load(f)
         next_stroke_id = notebook_db[name]["pages"][page_id]["stroke_id"]
         temp = str(int(next_stroke_id) + NEXT_STROKE)
-        print(f"New Stroke is: ={next_stroke_id}= , "
-              f"Next stroke will be ={temp}=")
+        print(f"New Stroke is: ={next_stroke_id}= , Next stroke will be ={temp}=")
         notebook_db[name]["pages"][page_id]["stroke_id"] = temp
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
@@ -182,12 +183,7 @@ class NotebookManager(object):
     @staticmethod
     def create_update(notebook_name, time, type, page_id, data):
         """create the update and at it to a list of updates"""
-        update = {
-            "ts": time,
-            "type": type,
-            "page": page_id,
-            "data": data
-        }
+        update = {"ts": time, "type": type, "page": page_id, "data": data}
         with NotebookManager.lock:
             with open("updates.json", "r") as f:
                 updates = json.load(f)
