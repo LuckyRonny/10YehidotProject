@@ -177,7 +177,7 @@ class NotebookManager(object):
         notebook_db[name]["pages"][page_id]["stroke_id"] = temp
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
-        return next_stroke_id
+        return str(next_stroke_id)
 
     @staticmethod
     def create_update(notebook_name, time, type, page_id, data):
