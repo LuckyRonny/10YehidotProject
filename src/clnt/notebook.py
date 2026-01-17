@@ -5,6 +5,7 @@ notebook
 
 from PyQt6 import QtWidgets
 
+import canvas
 from canvas import DrawingCanvas
 from style import *
 
@@ -60,7 +61,7 @@ class Notebook(QtWidgets.QWidget):
         self.pages.setCurrentWidget(canvas)
         if self.notebook_area and self.notebook_area.notebook_widget:
             self.notebook_area.add_page(canvas.id, canvas)
-        self.notebook_area.current_page = self.pages.currentIndex()
+            self.notebook_area.current_page = self.pages.currentIndex()
 
     def prev_page(self):
         """move to the prev canvas"""
@@ -99,19 +100,15 @@ class Notebook(QtWidgets.QWidget):
             page._update_size()
             page.update()
 
-    def update_notebook(self, pages, last_change, notebook_area):
+    def update_notebook(self, ts, type, page, data):
         """update the notebook from the DB"""
-        self.notebook_area = notebook_area
-        self.last_change = last_change
-        self.delete_old_data()
-        if pages:
-            for page in pages:
-                canvas = DrawingCanvas(**(pages[page]),
-                                       notebook_area=notebook_area)
-                self.pages.addWidget(canvas)
-                self.pages_list.append(canvas)
-        else:
+        if type == "ADD_PAGE":
             self.add_page(None)
+        for p in self.pages_list:
+            if p.id == int(page):
+                cls = getattr(canvas, "DrawingCanvas")
+                return getattr(cls, type)(p, data)
+        self.last_change = float(ts)
         self.pages.setCurrentIndex(FIRST_PAGE)
 
     def delete_old_data(self):

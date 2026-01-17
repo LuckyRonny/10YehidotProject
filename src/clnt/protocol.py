@@ -1,6 +1,6 @@
 """
 Ronny Getz
-protocol server
+protocol client
 """
 from constants import MSG_LEN
 

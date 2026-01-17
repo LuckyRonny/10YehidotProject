@@ -2,7 +2,7 @@
 Ronny Getz
 canvas
 """
-
+import ast
 import math
 import time
 
@@ -264,7 +264,8 @@ class DrawingCanvas(QWidget):
         if self.current_stroke_points:
             stroke = self.add_new_stroke()
             if self.notebook_area and stroke:
-                self.notebook_area.add_stroke(stroke, self.id, "0")
+                id = self.notebook_area.add_stroke(stroke, self.id, "0")
+                stroke.id = id
         elif self.tool == "select":
             if self.selected_stroke:
                 stroke = self.selected_stroke
@@ -272,7 +273,8 @@ class DrawingCanvas(QWidget):
                 self.selected_stroke = None
             self.update()
             if self.notebook_area and stroke:
-                self.notebook_area.add_stroke(stroke, self.id, stroke.id)
+                id = self.notebook_area.add_stroke(stroke, self.id, stroke.id)
+
 
     def add_new_stroke(self):
         """adds the new stroke to the list of strokes"""
@@ -477,29 +479,30 @@ class DrawingCanvas(QWidget):
         painter.end()
         self.update()
 
-    def ADD_STROKE(self, stroke):
+    def ADD_STROKE(self, data):
         """adds a stroke to the notebook from the db"""
+        data = Stroke(**data)
         for s in self.strokes:
-            if s.id == stroke.id:
+            if s.id == data.id:
                 self.strokes.remove(s)
-        self.strokes.append(stroke)
+        self.strokes.append(data)
 
-    def DELETE_STROKE(self, stroke):
+    def DELETE_STROKE(self, data):
         """deletes a stroke from the notebook in the db"""
         for s in self.strokes:
-            if s.id == stroke.id:
+            if s.id == data.id:
                 self.strokes.remove(s)
 
-    def CHANGE_BACKGROUND(self, type):
+    def CHANGE_BACKGROUND(self, data):
         """change the background of the notebook from the db"""
-        self.page_type = type
-        if type == "grid":
+        self.page_type = data
+        if data == "grid":
             self.grid()
-        elif type == "lines":
+        elif data == "lines":
             self.lines()
         else:
             self.blank()
 
-    def CLEAR(self, nothing):
+    def CLEAR(self, data):
         """clears the strokes of the notebook from the db"""
         self.strokes = []

@@ -18,7 +18,7 @@ WAIT_TIME = 0.5
 
 
 class NotebookArea(QtWidgets.QMainWindow):
-    notebook_update_signal = QtCore.pyqtSignal(dict, int)
+    notebook_update_signal = QtCore.pyqtSignal(list, int)
 
     def __init__(self, mainwindow, id, client, notebook, name):
         """constructor"""
@@ -51,7 +51,7 @@ class NotebookArea(QtWidgets.QMainWindow):
             command = ("check_updates$" + self.name + "$" +
                        str(self.notebook_widget.last_change) + "$NOTEBOOKS")
             resp = self.client.send_command(command)
-            if resp.startswith("{"):
+            if resp != "[]" and resp != "":
                 try:
                     data = ast.literal_eval(resp)
                 except (SyntaxError, ValueError) as t:
@@ -98,9 +98,10 @@ class NotebookArea(QtWidgets.QMainWindow):
         """add the stroke to the db"""
         self.notebook_widget.last_change = time.time()
         command = ("add_stroke$" + self.name + "$" + repr(stroke.__dict__()) +
-                   "$" + str(id_page) + "$" + str(id) + "$" +
+                   "$" + str(id_page) + "$" + id + "$" +
                    str(self.notebook_widget.last_change) + "$NOTEBOOKS")
-        self.client.send_command(command)
+        stroke_id = self.client.send_command(command)
+        return stroke_id
 
     def add_page(self, id_page, page):
         """add the page to the db"""
@@ -449,11 +450,11 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.reload_notebook(ast.literal_eval(
             self.client.send_command(command)), current_page)
 
-    def reload_notebook(self, notebook_data, current_page):
+    def reload_notebook(self, data, current_page):
         """Replace the current notebook with a new one from the server."""
-        self.notebook_widget.update_notebook(notebook_data["pages"],
-                                             notebook_data["last_change"],
-                                             notebook_area=self)
+        for u in data:
+            self.notebook_widget.update_notebook(**u)
+        self.notebook_widget.last_change = time.time()
         for page in self.notebook_widget.pages_list:
             page.update()
         self.notebook_widget.pages.setCurrentIndex(current_page)

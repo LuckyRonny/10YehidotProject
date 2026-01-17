@@ -18,6 +18,7 @@ PAGE_TYPE = 2
 NEXT_STROKE = 1
 LOADING_TIME = 1.0
 TIME_STAMP_CLEAR = 2
+TIME_STAMP_CHECK = 1
 
 
 class NotebookManager(object):
@@ -25,9 +26,7 @@ class NotebookManager(object):
 
     @staticmethod
     def GET_NOTEBOOK(params):
-        """
-        gets the notebook from the db
-        """
+        """gets the notebook from the db"""
         name = params[NAME]
         with NotebookManager.lock:
             with open("notebook_DB.json", "r") as f:
@@ -46,6 +45,11 @@ class NotebookManager(object):
             notebook_db[name] = notebook
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
+            with open("updates.json", "r") as f:
+                updates = json.load(f)
+            updates[name] = []
+            with open("updates.json", "w") as f:
+                json.dump(updates, f)
         return "ok"
 
     @staticmethod
@@ -62,11 +66,12 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page]["strokes"][id] = stroke
-            notebook_db[name]["last_change"] = str(
-                float(params[TIME_STAMP_STROKE]) + LOADING_TIME)
+            notebook_db[name]["last_change"] = params[TIME_STAMP_STROKE]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
-        return "ok"
+        NotebookManager.create_update(name, params[TIME_STAMP_STROKE],
+                                      "ADD_STROKE", id_page, stroke)
+        return id
 
     @staticmethod
     def DELETE_STROKE(params):
@@ -131,15 +136,15 @@ class NotebookManager(object):
     def CHECK_UPDATES(params):
         """checks if notebook has updates since the given timestamp"""
         name = params[NAME]
-        time_stamp = params[1]
+        time_stamp = params[TIME_STAMP_CHECK]
         with NotebookManager.lock:
-            with open("notebook_DB.json", "r") as f:
-                notebook_db = json.load(f)
-            last_change = float(notebook_db[name]["last_change"])
-        if float(time_stamp) < last_change:
-            return NotebookManager.GET_NOTEBOOK(params)
-        else:
-            return "NO"
+            with open("updates.json", "r") as f:
+                updates_db = json.load(f)
+        updates = []
+        for u in updates_db[name]:
+            if float(u["ts"]) > float(time_stamp):
+                updates.append(u)
+        return repr(updates)
 
     @staticmethod
     def CHANGE_TIME_STAMP(name, time_stamp):
@@ -173,3 +178,19 @@ class NotebookManager(object):
         with open("notebook_DB.json", "w") as f:
             json.dump(notebook_db, f)
         return next_stroke_id
+
+    @staticmethod
+    def create_update(notebook_name, time, type, page_id, data):
+        """create the update and at it to a list of updates"""
+        update = {
+            "ts": time,
+            "type": type,
+            "page": page_id,
+            "data": data
+        }
+        with NotebookManager.lock:
+            with open("updates.json", "r") as f:
+                updates = json.load(f)
+            updates[notebook_name].append(update)
+            with open("updates.json", "w") as f:
+                json.dump(updates, f)

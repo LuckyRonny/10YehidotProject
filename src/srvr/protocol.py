@@ -4,6 +4,12 @@ protocol server
 """
 from constants import MSG_LEN
 
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='server.log', encoding='utf-8', level=logging.DEBUG)
+logger.info('Starting the logger on file "server.log"')
+
+
 STOP_RECV = 0
 
 
@@ -17,6 +23,7 @@ class Protocol(object):
         length = len(data_bit)
         length_str = str(length)
         length_bit = length_str.zfill(MSG_LEN).encode()
+        logger.debug(f"Sending {data_bit[:80]} ... to socket {socket}")
         socket.send(length_bit + data_bit)
 
     @staticmethod
@@ -50,6 +57,7 @@ class Protocol(object):
                 if not chunk:
                     break
                 data += chunk
+        logger.debug(f"Received {data[:80]} ... from socket {socket}")
         return data.decode()
 
     @staticmethod
