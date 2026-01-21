@@ -14,7 +14,7 @@ from notebook import Notebook
 from scroll_area import CenteredScrollArea
 from style import *
 
-WAIT_TIME = 0.5
+WAIT_TIME = 0.2
 
 
 class NotebookArea(QtWidgets.QMainWindow):
@@ -98,7 +98,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         """add the stroke to the db"""
         self.notebook_widget.last_change = time.time()
         command = ("add_stroke$" + self.name + "$" + repr(stroke.__dict__()) +
-                   "$" + str(id_page) + "$" + id + "$" +
+                   "$" + str(id_page) + "$" + str(id) + "$" +
                    str(self.notebook_widget.last_change) + "$NOTEBOOKS")
         stroke_id = self.client.send_command(command)
         return stroke_id
@@ -316,8 +316,8 @@ class NotebookArea(QtWidgets.QMainWindow):
                 canvas.lines()
             else:
                 canvas.blank()
-        self.change_background(background, canvas.id)
         self.save_notebook()
+        self.change_background(background, canvas.id)
 
     def toolbar_features(self, toolbar):
         """set features of sub toolbars"""

@@ -175,12 +175,17 @@ class DrawingCanvas(QWidget):
             elif self.tool == "eraser":
                 # erase immediately when clicking
                 new_strokes = []
+                stroke = None
                 for s in self.strokes:
                     if not s.contains_point(pos,
                                             self.pen_size * ERASER_TOLERANCE):
                         new_strokes.append(s)
+                    else:
+                        stroke = s
                 self.strokes = new_strokes
                 self.update()
+                if self.notebook_area and stroke:
+                    self.notebook_area.delete_stroke(self.id, stroke.id)
 
     def check_which_selected(self, pos):
         """check which stroke is selected from the end"""
@@ -478,14 +483,14 @@ class DrawingCanvas(QWidget):
         """adds a stroke to the notebook from the db"""
         data = Stroke(**data)
         for s in self.strokes:
-            if s.id == data.id:
+            if int(s.id) == int(data.id):
                 self.strokes.remove(s)
         self.strokes.append(data)
 
     def DELETE_STROKE(self, data):
         """deletes a stroke from the notebook in the db"""
         for s in self.strokes:
-            if s.id == data:
+            if int(s.id) == int(data):
                 self.strokes.remove(s)
 
     def CHANGE_BACKGROUND(self, data):
