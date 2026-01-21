@@ -88,6 +88,9 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
+        NotebookManager.create_update(
+            name, params[TIME_STAMP], "DELETE_STROKE", id_page, id
+        )
         return "ok"
 
     @staticmethod
@@ -103,6 +106,10 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
+        NotebookManager.create_update(
+            name, params[TIME_STAMP], "CHANGE_BACKGROUND", id_page,
+            page_type
+        )
         return "ok"
 
     @staticmethod
@@ -117,6 +124,9 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP_CLEAR]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
+        NotebookManager.create_update(
+            name, params[TIME_STAMP_CLEAR], "CLEAR", id, None
+        )
         return "ok"
 
     @staticmethod
@@ -132,6 +142,9 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP]
             with open("notebook_DB.json", "w") as f:
                 json.dump(notebook_db, f)
+        NotebookManager.create_update(
+            name, params[TIME_STAMP], "ADD_STROKE", id_page, None
+        )
         return "ok"
 
     @staticmethod
@@ -143,7 +156,8 @@ class NotebookManager(object):
             with open("updates.json", "r") as f:
                 updates_db = json.load(f)
         updates = []
-        for u in updates_db[name]:
+        notebook_updates = updates_db[name]
+        for u in notebook_updates:
             if float(u["ts"]) > float(time_stamp):
                 updates.append(u)
         return repr(updates)

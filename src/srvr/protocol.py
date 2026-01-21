@@ -9,9 +9,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(filename='server.log', encoding='utf-8', level=logging.DEBUG)
 logger.info('Starting the logger on file "server.log"')
 
-
 STOP_RECV = 0
-
 
 class Protocol(object):
     @staticmethod

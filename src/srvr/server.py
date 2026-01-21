@@ -33,6 +33,10 @@ class Server(object):
                                                socket.SOCK_STREAM)
             self.server_socket.bind((ip, port))
             self.server_socket.listen(NUMBER_OF_CLIENTS)
+            self.update_socket = socket.socket(socket.AF_INET,
+                                               socket.SOCK_STREAM)
+            self.update_socket.bind((ip, port + 1))
+            self.update_socket.listen(NUMBER_OF_CLIENTS)
         except socket.error as msg:
             print("Connection failure: %s\n terminating program" % msg)
             sys.exit(1)
@@ -50,8 +54,24 @@ class Server(object):
                     target=self.handle_single_client,
                     args=(client_socket, address))
                 clnt_thread.start()
+                threading.Thread(
+                    target=self.accept_updates,
+                    daemon=True
+                ).start()
             except socket.error:
                 print("socket error")
+
+    def accept_updates(self):
+        """accept clients for updates socket"""
+        while True:
+            try:
+                client_socket, address = self.update_socket.accept()
+                clnt_thread = threading.Thread(
+                    target=self.handle_update_client,
+                    args=(client_socket, address))
+                clnt_thread.start()
+            except socket.error:
+                print("update socket error")
 
     @staticmethod
     def handle_single_client(client_socket, address):
@@ -73,6 +93,25 @@ class Server(object):
                 print("Client request error: ", msg)
                 done = True
         return False
+
+    @staticmethod
+    def handle_update_client(client_socket, address):
+        """handle update requests from client"""
+        done = False
+        while not done:
+            try:
+                request, params = Server.receive_client_request(client_socket)
+                if request != "CHECK_UPDATES":
+                    Server.send_response_to_client("NO", client_socket)
+                    continue
+                response = Server.handle_client_request(request, params)
+                Server.send_response_to_client(response, client_socket)
+            except socket.error as msg:
+                print("Update client error:", msg)
+                done = True
+            except Exception as msg:
+                print("Update request error:", msg)
+                done = True
 
     @staticmethod
     def receive_client_request(client_socket):

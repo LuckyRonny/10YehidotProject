@@ -28,6 +28,9 @@ class Client(object):
             ip, port = winreg_file.Reg.read_reg()
             self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.my_socket.connect((ip, port))
+            self.check_socket = socket.socket(
+                socket.AF_INET, socket.SOCK_STREAM)
+            self.check_socket.connect((ip, port + 1))
         except socket.error as msg:
             print("Connection failure: %s\n terminating program" % msg)
             sys.exit(1)
@@ -53,12 +56,11 @@ class Client(object):
             print("handle_user_input - general error:", msg)
 
     @staticmethod
-    def valid_request(request):
+    def valid_request(req_and_prms):
         """
         gets a request and checks if the request legal
         and if the number of parameters is legal
         """
-        req_and_prms = request.split("$")
         if (Client.login_check(req_and_prms) or
             Client.signup_check(req_and_prms) or
             Client.funcs_check(req_and_prms) or
@@ -109,17 +111,17 @@ class Client(object):
                 req_and_prms[REQUEST] == "check_updates" and
                 len(req_and_prms) == CHECK_UPDATES_PRMS)
 
-    def send_request_to_server(self, request):
+    def send_request_to_server(self, sock, request):
         """
         gets a socket and a request and sent it to the server
         """
-        protocol.Protocol.send(self.my_socket, request)
+        protocol.Protocol.send(sock, request)
 
-    def handle_server_response(self):
+    def handle_server_response(self, sock):
         """
         gets a socket and gets a data from the server and prints it
         """
-        data = protocol.Protocol.recv(self.my_socket)
+        data = protocol.Protocol.recv(sock)
         return data  # returns string
 
     def send_command(self, request):
@@ -129,9 +131,14 @@ class Client(object):
         handle_server_response and return the response
         """
         rsp = ""
-        if self.valid_request(request):
-            self.send_request_to_server(request)
-            rsp = self.handle_server_response()
+        req_and_prms = request.split("$")
+        if self.valid_request(req_and_prms):
+            if req_and_prms[REQUEST] == "check_updates":
+                self.send_request_to_server(self.check_socket, request)
+                rsp = self.handle_server_response(self.check_socket)
+            else:
+                self.send_request_to_server(self.my_socket, request)
+                rsp = self.handle_server_response(self.my_socket)
         else:
             rsp = "ILLEGAL REQUEST"
         return rsp

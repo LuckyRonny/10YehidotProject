@@ -319,7 +319,6 @@ class DrawingCanvas(QWidget):
 
     def clear_canvas(self):
         """cleans the canvas"""
-        self.history = self.strokes
         self.strokes = []
         self.current_stroke_points = []
         self.selected_stroke = None
@@ -376,10 +375,6 @@ class DrawingCanvas(QWidget):
             self.update()
             if self.notebook_area:
                 self.notebook_area.delete_stroke(self.id, stroke.id)
-        else:
-            self.strokes = self.history
-            self.history = []
-            self.update()
 
     def zoom_in(self):
         """change the scale factor *1.2"""
@@ -490,7 +485,7 @@ class DrawingCanvas(QWidget):
     def DELETE_STROKE(self, data):
         """deletes a stroke from the notebook in the db"""
         for s in self.strokes:
-            if s.id == data.id:
+            if s.id == data:
                 self.strokes.remove(s)
 
     def CHANGE_BACKGROUND(self, data):
