@@ -104,12 +104,12 @@ class Notebook(QtWidgets.QWidget):
         """update the notebook from the DB"""
         if type == "ADD_PAGE":
             self.add_page(None)
-        for p in self.pages_list:
-            if p.id == int(page):
-                cls = getattr(canvas, "DrawingCanvas")
-                return getattr(cls, type)(p, data)
+        else:
+            for p in self.pages_list:
+                if p.id == int(page):
+                    cls = getattr(canvas, "DrawingCanvas")
+                    getattr(cls, type)(p, data)
         self.last_change = float(ts)
-        self.pages.setCurrentIndex(FIRST_PAGE)
 
     def delete_old_data(self):
         """delete the old data of the notebook"""
