@@ -2,13 +2,13 @@
 
 ## TODO
 - add a button to give permissions
-- add time stemp of last change
+- add time stamp of last change
 - create loop of every second check if there is an update
 
 ## DONE
 - add id for the strokes
 - add to DB permissions
-- add a dict with conection between button to name
+- add a dict with connection between button to name
 - add button to upload a notebook
 - change from paint event to release mouse + add page and change background
 - change the stroke not the hole canvas
