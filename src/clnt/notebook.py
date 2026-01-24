@@ -20,7 +20,8 @@ class Notebook(QtWidgets.QWidget):
         if pages:
             for page in pages:
                 self.add_page(DrawingCanvas(**(pages[page]),
-                                            notebook_area=notebook_area))
+                                            notebook_area=notebook_area),
+                              notify_server=False)
         self.global_scale_factor = START_SCALE_FACTOR
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.addWidget(self.pages)
@@ -43,8 +44,12 @@ class Notebook(QtWidgets.QWidget):
         """return current canvas"""
         return self.pages.currentWidget()
 
-    def add_page(self, page):
-        """add another canvas"""
+    def add_page(self, page, notify_server=True):
+        """add another canvas
+        :param page: The canvas page to add, or None to create a new one
+        :param notify_server: Whether to notify the server about the new page,
+                             default: True. Set to False when handling server updates.
+        """
         if page:
             canvas = page
         else:
@@ -59,7 +64,7 @@ class Notebook(QtWidgets.QWidget):
         self.pages_list.append(canvas)
         self.pages.addWidget(canvas)
         self.pages.setCurrentWidget(canvas)
-        if self.notebook_area and self.notebook_area.notebook_widget:
+        if self.notebook_area and self.notebook_area.notebook_widget and notify_server:
             self.notebook_area.add_page(canvas.id, canvas)
             self.notebook_area.current_page = self.pages.currentIndex()
 
@@ -103,7 +108,21 @@ class Notebook(QtWidgets.QWidget):
     def update_notebook(self, ts, type, page, data):
         """update the notebook from the DB"""
         if type == "ADD_PAGE":
-            self.add_page(None)
+            # Check if page already exists to avoid duplicates
+            page_id = int(page)
+            page_exists = any(p.id == page_id for p in self.pages_list)
+            if not page_exists:
+                # Create canvas from server data without notifying server
+                canvas = DrawingCanvas(**data, notebook_area=self.notebook_area)
+                if self.pages_list:
+                    prev_canvas = self.pages_list[LAST_PAGE_INDEX]
+                    canvas.scale_factor = prev_canvas.scale_factor
+                    canvas._update_size()
+                self.pages_list.append(canvas)
+                self.pages.addWidget(canvas)
+                # Don't call add_page with notify_server=True to avoid loop
+                if self.notebook_area:
+                    self.notebook_area.current_page = self.pages.currentIndex()
         else:
             for p in self.pages_list:
                 if p.id == int(page):
