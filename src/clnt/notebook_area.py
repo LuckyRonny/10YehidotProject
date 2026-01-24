@@ -454,7 +454,6 @@ class NotebookArea(QtWidgets.QMainWindow):
         """Replace the current notebook with a new one from the server."""
         for u in data:
             self.notebook_widget.update_notebook(**u)
-        self.notebook_widget.last_change = time.time()
         for page in self.notebook_widget.pages_list:
             page.update()
         self.notebook_widget.pages.setCurrentIndex(current_page)
