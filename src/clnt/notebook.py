@@ -43,8 +43,12 @@ class Notebook(QtWidgets.QWidget):
         """return current canvas"""
         return self.pages.currentWidget()
 
-    def add_page_local(self, page):
-        """add another canvas locally without updating the server"""
+    def add_page_local(self, page, set_as_current: bool = True):
+        """add another canvas locally without updating the server
+        
+        :param page: The canvas page to add, or None to create a new one
+        :param set_as_current: Whether to set the new page as the current page, default: True
+        """
         if page:
             canvas = page
         else:
@@ -58,10 +62,12 @@ class Notebook(QtWidgets.QWidget):
             canvas._update_size()
         self.pages_list.append(canvas)
         self.pages.addWidget(canvas)
-        self.pages.setCurrentWidget(canvas)
+        if set_as_current:
+            self.pages.setCurrentWidget(canvas)
         if self.notebook_area and self.notebook_area.notebook_widget:
             self.notebook_area.add_page_local(canvas.id, canvas)
-            self.notebook_area.current_page = self.pages.currentIndex()
+            if set_as_current:
+                self.notebook_area.current_page = self.pages.currentIndex()
 
     def add_page(self, page):
         """add another canvas and update the server"""
@@ -121,9 +127,30 @@ class Notebook(QtWidgets.QWidget):
             page.update()
 
     def update_notebook(self, ts, type, page, data):
-        """update the notebook from the DB"""
+        """update the notebook from the DB
+        
+        :param ts: timestamp of the update
+        :param type: type of update (ADD_PAGE, CHANGE_BACKGROUND, etc.)
+        :param page: page ID for the update
+        :param data: data for the update (page data for ADD_PAGE, background type for CHANGE_BACKGROUND, etc.)
+        """
         if type == "ADD_PAGE":
-            self.add_page_local(None)
+            # Check if page with this ID already exists to avoid duplicates
+            page_id = int(page) if page else None
+            if page_id is not None:
+                for existing_page in self.pages_list:
+                    if existing_page.id == page_id:
+                        # Page already exists, skip adding
+                        self.last_change = float(ts)
+                        return
+            
+            # Create canvas from the page data received from server
+            if data and isinstance(data, dict):
+                new_canvas = DrawingCanvas(**data, notebook_area=self.notebook_area)
+            else:
+                new_canvas = None
+            # Don't switch to the new page - preserve current page
+            self.add_page_local(new_canvas, set_as_current=False)
         else:
             for p in self.pages_list:
                 if p.id == int(page):
