@@ -15,6 +15,9 @@ class Notebook(QtWidgets.QWidget):
         """constructor"""
         super().__init__()
         self.notebook_area = notebook_area
+        # Set notebook_widget reference early so add_page can access it during init
+        if notebook_area:
+            notebook_area.notebook_widget = self
         self.pages = QtWidgets.QStackedWidget()
         self.pages_list = []
         if pages:
@@ -64,7 +67,7 @@ class Notebook(QtWidgets.QWidget):
         self.pages_list.append(canvas)
         self.pages.addWidget(canvas)
         self.pages.setCurrentWidget(canvas)
-        if self.notebook_area and self.notebook_area.notebook_widget and notify_server:
+        if self.notebook_area and hasattr(self.notebook_area, 'notebook_widget') and self.notebook_area.notebook_widget and notify_server:
             self.notebook_area.add_page(canvas.id, canvas)
             self.notebook_area.current_page = self.pages.currentIndex()
 
