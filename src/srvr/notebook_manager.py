@@ -33,7 +33,7 @@ class NotebookManager(object):
         dir_name = os.path.dirname(path) or "."
         with tempfile.NamedTemporaryFile("w", dir=dir_name,
                                          delete=False) as tmp:
-            json.dump(data, tmp)
+            json.dump(data, tmp, indent=2)
             tmp_name = tmp.name
         os.replace(tmp_name, path)
 
@@ -154,15 +154,12 @@ class NotebookManager(object):
         name = params[NAME]
         page = ast.literal_eval(params[NOTE_BOOK])
         id_page = params[ID_PAGE]
-
         with NotebookManager.lock:
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
-
             notebook_db[name]["pages"][id_page] = page
             notebook_db[name]["last_change"] = params[TIME_STAMP]
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
-
         NotebookManager.create_update(
             name, params[TIME_STAMP], "ADD_PAGE", id_page, page
         )
@@ -179,7 +176,7 @@ class NotebookManager(object):
 
         updates = []
         for u in updates_db.get(name, []):
-            if float(u["ts"]) > float(time_stamp):
+            if float(u["ts"]) > float(time_stamp) + 0.2:  # added 0.2 to check bug
                 updates.append(u)
 
         return repr(updates)
