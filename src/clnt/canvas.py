@@ -480,12 +480,19 @@ class DrawingCanvas(QWidget):
         self.update()
 
     def ADD_STROKE(self, data):
-        """adds a stroke to the notebook from the db"""
-        data = Stroke(**data)
-        for s in self.strokes:
-            if int(s.id) == int(data.id):
+        """adds a stroke to the notebook from the db
+        
+        :param data: stroke data dictionary from the server
+        """
+        stroke = Stroke(**data)
+        # FIX: Remove any existing stroke with the same ID to handle duplicates
+        # This prevents issues when updates arrive out of order or multiple times
+        for s in self.strokes[:]:  # Use slice copy to avoid modification during iteration
+            if int(s.id) == int(stroke.id):
                 self.strokes.remove(s)
-        self.strokes.append(data)
+                break
+        self.strokes.append(stroke)
+        self.update()  # Trigger repaint to show the new stroke
 
     def DELETE_STROKE(self, data):
         """deletes a stroke from the notebook in the db"""

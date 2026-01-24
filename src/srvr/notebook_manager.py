@@ -88,9 +88,11 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP_STROKE]
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
 
-        NotebookManager.create_update(
-            name, params[TIME_STAMP_STROKE], "ADD_STROKE", id_page, stroke
-        )
+            # FIX: Create update inside lock to ensure atomic operation
+            # and maintain correct ordering of updates relative to database writes
+            NotebookManager.create_update_unlocked(
+                name, params[TIME_STAMP_STROKE], "ADD_STROKE", id_page, stroke
+            )
         return id
 
     @staticmethod
@@ -107,9 +109,10 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP]
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
 
-        NotebookManager.create_update(
-            name, params[TIME_STAMP], "DELETE_STROKE", id_page, id
-        )
+            # FIX: Create update inside lock to ensure atomic operation
+            NotebookManager.create_update_unlocked(
+                name, params[TIME_STAMP], "DELETE_STROKE", id_page, id
+            )
         return "ok"
 
     @staticmethod
@@ -126,9 +129,10 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP]
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
 
-        NotebookManager.create_update(
-            name, params[TIME_STAMP], "CHANGE_BACKGROUND", id_page, page_type
-        )
+            # FIX: Create update inside lock to ensure atomic operation
+            NotebookManager.create_update_unlocked(
+                name, params[TIME_STAMP], "CHANGE_BACKGROUND", id_page, page_type
+            )
         return "ok"
 
     @staticmethod
@@ -144,9 +148,10 @@ class NotebookManager(object):
             notebook_db[name]["last_change"] = params[TIME_STAMP_CLEAR]
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
 
-        NotebookManager.create_update(
-            name, params[TIME_STAMP_CLEAR], "CLEAR", id, None
-        )
+            # FIX: Create update inside lock to ensure atomic operation
+            NotebookManager.create_update_unlocked(
+                name, params[TIME_STAMP_CLEAR], "CLEAR", id, None
+            )
         return "ok"
 
     @staticmethod
@@ -160,9 +165,10 @@ class NotebookManager(object):
             notebook_db[name]["pages"][id_page] = page
             notebook_db[name]["last_change"] = params[TIME_STAMP]
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
-        NotebookManager.create_update(
-            name, params[TIME_STAMP], "ADD_PAGE", id_page, page
-        )
+            # FIX: Create update inside lock to ensure atomic operation
+            NotebookManager.create_update_unlocked(
+                name, params[TIME_STAMP], "ADD_PAGE", id_page, page
+            )
         return "ok"
 
     @staticmethod
@@ -175,8 +181,13 @@ class NotebookManager(object):
                 updates_db = json.load(f)
 
         updates = []
+        # FIX: Use >= instead of > to avoid missing updates with same timestamp
+        # Also add small epsilon to handle floating point precision issues
+        client_ts = float(time_stamp)
         for u in updates_db.get(name, []):
-            if float(u["ts"]) > float(time_stamp):
+            update_ts = float(u["ts"])
+            # Include updates that are newer, or equal (within small epsilon)
+            if update_ts > client_ts or abs(update_ts - client_ts) < 0.001:
                 updates.append(u)
 
         return repr(updates)
@@ -196,6 +207,14 @@ class NotebookManager(object):
 
     @staticmethod
     def create_update(notebook_name, time, type, page_id, data):
+        """Create an update (assumes lock is NOT held)
+        
+        :param notebook_name: name of the notebook
+        :param time: timestamp of the update
+        :param type: type of update (ADD_STROKE, DELETE_STROKE, etc.)
+        :param page_id: ID of the page affected
+        :param data: data for the update
+        """
         update = {
             "ts": time,
             "type": type,
@@ -211,3 +230,28 @@ class NotebookManager(object):
             updates[notebook_name].append(update)
 
             NotebookManager._atomic_write("updates.json", updates)
+
+    @staticmethod
+    def create_update_unlocked(notebook_name, time, type, page_id, data):
+        """Create an update (assumes lock IS already held)
+        
+        :param notebook_name: name of the notebook
+        :param time: timestamp of the update
+        :param type: type of update (ADD_STROKE, DELETE_STROKE, etc.)
+        :param page_id: ID of the page affected
+        :param data: data for the update
+        """
+        update = {
+            "ts": time,
+            "type": type,
+            "page": page_id,
+            "data": data
+        }
+
+        with open("updates.json", "r") as f:
+            updates = json.load(f)
+
+        updates.setdefault(notebook_name, [])
+        updates[notebook_name].append(update)
+
+        NotebookManager._atomic_write("updates.json", updates)

@@ -95,12 +95,23 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.client.send_command(command)
 
     def add_stroke(self, stroke, id_page, id):
-        """add the stroke to the db"""
-        self.notebook_widget.last_change = time.time()
-        command = ("add_stroke$" + self.name + "$" + repr(stroke.__dict__()) +
+        """add the stroke to the db
+        
+        :param stroke: the stroke object to add
+        :param id_page: page ID where the stroke should be added
+        :param id: stroke ID (use "0" for new strokes to get server-assigned ID)
+        :returns: the stroke ID assigned by the server
+        """
+        # FIX: Use timestamp before sending to ensure consistency
+        # The server will use this timestamp, and we'll update last_change
+        # when we receive the update to match server's timestamp
+        client_timestamp = time.time()
+        command = ("add_stroke$" + self.name + "$" + repr(stroke.__dict__()) + 
                    "$" + str(id_page) + "$" + str(id) + "$" +
-                   str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+                   str(client_timestamp) + "$NOTEBOOKS")
         stroke_id = self.client.send_command(command)
+        # Note: last_change will be updated when we receive the update from server
+        # This ensures we use the server's authoritative timestamp
         return stroke_id
 
     def add_page_local(self, id_page, page):
@@ -457,8 +468,16 @@ class NotebookArea(QtWidgets.QMainWindow):
             self.client.send_command(command)), current_page)
 
     def reload_notebook(self, data, current_page):
-        """Replace the current notebook with a new one from the server."""
-        for u in data:
+        """Replace the current notebook with a new one from the server.
+        
+        :param data: list of updates from the server
+        :param current_page: index of the current page to preserve
+        """
+        # FIX: Sort updates by timestamp to ensure correct ordering
+        # This handles cases where updates arrive out of order
+        sorted_updates = sorted(data, key=lambda u: float(u.get("ts", 0)))
+        
+        for u in sorted_updates:
             self.notebook_widget.update_notebook(**u)
         for page in self.notebook_widget.pages_list:
             page.update()
