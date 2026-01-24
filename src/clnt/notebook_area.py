@@ -103,6 +103,12 @@ class NotebookArea(QtWidgets.QMainWindow):
         stroke_id = self.client.send_command(command)
         return stroke_id
 
+    def add_page_local(self, id_page, page):
+        """add the page locally without updating the server"""
+        # This method is used when pages are loaded from the server
+        # to avoid circular updates
+        pass
+
     def add_page(self, id_page, page):
         """add the page to the db"""
         self.notebook_widget.last_change = time.time()

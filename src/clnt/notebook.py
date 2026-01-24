@@ -19,7 +19,7 @@ class Notebook(QtWidgets.QWidget):
         self.pages_list = []
         if pages:
             for page in pages:
-                self.add_page(DrawingCanvas(**(pages[page]),
+                self.add_page_local(DrawingCanvas(**(pages[page]),
                                             notebook_area=notebook_area))
         self.global_scale_factor = START_SCALE_FACTOR
         self.main_layout = QtWidgets.QVBoxLayout(self)
@@ -43,8 +43,28 @@ class Notebook(QtWidgets.QWidget):
         """return current canvas"""
         return self.pages.currentWidget()
 
+    def add_page_local(self, page):
+        """add another canvas locally without updating the server"""
+        if page:
+            canvas = page
+        else:
+            canvas = DrawingCanvas(*CANVAS_SIZE, None,
+                                   None, self.notebook_area,
+                                   None,
+                                   self.pages.currentIndex() + NEXT_PAGE)
+        if self.pages_list:
+            prev_canvas = self.pages_list[LAST_PAGE_INDEX]
+            canvas.scale_factor = prev_canvas.scale_factor
+            canvas._update_size()
+        self.pages_list.append(canvas)
+        self.pages.addWidget(canvas)
+        self.pages.setCurrentWidget(canvas)
+        if self.notebook_area and self.notebook_area.notebook_widget:
+            self.notebook_area.add_page_local(canvas.id, canvas)
+            self.notebook_area.current_page = self.pages.currentIndex()
+
     def add_page(self, page):
-        """add another canvas"""
+        """add another canvas and update the server"""
         if page:
             canvas = page
         else:
@@ -103,7 +123,7 @@ class Notebook(QtWidgets.QWidget):
     def update_notebook(self, ts, type, page, data):
         """update the notebook from the DB"""
         if type == "ADD_PAGE":
-            self.add_page(None)
+            self.add_page_local(None)
         else:
             for p in self.pages_list:
                 if p.id == int(page):
