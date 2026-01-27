@@ -49,10 +49,10 @@ class Server(object):
         done = False
         while not done:
             try:
-                client_socket, address = self.server_socket.accept()
+                client_connection, address = self.server_socket.accept()
                 clnt_thread = threading.Thread(
                     target=self.handle_single_client,
-                    args=(client_socket, address))
+                    args=(client_connection, address))
                 clnt_thread.start()
                 threading.Thread(
                     target=self.accept_updates,
@@ -65,16 +65,16 @@ class Server(object):
         """accept clients for updates socket"""
         while True:
             try:
-                client_socket, address = self.update_socket.accept()
+                update_connection, address = self.update_socket.accept()
                 clnt_thread = threading.Thread(
                     target=self.handle_update_client,
-                    args=(client_socket, address))
+                    args=(update_connection, address))
                 clnt_thread.start()
             except socket.error:
                 print("update socket error")
 
     @staticmethod
-    def handle_single_client(client_socket, address):
+    def handle_single_client(client_connection, address):
         """
         gets a socket and while response is not QUIT or EXIT
         the function calls the functions receive_client_request,
@@ -83,9 +83,9 @@ class Server(object):
         done = False
         while not done:
             try:
-                request, params = Server.receive_client_request(client_socket)
+                request, params = Server.receive_client_request(client_connection)
                 response = Server.handle_client_request(request, params)
-                Server.send_response_to_client(response, client_socket)
+                Server.send_response_to_client(response, client_connection)
             except socket.error as msg:
                 print("Server Error: ", msg)
                 done = True
@@ -95,17 +95,19 @@ class Server(object):
         return False
 
     @staticmethod
-    def handle_update_client(client_socket, address):
+    def handle_update_client(update_connection, address):
         """handle update requests from client"""
         done = False
         while not done:
             try:
-                request, params = Server.receive_client_request(client_socket)
+                request, params = Server.receive_client_request(
+                    update_connection)
                 if request != "CHECK_UPDATES":
-                    Server.send_response_to_client("NO", client_socket)
+                    Server.send_response_to_client("NO",
+                                                   update_connection)
                     continue
                 response = Server.handle_client_request(request, params)
-                Server.send_response_to_client(response, client_socket)
+                Server.send_response_to_client(response, update_connection)
             except socket.error as msg:
                 print("Update client error:", msg)
                 done = True
@@ -114,11 +116,11 @@ class Server(object):
                 done = True
 
     @staticmethod
-    def receive_client_request(client_socket):
+    def receive_client_request(connection):
         """
         gets a socket and receives a request
         """
-        request = protocol.Protocol.recv(client_socket)
+        request = protocol.Protocol.recv(connection)
         if request == "":
             return None, None
         req_and_prms = request.split("$")
@@ -138,11 +140,11 @@ class Server(object):
                 (request, params))
 
     @staticmethod
-    def send_response_to_client(response, client_socket):
+    def send_response_to_client(response, connection):
         """
         gets a response and a socket and send the response to the socket
         """
-        protocol.Protocol.send(client_socket, response)
+        protocol.Protocol.send(connection, response)
 
 
 def main():

@@ -26,11 +26,11 @@ class Client(object):
         """
         try:
             ip, port = winreg_file.Reg.read_reg()
-            self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.my_socket.connect((ip, port))
-            self.check_socket = socket.socket(
-                socket.AF_INET, socket.SOCK_STREAM)
-            self.check_socket.connect((ip, port + 1))
+            self.conn = (socket.socket(socket.AF_INET, socket.SOCK_STREAM), KEY)
+            self.conn[SOCKET].connect((ip, port))
+            self.check_conn = (socket.socket(
+                socket.AF_INET, socket.SOCK_STREAM), KEY)
+            self.check_conn[SOCKET].connect((ip, port + 1))
         except socket.error as msg:
             print("Connection failure: %s\n terminating program" % msg)
             sys.exit(1)
@@ -111,17 +111,17 @@ class Client(object):
                 req_and_prms[REQUEST] == "check_updates" and
                 len(req_and_prms) == CHECK_UPDATES_PRMS)
 
-    def send_request_to_server(self, sock, request):
+    def send_request_to_server(self, conn, request):
         """
         gets a socket and a request and sent it to the server
         """
-        protocol.Protocol.send(sock, request)
+        protocol.Protocol.send(conn, request)
 
-    def handle_server_response(self, sock):
+    def handle_server_response(self, conn):
         """
         gets a socket and gets a data from the server and prints it
         """
-        data = protocol.Protocol.recv(sock)
+        data = protocol.Protocol.recv(conn)
         return data  # returns string
 
     def send_command(self, request):
@@ -134,11 +134,11 @@ class Client(object):
         req_and_prms = request.split("$")
         if self.valid_request(req_and_prms):
             if req_and_prms[REQUEST] == "check_updates":
-                self.send_request_to_server(self.check_socket, request)
-                rsp = self.handle_server_response(self.check_socket)
+                self.send_request_to_server(self.check_conn, request)
+                rsp = self.handle_server_response(self.check_conn)
             else:
-                self.send_request_to_server(self.my_socket, request)
-                rsp = self.handle_server_response(self.my_socket)
+                self.send_request_to_server(self.conn, request)
+                rsp = self.handle_server_response(self.conn)
         else:
             rsp = "ILLEGAL REQUEST"
         return rsp
