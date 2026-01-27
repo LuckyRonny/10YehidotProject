@@ -543,4 +543,6 @@ class DrawingCanvas(QWidget):
     def CLEAR(self, data):
         """clears the strokes of the notebook from the db"""
         self.strokes = []
+        self.current_stroke_points = []
+        self.selected_stroke = None
         self.update()
