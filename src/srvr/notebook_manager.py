@@ -74,24 +74,27 @@ class NotebookManager(object):
         name = params[NAME]
         stroke = ast.literal_eval(params[NOTE_BOOK])
         id_page = params[ID_PAGE]
-        id = params[ID_STROKE]
+        sid = params[ID_STROKE]
 
         with NotebookManager.lock:
-            if id == "0":
-                id = NotebookManager._get_stroke_id_unlocked(name, id_page)
-                stroke["id"] = id
+            if sid == "0":
+                sid = NotebookManager._get_stroke_id_unlocked(name, id_page)
+                stroke["id"] = sid
 
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
 
-            notebook_db[name]["pages"][id_page]["strokes"][id] = stroke
-            notebook_db[name]["last_change"] = params[TIME_STAMP_STROKE]
+            notebook_db[name]["pages"][id_page]["strokes"][sid] = stroke
+            notebook_db[name]["last_change"] = max(
+                float(notebook_db[name]["last_change"]),
+                float(params[TIME_STAMP_STROKE])
+            )
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
 
         NotebookManager.create_update(
             name, params[TIME_STAMP_STROKE], "ADD_STROKE", id_page, stroke
         )
-        return id
+        return sid
 
     @staticmethod
     def DELETE_STROKE(params):
@@ -104,7 +107,10 @@ class NotebookManager(object):
                 notebook_db = json.load(f)
 
             notebook_db[name]["pages"][id_page]["strokes"].pop(id)
-            notebook_db[name]["last_change"] = params[TIME_STAMP]
+            notebook_db[name]["last_change"] = max(
+                float(notebook_db[name]["last_change"]),
+                float(params[TIME_STAMP])
+            )
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
 
         NotebookManager.create_update(
@@ -123,7 +129,10 @@ class NotebookManager(object):
                 notebook_db = json.load(f)
 
             notebook_db[name]["pages"][id_page]["page_type"] = page_type
-            notebook_db[name]["last_change"] = params[TIME_STAMP]
+            notebook_db[name]["last_change"] = max(
+                float(notebook_db[name]["last_change"]),
+                float(params[TIME_STAMP])
+            )
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
 
         NotebookManager.create_update(
@@ -141,7 +150,10 @@ class NotebookManager(object):
                 notebook_db = json.load(f)
 
             notebook_db[name]["pages"][id]["strokes"] = {}
-            notebook_db[name]["last_change"] = params[TIME_STAMP_CLEAR]
+            notebook_db[name]["last_change"] = max(
+                float(notebook_db[name]["last_change"]),
+                float(params[TIME_STAMP_CLEAR])
+            )
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
 
         NotebookManager.create_update(
@@ -158,7 +170,10 @@ class NotebookManager(object):
             with open("notebook_DB.json", "r") as f:
                 notebook_db = json.load(f)
             notebook_db[name]["pages"][id_page] = page
-            notebook_db[name]["last_change"] = params[TIME_STAMP]
+            notebook_db[name]["last_change"] = max(
+                float(notebook_db[name]["last_change"]),
+                float(params[TIME_STAMP])
+            )
             NotebookManager._atomic_write("notebook_DB.json", notebook_db)
         NotebookManager.create_update(
             name, params[TIME_STAMP], "ADD_PAGE", id_page, page
