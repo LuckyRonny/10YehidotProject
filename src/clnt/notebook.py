@@ -142,7 +142,7 @@ class Notebook(QtWidgets.QWidget):
                     getattr(p, type)(data)
         # Use maximum to ensure we don't go backwards in time
         # This prevents missing updates when local changes have newer timestamps
-        self.last_change = max(self.last_change, float(ts))
+        self.last_change = max(float(self.last_change), float(ts))
 
     def delete_old_data(self):
         """delete the old data of the notebook"""

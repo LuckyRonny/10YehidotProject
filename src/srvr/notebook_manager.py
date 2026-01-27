@@ -176,7 +176,7 @@ class NotebookManager(object):
 
         updates = []
         for u in updates_db.get(name, []):
-            if float(u["ts"]) >= float(time_stamp) - 0.1:
+            if float(u["ts"]) > float(time_stamp):
                 updates.append(u)
 
         return repr(updates)
