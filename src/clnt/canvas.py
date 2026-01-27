@@ -2,7 +2,7 @@
 Ronny Getz
 canvas
 """
-import ast
+# import ast
 import math
 import time
 
@@ -11,7 +11,46 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QWidget
 
 from stroke import Stroke
-from style import *
+from style import (
+    ADD_SELECTED_PEN_SIZE,
+    BACKGROUND_PEN_SIZE,
+    CLOSE_POINTS_DISTANCE,
+    CLOSE_POINTS_TIME,
+    COLORS,
+    COLUMN_INDEX,
+    COLUMN_LIMITS,
+    EMPTY_POINT_LIST,
+    END_GRID,
+    END_LINE,
+    ERASER_TOLERANCE,
+    LAST_POINT,
+    LEFT_LINE,
+    LIGHTER_COLOR,
+    MARKER_COLORS,
+    NUMBER_LINES,
+    NUMBER_LINES_GRID,
+    ONLY_ONE_POINT,
+    PEN_SIZE_FACTOR,
+    PEN_START_VALUE,
+    POINT_BEFORE,
+    RIGHT_LINE,
+    ROW_INDEX,
+    ROW_LIMITS,
+    SCALE_CHANGE,
+    SCALE_MAX,
+    SCALE_MIN,
+    SECOND_POINT,
+    SELECTED_TOLERANCE,
+    SQUARED,
+    START_GRID,
+    START_LINE,
+    START_PIXMAP,
+    START_SCALE_FACTOR,
+    STROKE_POINT_END,
+    STROKE_POINT_START,
+    TRANSPARENCY_MARKER,
+    TRANSPARENCY_PEN,
+)
 START_ID = 0
 ID_CHANGE = 1
 
@@ -482,16 +521,14 @@ class DrawingCanvas(QWidget):
     def ADD_STROKE(self, data):
         """adds a stroke to the notebook from the db"""
         data = Stroke(**data)
-        for s in self.strokes:
-            if int(s.id) == int(data.id):
-                self.strokes.remove(s)
+        self.strokes = [s for s in self.strokes if int(s.id) != int(data.id)]
         self.strokes.append(data)
+        self.update()
 
-    def DELETE_STROKE(self, data):
+    def DELETE_STROKE(self, id):
         """deletes a stroke from the notebook in the db"""
-        for s in self.strokes:
-            if int(s.id) == int(data):
-                self.strokes.remove(s)
+        self.strokes = [s for s in self.strokes if int(s.id) != int(id)]
+        self.update()
 
     def CHANGE_BACKGROUND(self, data):
         """change the background of the notebook from the db"""
@@ -506,3 +543,4 @@ class DrawingCanvas(QWidget):
     def CLEAR(self, data):
         """clears the strokes of the notebook from the db"""
         self.strokes = []
+        self.update()

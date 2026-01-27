@@ -8,11 +8,40 @@ import time
 
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import *
+from PyQt6.QtWidgets import (
+    QComboBox,
+    QPushButton,
+    QSpinBox,
+    QToolBar,
+    QVBoxLayout,
+    QWidget,
+)
 
 from notebook import Notebook
 from scroll_area import CenteredScrollArea
-from style import *
+from style import (
+    BUTTON,
+    BUTTON_SIZE,
+    BUTTON_WIDTH,
+    COLORS_NAMES,
+    ERASER_RANGE,
+    ERASER_START_VALUE,
+    ERASER_STEP,
+    MAIN_WINDOW,
+    MARGIN,
+    MARKER_COLORS_NAMES,
+    MARKER_RANGE,
+    MARKER_START_VALUE,
+    MARKER_STEP,
+    PEN_RANGE,
+    PEN_START_VALUE,
+    PEN_STEP,
+    SCROLL_AREA,
+    SCROLL_STRETCH,
+    SUB_TOOLBAR,
+    ToolbarsEnum,
+    WINDOW_SIZE,
+)
 
 WAIT_TIME = 0.2
 

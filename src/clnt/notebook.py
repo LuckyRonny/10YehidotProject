@@ -5,9 +5,19 @@ notebook
 
 from PyQt6 import QtWidgets
 
-import canvas
 from canvas import DrawingCanvas
-from style import *
+from style import (
+    CANVAS_SIZE,
+    FIRST_PAGE,
+    LAST_PAGE_INDEX,
+    NEXT_PAGE,
+    NO_PAGES,
+    PREV_PAGE,
+    SCALE_CHANGE,
+    SCALE_MAX,
+    SCALE_MIN,
+    START_SCALE_FACTOR,
+)
 
 
 class Notebook(QtWidgets.QWidget):
@@ -54,21 +64,21 @@ class Notebook(QtWidgets.QWidget):
                              default: True. Set to False when handling server updates.
         """
         if page:
-            canvas = page
+            mycanvas = page
         else:
-            canvas = DrawingCanvas(*CANVAS_SIZE, None,
+            mycanvas = DrawingCanvas(*CANVAS_SIZE, None,
                                    None, self.notebook_area,
                                    None,
                                    self.pages.currentIndex() + NEXT_PAGE)
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
-            canvas.scale_factor = prev_canvas.scale_factor
-            canvas._update_size()
-        self.pages_list.append(canvas)
-        self.pages.addWidget(canvas)
-        self.pages.setCurrentWidget(canvas)
+            mycanvas.scale_factor = prev_canvas.scale_factor
+            mycanvas._update_size()
+        self.pages_list.append(mycanvas)
+        self.pages.addWidget(mycanvas)
+        self.pages.setCurrentWidget(mycanvas)
         if self.notebook_area and hasattr(self.notebook_area, 'notebook_widget') and self.notebook_area.notebook_widget and notify_server:
-            self.notebook_area.add_page(canvas.id, canvas)
+            self.notebook_area.add_page(mycanvas.id, mycanvas)
             self.notebook_area.current_page = self.pages.currentIndex()
 
     def prev_page(self):
@@ -116,21 +126,20 @@ class Notebook(QtWidgets.QWidget):
             page_exists = any(p.id == page_id for p in self.pages_list)
             if not page_exists:
                 # Create canvas from server data without notifying server
-                canvas = DrawingCanvas(**data, notebook_area=self.notebook_area)
+                mycanvas = DrawingCanvas(**data, notebook_area=self.notebook_area)
                 if self.pages_list:
                     prev_canvas = self.pages_list[LAST_PAGE_INDEX]
-                    canvas.scale_factor = prev_canvas.scale_factor
-                    canvas._update_size()
-                self.pages_list.append(canvas)
-                self.pages.addWidget(canvas)
+                    mycanvas.scale_factor = prev_canvas.scale_factor
+                    mycanvas._update_size()
+                self.pages_list.append(mycanvas)
+                self.pages.addWidget(mycanvas)
                 # Don't call add_page with notify_server=True to avoid loop
                 if self.notebook_area:
                     self.notebook_area.current_page = self.pages.currentIndex()
         else:
             for p in self.pages_list:
                 if p.id == int(page):
-                    cls = getattr(canvas, "DrawingCanvas")
-                    getattr(cls, type)(p, data)
+                    getattr(p, type)(data)
         self.last_change = float(ts)
 
     def delete_old_data(self):

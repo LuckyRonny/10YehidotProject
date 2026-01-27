@@ -8,7 +8,17 @@ import sys
 
 import protocol
 import winreg_file
-from constants import *
+from constants import (
+    ADD_NOTEBOOK_DB_PARAMS,
+    ADD_NOTEBOOK_PARAMS,
+    CLIENTS_NOTEBOOKS_PARAMS,
+    GET_NOTEBOOK_PARAMS,
+    LOGIN_PARAMS,
+    PASSWORD,
+    REQUEST,
+    SIGNUP_PARAMS,
+    USERNAME,
+)
 
 ADD_STROKE_PRMS = 7
 DELETE_STROKE_PRMS = 6
