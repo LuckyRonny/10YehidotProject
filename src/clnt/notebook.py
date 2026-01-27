@@ -32,9 +32,10 @@ class Notebook(QtWidgets.QWidget):
         self.pages_list = []
         if pages:
             for page in pages:
-                self.add_page(DrawingCanvas(**(pages[page]),
-                                            notebook_area=notebook_area),
-                              notify_server=False)
+                self.add_page(
+                    DrawingCanvas(**(pages[page]), notebook_area=notebook_area),
+                    notify_server=False,
+                )
         self.global_scale_factor = START_SCALE_FACTOR
         self.main_layout = QtWidgets.QVBoxLayout(self)
         self.main_layout.addWidget(self.pages)
@@ -47,10 +48,7 @@ class Notebook(QtWidgets.QWidget):
         page_dict = {}
         for p in self.pages_list:
             page_dict[p.id] = p.__dict__()
-        notebook_dict = {
-            "pages": page_dict,
-            "last_change": self.last_change
-        }
+        notebook_dict = {"pages": page_dict, "last_change": self.last_change}
         return notebook_dict
 
     def current_canvas(self):
@@ -66,10 +64,14 @@ class Notebook(QtWidgets.QWidget):
         if page:
             mycanvas = page
         else:
-            mycanvas = DrawingCanvas(*CANVAS_SIZE, None,
-                                   None, self.notebook_area,
-                                   None,
-                                   self.pages.currentIndex() + NEXT_PAGE)
+            mycanvas = DrawingCanvas(
+                *CANVAS_SIZE,
+                None,
+                None,
+                self.notebook_area,
+                None,
+                self.pages.currentIndex() + NEXT_PAGE,
+            )
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
             mycanvas.scale_factor = prev_canvas.scale_factor
@@ -77,7 +79,12 @@ class Notebook(QtWidgets.QWidget):
         self.pages_list.append(mycanvas)
         self.pages.addWidget(mycanvas)
         self.pages.setCurrentWidget(mycanvas)
-        if self.notebook_area and hasattr(self.notebook_area, 'notebook_widget') and self.notebook_area.notebook_widget and notify_server:
+        if (
+            self.notebook_area
+            and hasattr(self.notebook_area, "notebook_widget")
+            and self.notebook_area.notebook_widget
+            and notify_server
+        ):
             self.notebook_area.add_page(mycanvas.id, mycanvas)
             self.notebook_area.current_page = self.pages.currentIndex()
 
@@ -98,17 +105,17 @@ class Notebook(QtWidgets.QWidget):
     def zoom_in(self):
         """change the global scale factor by 1.2 (more)"""
         self.global_scale_factor *= SCALE_CHANGE
-        self.global_scale_factor = max(SCALE_MIN,
-                                       min(SCALE_MAX,
-                                           self.global_scale_factor))
+        self.global_scale_factor = max(
+            SCALE_MIN, min(SCALE_MAX, self.global_scale_factor)
+        )
         self.apply_zoom_to_all()
 
     def zoom_out(self):
         """change the global scale factor by 1.2 (less)"""
         self.global_scale_factor /= SCALE_CHANGE
-        self.global_scale_factor = max(SCALE_MIN,
-                                       min(SCALE_MAX,
-                                           self.global_scale_factor))
+        self.global_scale_factor = max(
+            SCALE_MIN, min(SCALE_MAX, self.global_scale_factor)
+        )
         self.apply_zoom_to_all()
 
     def apply_zoom_to_all(self):
