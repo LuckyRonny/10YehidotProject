@@ -140,7 +140,9 @@ class Notebook(QtWidgets.QWidget):
             for p in self.pages_list:
                 if p.id == int(page):
                     getattr(p, type)(data)
-        self.last_change = float(ts)
+        # Use maximum to ensure we don't go backwards in time
+        # This prevents missing updates when local changes have newer timestamps
+        self.last_change = max(self.last_change, float(ts))
 
     def delete_old_data(self):
         """delete the old data of the notebook"""
