@@ -59,7 +59,7 @@ class Notebook(QtWidgets.QWidget):
         """add another canvas
         :param page: The canvas page to add, or None to create a new one
         :param notify_server: Whether to notify the server about the new page,
-                             default: True. Set to False when handling server updates.
+        fault: True. Set to False when handling server updates.
         """
         if page:
             mycanvas = page

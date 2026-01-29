@@ -110,42 +110,32 @@ class NotebookArea(QtWidgets.QMainWindow):
 
     def clear_page(self, page_id):
         """clears the notebook in the db"""
-        self.notebook_widget.last_change = time.time()
-        command = ("clear$" + self.name + "$" + str(page_id) + "$" +
-                   str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+        command = ("clear$" + self.name + "$" + str(page_id) + "$NOTEBOOKS")
         self.client.send_command(command)
 
     def change_background(self, type, page_id):
         """change the background in the db"""
-        self.notebook_widget.last_change = time.time()
         command = ("change_background$" + self.name + "$" + str(page_id) +
-                   "$" + type + "$" + str(self.notebook_widget.last_change) +
-                   "$NOTEBOOKS")
+                   "$" + type + "$NOTEBOOKS")
         self.client.send_command(command)
 
     def add_stroke(self, stroke, id_page, id):
         """add the stroke to the db"""
-        self.notebook_widget.last_change = time.time()
         command = ("add_stroke$" + self.name + "$" + repr(stroke.__dict__()) +
-                   "$" + str(id_page) + "$" + str(id) + "$" +
-                   str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+                   "$" + str(id_page) + "$" + str(id) + "$NOTEBOOKS")
         stroke_id = self.client.send_command(command)
         return stroke_id
 
     def add_page(self, id_page, page):
         """add the page to the db"""
-        self.notebook_widget.last_change = time.time()
         command = ("add_page$" + self.name + "$" + repr(page.__dict__()) +
-                   "$" + str(id_page) + "$" +
-                   str(self.notebook_widget.last_change) + "$NOTEBOOKS")
+                   "$" + str(id_page) + "$NOTEBOOKS")
         self.client.send_command(command)
 
     def delete_stroke(self, id_page, id):
         """delete the stroke from the db"""
-        self.notebook_widget.last_change = time.time()
         command = ("delete_stroke$" + self.name + "$" + str(id_page) + "$" +
-                   str(id) + "$" + str(self.notebook_widget.last_change) +
-                   "$NOTEBOOKS")
+                   str(id) + "$NOTEBOOKS")
         self.client.send_command(command)
 
     def add_to_central_layout(self, central_layout):
