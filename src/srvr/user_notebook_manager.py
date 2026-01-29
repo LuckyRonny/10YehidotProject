@@ -54,14 +54,15 @@ class UserNotebookManager(object):
         with sqlite3.connect('NotebookDB.db') as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT notebook FROM UsersNotebooks WHERE user = ?",
+                "SELECT notebook, permission FROM UsersNotebooks WHERE user = ?",
                 (user_id,))
             notebooks_id_tuple = cursor.fetchall()
             notebooks_id = [row[NOTEBOOK_ID] for row in notebooks_id_tuple]
             notebooks_names = []
             for id in notebooks_id:
-                UserNotebookManager.get_all_notebooks(id, cursor,
-                                                      notebooks_names)
+                name = UserNotebookManager.get_all_notebooks(id, cursor,
+                                                             notebooks_names)
+                notebooks_names.append(name + ",")
         names = "!".join(notebooks_names)
         return names
 
@@ -72,4 +73,28 @@ class UserNotebookManager(object):
             "SELECT name FROM Notebooks WHERE id = ?",
             (id,))
         name = cursor.fetchone()[NAME_NOTEBOOK]
-        notebooks_names.append(str(name))
+        return str(name)
+
+    @staticmethod
+    def CHANGE_ACCESS(params):
+        """gchange the access"""
+        user_name = params[USER_ID]
+        access = params[1]
+        notebook_name = params[2]
+        with sqlite3.connect('NotebookDB.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id FROM Users WHERE user_name = ?",
+                (user_name,))
+            user_id_tuple = cursor.fetchone()
+            user_id = user_id_tuple[0]
+            cursor.execute(
+                "SELECT id FROM Notebooks WHERE name = ?",
+                (notebook_name,))
+            notebook_id_tuple = cursor.fetchone()
+            notebook_id = notebook_id_tuple[0]
+            cursor.execute(
+                "INSERT INTO UsersNotebooks (user, notebook, permission) VALUES (?)",
+                (notebook_name, notebook_id, access)
+            )
+        return "ok"

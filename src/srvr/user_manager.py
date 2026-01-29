@@ -52,3 +52,17 @@ class UserManager(object):
                 return "False"
         except sqlite3.IntegrityError:
             return "False"
+
+    @staticmethod
+    def ALL_USERS(params):
+        """gets all users except the user"""
+        excluded_user = params[USER_NAME]
+        with sqlite3.connect('NotebookDB.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT username FROM users WHERE username != ?",
+                (excluded_user,)
+            )
+            usernames = [row[0] for row in cursor.fetchall()]
+        users_str = ", ".join(usernames)
+        return users_str
