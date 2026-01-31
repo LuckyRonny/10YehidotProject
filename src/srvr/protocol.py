@@ -7,10 +7,6 @@ import logging
 from constants import MSG_LEN
 from aes_cipher import *
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(filename='client.log', encoding='utf-8', level=logging.DEBUG)
-logger.info('Starting the logger on file "client.log"')
-
 # Connection tuple indices and recv loop sentinel
 STOP_RECV = 0
 KEY = 1

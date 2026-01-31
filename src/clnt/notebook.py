@@ -72,9 +72,9 @@ class Notebook(QtWidgets.QWidget):
         self.pages_list.append(mycanvas)
         self.pages.addWidget(mycanvas)
         self.pages.setCurrentWidget(mycanvas)
-        if (self.notebook_area
-            and hasattr(self.notebook_area, "notebook_widget")
-            and self.notebook_area.notebook_widget and notify_server):
+        if (self.notebook_area and
+                hasattr(self.notebook_area, "notebook_widget") and
+                self.notebook_area.notebook_widget and notify_server):
             self.notebook_area.add_page(mycanvas.id, mycanvas)
             self.notebook_area.current_page = self.pages.currentIndex()
 
@@ -124,7 +124,8 @@ class Notebook(QtWidgets.QWidget):
             page_id = int(page)
             page_exists = any(p.id == page_id for p in self.pages_list)
             if not page_exists:
-                mycanvas = DrawingCanvas(**data, notebook_area=self.notebook_area)
+                mycanvas = DrawingCanvas(**data,
+                                         notebook_area=self.notebook_area)
                 if self.pages_list:
                     prev_canvas = self.pages_list[LAST_PAGE_INDEX]
                     mycanvas.scale_factor = prev_canvas.scale_factor

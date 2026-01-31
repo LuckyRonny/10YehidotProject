@@ -41,7 +41,8 @@ class Client(object):
             ip, port = winreg_file.Reg.read_reg()
             self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.my_socket.connect((ip, port))
-            key = key_exchange.KeyExchange.send_recv_key((self.my_socket, None))
+            key = key_exchange.KeyExchange.send_recv_key(
+                (self.my_socket, None))
             self.connection = (self.my_socket, key)
             self.check_socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM)

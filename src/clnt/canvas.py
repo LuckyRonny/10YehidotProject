@@ -1,6 +1,7 @@
 """
 Ronny Getz
-Drawing canvas: strokes, pen/marker/eraser/select, zoom, background (blank/lines/grid).
+Drawing canvas: strokes, pen/marker/eraser/select,
+zoom, background (blank/lines/grid).
 """
 import math
 import time
@@ -326,7 +327,6 @@ class DrawingCanvas(QWidget):
             self.update()
             if self.notebook_area and stroke:
                 id = self.notebook_area.add_stroke(stroke, self.id, stroke.id)
-
 
     def add_new_stroke(self):
         """adds the new stroke to the list of strokes"""
