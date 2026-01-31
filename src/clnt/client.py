@@ -5,8 +5,7 @@ client
 
 import socket
 import sys
-from diffie_hellman import *
-import key_exchange
+from key_exchange import KeyExchange
 import protocol
 import winreg_file
 from constants import (
@@ -41,12 +40,12 @@ class Client(object):
             ip, port = winreg_file.Reg.read_reg()
             self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.my_socket.connect((ip, port))
-            key = key_exchange.KeyExchange.send_recv_key((self.my_socket, None))
+            key = KeyExchange.send_recv_key((self.my_socket, None))
             self.connection = (self.my_socket, key)
             self.check_socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM)
             self.check_socket.connect((ip, port + 1))
-            key_check = key_exchange.KeyExchange.send_recv_key((self.check_socket,
+            key_check = KeyExchange.send_recv_key((self.check_socket,
                                                                 None))
             self.connection_check = (self.check_socket, key_check)
         except socket.error as msg:

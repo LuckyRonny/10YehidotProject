@@ -1,6 +1,6 @@
 """Client key exchange: send local DH key, receive peer key, derive shared key."""
 import protocol
-from diffie_hellman import *
+from diffie_hellman import DiffieHellman
 
 
 class KeyExchange(object):

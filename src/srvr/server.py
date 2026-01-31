@@ -20,6 +20,7 @@ from constants import (
 
 
 NUMBER_OF_CLIENTS = 1
+UPDATES_PORT_OFFSET = 1
 
 
 class Server(object):
@@ -29,12 +30,10 @@ class Server(object):
         and returns the socket
         """
         try:
-            self.server_socket = socket.socket(socket.AF_INET,
-                                               socket.SOCK_STREAM)
+            self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.server_socket.bind((ip, port))
             self.server_socket.listen(NUMBER_OF_CLIENTS)
-            self.update_socket = socket.socket(socket.AF_INET,
-                                               socket.SOCK_STREAM)
+            self.update_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.update_socket.bind((ip, port + UPDATES_PORT_OFFSET))
             self.update_socket.listen(NUMBER_OF_CLIENTS)
         except socket.error as msg:
@@ -47,17 +46,13 @@ class Server(object):
         while not done:
             try:
                 client_socket, address = self.server_socket.accept()
-                key = key_exchange.KeyExchange.recv_send_key((client_socket,
-                                                              None))
+                key = key_exchange.KeyExchange.recv_send_key((client_socket, None))
                 connection = (client_socket, key)
                 clnt_thread = threading.Thread(
-                    target=self.handle_single_client,
-                    args=(connection, address))
+                    target=self.handle_single_client, args=(connection, address)
+                )
                 clnt_thread.start()
-                threading.Thread(
-                    target=self.accept_updates,
-                    daemon=True
-                ).start()
+                threading.Thread(target=self.accept_updates, daemon=True).start()
             except socket.error:
                 print("socket error")
 
@@ -66,12 +61,11 @@ class Server(object):
         while True:
             try:
                 socket_updates, address = self.update_socket.accept()
-                key = key_exchange.KeyExchange.recv_send_key((socket_updates,
-                                                              None))
+                key = key_exchange.KeyExchange.recv_send_key((socket_updates, None))
                 connection_update = (socket_updates, key)
                 clnt_thread = threading.Thread(
-                    target=self.handle_update_client,
-                    args=(connection_update, address))
+                    target=self.handle_update_client, args=(connection_update, address)
+                )
                 clnt_thread.start()
             except socket.error:
                 print("update socket error")
@@ -128,8 +122,7 @@ class Server(object):
     def handle_client_request(request, params):
         """Dispatch to Methods by params[REQUEST_TYPE]; return response."""
         cls = getattr(methods, "Methods")
-        return (getattr(cls, params[REQUEST_TYPE])
-                (request, params))
+        return getattr(cls, params[REQUEST_TYPE])(request, params)
 
     @staticmethod
     def send_response_to_client(response, conn):

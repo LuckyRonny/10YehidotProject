@@ -5,7 +5,7 @@ Server protocol: length-prefixed, optionally encrypted send/recv.
 import logging
 
 from constants import MSG_LEN
-from aes_cipher import *
+from aes_cipher import AESCipher
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='client.log', encoding='utf-8', level=logging.DEBUG)

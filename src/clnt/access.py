@@ -2,7 +2,6 @@
 ronny getz
 Access dialog: per-user permission combo (Admin/Edit/View/No Access).
 """
-from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,

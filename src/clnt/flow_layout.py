@@ -102,7 +102,7 @@ class FlowLayout(QLayout):
         spacing_x = spacing_y = self.spacing()
         line_height = START_LINE_HEIGHT
         for item in self.itemList:
-            item_width, item_height = (item.sizeHint().width(),
+            _, _ = (item.sizeHint().width(),
                                        item.sizeHint().height())
             x, y, line_height = self.process_item(
                 item, rect, x, y, line_height, spacing_x, spacing_y, test_only

@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (
 )
 
 from notebook import Notebook
-from access import *
+from access import AccessDialog
 from scroll_area import CenteredScrollArea
 from style import (
     BUTTON,
