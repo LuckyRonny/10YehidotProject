@@ -23,14 +23,19 @@ NEXT_STROKE = 1
 LOADING_TIME = 1.0
 TIME_STAMP_CLEAR = 2
 TIME_STAMP_CHECK = 1
+# Updates ring buffer: max length and trim-to size when exceeded
+UPDATES_MAX_LEN = 15
+UPDATES_TRIM_TO = 10
 
 
 class NotebookManager(object):
+    """Manages notebook JSON DB and updates; thread-safe with lock."""
+
     lock = threading.Lock()
 
-    # ---------- FIX: atomic json write ----------
     @staticmethod
     def _atomic_write(path, data):
+        """Write JSON to path via temp file then replace (atomic)."""
         dir_name = os.path.dirname(path) or "."
         with tempfile.NamedTemporaryFile("w", dir=dir_name,
                                          delete=False) as tmp:
@@ -38,10 +43,9 @@ class NotebookManager(object):
             tmp_name = tmp.name
         os.replace(tmp_name, path)
 
-    # -------------------------------------------
-
     @staticmethod
     def GET_NOTEBOOK(params):
+        """Load notebook by name from DB and return repr."""
         name = params[NAME]
         with NotebookManager.lock:
             with open("notebook_DB.json", "r") as f:
@@ -51,6 +55,7 @@ class NotebookManager(object):
 
     @staticmethod
     def ADD_NOTEBOOK(params):
+        """Add or overwrite notebook by name; ensure updates entry exists."""
         name = params[NAME]
         notebook = ast.literal_eval(params[NOTE_BOOK])
 
@@ -72,6 +77,7 @@ class NotebookManager(object):
 
     @staticmethod
     def ADD_STROKE(params):
+        """Add stroke to notebook page; assign id if 0; create update."""
         name = params[NAME]
         stroke = ast.literal_eval(params[NOTE_BOOK])
         id_page = params[ID_PAGE]
@@ -99,6 +105,7 @@ class NotebookManager(object):
 
     @staticmethod
     def DELETE_STROKE(params):
+        """Remove stroke from notebook page and record update."""
         name = params[NAME]
         id_page = params[PAGE_ID]
         id = params[STROKE_ID]
@@ -121,6 +128,7 @@ class NotebookManager(object):
 
     @staticmethod
     def CHANGE_BACKGROUND(params):
+        """Set page background type and record update."""
         name = params[NAME]
         id_page = params[PAGE_ID]
         page_type = params[PAGE_TYPE]
@@ -143,6 +151,7 @@ class NotebookManager(object):
 
     @staticmethod
     def CLEAR(params):
+        """Clear all strokes on a page and record update."""
         name = params[NAME]
         id = params[PAGE_ID]
         ts = time.time()
@@ -164,6 +173,7 @@ class NotebookManager(object):
 
     @staticmethod
     def ADD_PAGE(params):
+        """Add page to notebook and record update."""
         name = params[NAME]
         page = ast.literal_eval(params[NOTE_BOOK])
         id_page = params[ID_PAGE]
@@ -184,6 +194,7 @@ class NotebookManager(object):
 
     @staticmethod
     def CHECK_UPDATES(params):
+        """Return updates for notebook newer than given timestamp."""
         name = params[NAME]
         time_stamp = params[TIME_STAMP_CHECK]
 
@@ -200,6 +211,7 @@ class NotebookManager(object):
 
     @staticmethod
     def _get_stroke_id_unlocked(name, page_id):
+        """Increment and return next stroke id for page (caller holds lock)."""
         with open("notebook_DB.json", "r") as f:
             notebook_db = json.load(f)
 
@@ -213,6 +225,7 @@ class NotebookManager(object):
 
     @staticmethod
     def create_update(notebook_name, time, type, page_id, data):
+        """Append update to notebook's ring buffer in updates.json."""
         update = {
             "ts": time,
             "type": type,
@@ -225,7 +238,7 @@ class NotebookManager(object):
             updates.setdefault(notebook_name, [])
             notebook_u = updates[notebook_name]
             notebook_u.append(update)
-            if len(notebook_u) >= 15:
-                notebook_u = notebook_u[-10:]
+            if len(notebook_u) >= UPDATES_MAX_LEN:
+                notebook_u = notebook_u[-UPDATES_TRIM_TO:]
             updates[notebook_name] = notebook_u
             NotebookManager._atomic_write("updates.json", updates)

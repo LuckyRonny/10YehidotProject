@@ -1,11 +1,14 @@
+"""Server/client key exchange: send or receive DH public key and derive shared key."""
 import protocol
 from diffie_hellman import *
 
 
 class KeyExchange(object):
+    """Performs DH key exchange over a connection (send then receive or vice versa)."""
 
     @staticmethod
     def send_recv_key(conn):
+        """Send local DH public key, receive peer key, return derived shared key."""
         dh = DiffieHellman()
         protocol.Protocol.send_bin(conn,
                                dh.serialize_public_key())  # DH public key
@@ -17,7 +20,7 @@ class KeyExchange(object):
 
     @staticmethod
     def recv_send_key(conn):
-        """ recieves client dh key and sends both dh key and aes key """
+        """Receive client DH key, send server DH key, return derived shared key."""
         dh_key_bytes = protocol.Protocol.recv_bin(conn)
         dh = DiffieHellman()
         dh_key = dh.deserialize_public_key(dh_key_bytes)

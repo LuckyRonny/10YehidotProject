@@ -1,3 +1,4 @@
+"""Diffie-Hellman key exchange using ECDH and HKDF."""
 from secrets import token_bytes
 
 from cryptography.hazmat.primitives import hashes, padding
@@ -7,28 +8,36 @@ from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, \
     load_pem_public_key
 
+# HKDF output length for derived shared key (bytes)
+DERIVED_KEY_LENGTH = 32
+
 
 class DiffieHellman:
+    """ECDH key agreement; generates private key and exposes PEM public key."""
+
     def __init__(self):
-        """ constructor"""
+        """Create EC private key and public key on SECP384R1 curve."""
         self.diffieHellman = ec.generate_private_key(ec.SECP384R1())
         self.public_key = self.diffieHellman.public_key()
 
     def serialize_public_key(self):
-        """ serialize public key object """
+        """Return public key as PEM bytes (SubjectPublicKeyInfo)."""
         return self.public_key.public_bytes(Encoding.PEM,
                                             PublicFormat.SubjectPublicKeyInfo)
 
     def deserialize_public_key(self, data):
-        """ deserialize public key object """
+        """Load public key from PEM bytes."""
         return load_pem_public_key(data)
 
     def get_key(self, public_key):
-        """ return generated shared key, hashed """
+        """Return derived shared key from ECDH exchange, hashed via HKDF."""
         shared_key = self.diffieHellman.exchange(ec.ECDH(), public_key)
-
-        derived_key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None,
-                            info=None).derive(shared_key)
+        derived_key = HKDF(
+            algorithm=hashes.SHA256(),
+            length=DERIVED_KEY_LENGTH,
+            salt=None,
+            info=None,
+        ).derive(shared_key)
         return derived_key
 
 

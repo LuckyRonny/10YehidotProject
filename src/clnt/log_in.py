@@ -33,8 +33,10 @@ RETURNED_NAME = 1
 
 
 class LoginWindow(QtWidgets.QMainWindow):
+    """Sign-in window: username/password, login and sign-up buttons; opens MainWindow on success."""
+
     def __init__(self):
-        """constructor"""
+        """Build UI, create Client, set styles and minimum size."""
         super().__init__()
         self.setWindowTitle("Sign in")
         self.setStyleSheet(MAIN_WINDOW)
@@ -43,7 +45,7 @@ class LoginWindow(QtWidgets.QMainWindow):
         self.client = Client()
 
     def create_central_widget(self):
-        """creates central widget"""
+        """Build central widget with username, password, error label and buttons."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_layout = QVBoxLayout()
@@ -76,7 +78,7 @@ class LoginWindow(QtWidgets.QMainWindow):
         central_layout.addStretch(LOGIN_STRETCH)
 
     def create_layout(self, layout, name):
-        """create layout of username and password"""
+        """Add label and line edit to layout; return line edit."""
         label = QLabel(name)
         line_edit = QtWidgets.QLineEdit()
         line_edit.setMaxLength(LINE_EDIT_MAX_LENGTH)
@@ -95,7 +97,7 @@ class LoginWindow(QtWidgets.QMainWindow):
         return label
 
     def create_button_layout(self, button_layout):
-        """create button layout"""
+        """Add Login and Sign up buttons to button_layout."""
         button_layout.addStretch(STRETCH)
         login_button = self.create_button("Login",
                                           self.login_button_clicked)
@@ -117,7 +119,7 @@ class LoginWindow(QtWidgets.QMainWindow):
         return button
 
     def login_button_clicked(self):
-        """if parameters are ok switch main window"""
+        """Send login request; on success open MainWindow, else set error label."""
         username = self.username_line_edit.text()
         password = self.password_line_edit.text()
         request = "login$" + username + "$" + password + "$USERS"
@@ -136,7 +138,7 @@ class LoginWindow(QtWidgets.QMainWindow):
             self.hide()
 
     def signin_button_clicked(self):
-        """switch to sign up window"""
+        """Open SignupWindow and hide login window."""
         self.signup_window = SignupWindow(self)
         self.signup_window.show()
         self.hide()

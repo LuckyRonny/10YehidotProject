@@ -1,8 +1,7 @@
 """
 Ronny Getz
-magic numbers and style
+Magic numbers and style constants for canvas, toolbars, buttons, colors.
 """
-
 from enum import Enum
 
 

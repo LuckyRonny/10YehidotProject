@@ -1,40 +1,39 @@
 """
 Ronny Gets
-user manager server
+User manager: login, signup, all_users via SQLite.
 """
-
 import sqlite3
-
+from my_sha256 import Hasha256
 from constants import ID_OF_USER, PASSWORD, SIGNUP_NAME, USER_NAME
 
+# Index of display name in user row; default permission when not in notebook
 NAME_OF_USER = 1
+LOGIN_FAIL_RESPONSE = "False"
+DEFAULT_PERMISSION = 3
+ALL_USERS_PARAMS_NOTEBOOK_INDEX = 1
 
 
 class UserManager(object):
+    """Handles user auth and listing; uses NotebookDB.db."""
 
     @staticmethod
     def LOGIN(params):
-        """
-        check if has a user with this username and password
-        """
+        """Validate username/password; return id!name or LOGIN_FAIL_RESPONSE."""
         username = params[USER_NAME]
         password = params[PASSWORD]
         with sqlite3.connect('NotebookDB.db') as conn:
             cursor = conn.cursor()
             cursor.execute(
                 "SELECT * FROM Users WHERE user_name = ? AND password = ?",
-                (username, password))
+                (username, Hasha256.get_hash_hex(password)))
             user = cursor.fetchone()
         if user:
             return str(user[ID_OF_USER]) + "!" + str(user[NAME_OF_USER])
-        else:
-            return "False"
+        return LOGIN_FAIL_RESPONSE
 
     @staticmethod
     def SIGNUP(params):
-        """
-        creates a new user
-        """
+        """Insert new user; return id string or LOGIN_FAIL_RESPONSE on duplicate."""
         username = params[USER_NAME]
         password = params[PASSWORD]
         name = params[SIGNUP_NAME]
@@ -43,40 +42,34 @@ class UserManager(object):
                 cursor = conn.cursor()
                 sql = ("INSERT INTO Users (user_name, password, name)" +
                        "VALUES (?, ?, ?)")
-                cursor.execute(sql, (username, password, name))
+                cursor.execute(sql, (username, Hasha256.get_hash_hex(password), name))
                 conn.commit()
                 id = cursor.lastrowid
             if id:
                 return str(id)
-            else:
-                return "False"
+            return LOGIN_FAIL_RESPONSE
         except sqlite3.IntegrityError:
-            return "False"
+            return LOGIN_FAIL_RESPONSE
 
     @staticmethod
     def ALL_USERS(params):
-        """gets all users except the user"""
+        """Return user list with permissions for notebook; format name,perm!..."""
         excluded_user = params[USER_NAME]
-        notebook = params[1]
+        notebook = params[ALL_USERS_PARAMS_NOTEBOOK_INDEX]
         usernames_ids, ids_permissions = UserManager.get_id_permission(
             excluded_user, notebook)
-        dict = {}
-        for row in ids_permissions:
-            dict[row[0]] = row[1]
+        perms_by_id = {row[0]: row[1] for row in ids_permissions}
         usernames = [row[0] for row in usernames_ids]
         ids = [row[1] for row in usernames_ids]
-        users_str = ""
+        parts = []
         for i in range(len(ids)):
-            if ids[i] in dict.keys():
-                users_str += usernames[i] + "," + str(dict[ids[i]])
-            else:
-                users_str += usernames[i] + ",3"
-            users_str += "!"
-        return users_str[:-1]
+            perm = perms_by_id.get(ids[i], DEFAULT_PERMISSION)
+            parts.append(usernames[i] + "," + str(perm))
+        return "!".join(parts)
 
     @staticmethod
     def get_id_permission(excluded_user, notebook):
-        """"""
+        """Fetch (user_name, id) and (user, permission) for notebook; exclude one user."""
         with sqlite3.connect('NotebookDB.db') as conn:
             cursor = conn.cursor()
             cursor.execute(

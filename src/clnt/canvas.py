@@ -1,8 +1,7 @@
 """
 Ronny Getz
-canvas
+Drawing canvas: strokes, pen/marker/eraser/select, zoom, background (blank/lines/grid).
 """
-# import ast
 import math
 import time
 
@@ -51,14 +50,19 @@ from style import (
     TRANSPARENCY_MARKER,
     TRANSPARENCY_PEN,
 )
+# Initial stroke id and increment
 START_ID = 0
 ID_CHANGE = 1
+# Placeholder stroke id for new strokes before server assigns
+STROKE_ID_NEW = "0"
 
 
 class DrawingCanvas(QWidget):
+    """Single page: draw strokes, tools (pen/marker/eraser/select), zoom, background."""
+
     def __init__(self, width, height, strokes, page_type,
                  notebook_area, stroke_id, id):
-        """constructor"""
+        """Build background, strokes, history, pen, zoom; set notebook_area and ids."""
         super().__init__()
         # background layer
         self.create_background_layer(width, height)
@@ -75,6 +79,20 @@ class DrawingCanvas(QWidget):
         self.stroke_id = START_ID
         if stroke_id:
             self.stroke_id = int(stroke_id)
+
+    def _handle_eraser_click(self, pos):
+        """Remove first stroke containing pos; notify notebook_area if stroke deleted."""
+        new_strokes = []
+        stroke = None
+        for s in self.strokes:
+            if not s.contains_point(pos, self.pen_size * ERASER_TOLERANCE):
+                new_strokes.append(s)
+            else:
+                stroke = s
+        self.strokes = new_strokes
+        self.update()
+        if self.notebook_area and stroke:
+            self.notebook_area.delete_stroke(self.id, stroke.id)
 
     def __dict__(self):
         """convert canvas to dictionary"""
@@ -199,8 +217,7 @@ class DrawingCanvas(QWidget):
                 painter.drawLine(pts[i - POINT_BEFORE], pts[i])
 
     def mousePressEvent(self, event):
-        """when mouse pressed check which tool is used
-        and set the correct parameters"""
+        """On left click: start stroke (pen/marker), select stroke, or erase stroke."""
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             pos = (event.position() / self.scale_factor).toPoint()
             if self.tool in ["pen", "marker"]:
@@ -212,19 +229,7 @@ class DrawingCanvas(QWidget):
                 self.check_which_selected(pos)
                 self.update()
             elif self.tool == "eraser":
-                # erase immediately when clicking
-                new_strokes = []
-                stroke = None
-                for s in self.strokes:
-                    if not s.contains_point(pos,
-                                            self.pen_size * ERASER_TOLERANCE):
-                        new_strokes.append(s)
-                    else:
-                        stroke = s
-                self.strokes = new_strokes
-                self.update()
-                if self.notebook_area and stroke:
-                    self.notebook_area.delete_stroke(self.id, stroke.id)
+                self._handle_eraser_click(pos)
 
     def check_which_selected(self, pos):
         """check which stroke is selected from the end"""
@@ -308,7 +313,7 @@ class DrawingCanvas(QWidget):
         if self.current_stroke_points:
             stroke = self.add_new_stroke()
             if self.notebook_area and stroke:
-                id = self.notebook_area.add_stroke(stroke, self.id, "0")
+                id = self.notebook_area.add_stroke(stroke, self.id, STROKE_ID_NEW)
                 stroke.id = id
         elif self.tool == "select":
             if self.selected_stroke:
@@ -342,7 +347,7 @@ class DrawingCanvas(QWidget):
                 self.current_stroke_points[STROKE_POINT_END]],
             [self.current_stroke_times[STROKE_POINT_START],
                 self.current_stroke_times[STROKE_POINT_END]],
-            self.pen_color, self.pen_size, "0")
+            self.pen_color, self.pen_size, STROKE_ID_NEW)
         self.strokes.append(new_stroke)
         self.current_stroke_points = []
         self.current_stroke_times = []
@@ -350,10 +355,10 @@ class DrawingCanvas(QWidget):
         return new_stroke
 
     def end_stroke(self):
-        """add the stroke and resset the parameters"""
+        """Append current stroke to list, clear current points and times; return stroke."""
         stroke = Stroke(self.current_stroke_points[:],
                         self.current_stroke_times,
-                        self.pen_color, self.pen_size, "0")
+                        self.pen_color, self.pen_size, STROKE_ID_NEW)
         self.drawing = False
         self.strokes.append(stroke)
         self.current_stroke_points = []
@@ -403,7 +408,7 @@ class DrawingCanvas(QWidget):
             self.pen_size = size
 
     def change_pen_color(self, i):
-        """changes pen size"""
+        """Set pen/marker color from COLORS or MARKER_COLORS index; set alpha."""
         if self.tool == "marker":
             color = QtGui.QColor(MARKER_COLORS[i])
             color.setAlpha(TRANSPARENCY_MARKER)
@@ -497,10 +502,8 @@ class DrawingCanvas(QWidget):
         painter.end()
         self.update()
 
-    def grid(self):
-        """change the back to be grid"""
-        self.page_type = "grid"
-        self.background_layer.fill(Qt.GlobalColor.white)
+    def _draw_grid_background(self):
+        """Draw horizontal and vertical grid lines on background_layer."""
         painter = QtGui.QPainter(self.background_layer)
         pen = self.create_pen(BACKGROUND_PEN_SIZE, "#666666")
         painter.setPen(pen)
@@ -516,6 +519,12 @@ class DrawingCanvas(QWidget):
             column_start, column_end = COLUMN_LIMITS
             painter.drawLine(i, column_start, i, column_end)
         painter.end()
+
+    def grid(self):
+        """Set page type to grid and draw grid background."""
+        self.page_type = "grid"
+        self.background_layer.fill(Qt.GlobalColor.white)
+        self._draw_grid_background()
         self.update()
 
     def ADD_STROKE(self, data):

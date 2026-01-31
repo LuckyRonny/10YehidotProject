@@ -1,8 +1,7 @@
 """
 Ronny Gets
-notebook user manager server
+Links users to notebooks and permissions; NotebookDB + NotebookManager.
 """
-
 import sqlite3
 
 from constants import (
@@ -14,13 +13,21 @@ from constants import (
 )
 from notebook_manager import NotebookManager
 
+# Index into params for permission; index into row for permission column
 PERMISSION = 3
+CHANGE_ACCESS_PARAMS_ACCESS_INDEX = 1
+CHANGE_ACCESS_PARAMS_NOTEBOOK_NAME_INDEX = 2
+NOTEBOOK_ID_ROW_INDEX = 0
+USER_ID_ROW_INDEX = 0
+PERMISSION_ROW_INDEX = 1
 
 
 class UserNotebookManager(object):
+    """Manages UsersNotebooks and Notebooks tables; delegates content to NotebookManager."""
+
     @staticmethod
     def ADD_NOTEBOOK_TO_DB(params):
-        """add the notebook to both dbs """
+        """Add notebook to DB and to notebook manager; return ok or error string."""
         user_id = params[USER_ID]
         notebook_name = params[NOTEBOOK_NAME]
         notebook = params[NOTEBOOK]
@@ -34,7 +41,7 @@ class UserNotebookManager(object):
 
     @staticmethod
     def add_to_db(notebook_name, user_id, per):
-        """adds the notebook to db"""
+        """Insert into Notebooks and UsersNotebooks; raises on duplicate."""
         with sqlite3.connect('NotebookDB.db') as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -71,7 +78,7 @@ class UserNotebookManager(object):
 
     @staticmethod
     def get_all_notebooks(id, cursor, notebooks_names):
-        """gets all the notebooks names"""
+        """Resolve notebook id to name via Notebooks table; return name string."""
         cursor.execute(
             "SELECT name FROM Notebooks WHERE id = ?",
             (id,))
@@ -79,37 +86,51 @@ class UserNotebookManager(object):
         return str(name)
 
     @staticmethod
+    def _resolve_user_id(cursor, user_name):
+        """Return user id for user_name from Users table."""
+        cursor.execute("SELECT id FROM Users WHERE user_name = ?", (user_name,))
+        row = cursor.fetchone()
+        return row[USER_ID_ROW_INDEX] if row else None
+
+    @staticmethod
+    def _resolve_notebook_id(cursor, notebook_name):
+        """Return notebook id for notebook_name from Notebooks table."""
+        cursor.execute("SELECT id FROM Notebooks WHERE name = ?", (notebook_name,))
+        row = cursor.fetchone()
+        return row[NOTEBOOK_ID_ROW_INDEX] if row else None
+
+    @staticmethod
+    def _user_notebook_exists(cursor, user_id, notebook_id):
+        """Return True if (user_id, notebook_id) exists in UsersNotebooks."""
+        cursor.execute(
+            "SELECT COUNT(*) FROM UsersNotebooks WHERE user=? AND notebook=?",
+            (user_id, notebook_id))
+        return cursor.fetchone()[0] > 0
+
+    @staticmethod
     def CHANGE_ACCESS(params):
-        """change the access"""
+        """Set or update permission for user on notebook; insert if no row."""
         user_name = params[USER_ID]
-        access = params[1]
-        notebook_name = params[2]
+        access = params[CHANGE_ACCESS_PARAMS_ACCESS_INDEX]
+        notebook_name = params[CHANGE_ACCESS_PARAMS_NOTEBOOK_NAME_INDEX]
         with sqlite3.connect('NotebookDB.db') as conn:
             cursor = conn.cursor()
-            cursor.execute(
-                "SELECT id FROM Users WHERE user_name = ?",
-                (user_name,))
-            user_id_tuple = cursor.fetchone()
-            user_id = user_id_tuple[0]
-            cursor.execute(
-                "SELECT id FROM Notebooks WHERE name = ?",
-                (notebook_name,))
-            notebook_id_tuple = cursor.fetchone()
-            notebook_id = notebook_id_tuple[0]
-            cursor.execute("""
-            SELECT COUNT(*) FROM UsersNotebooks
-            WHERE user=? AND notebook=?
-            """, (user_id, notebook_id))
-            exists = cursor.fetchone()[0] > 0
+            user_id = UserNotebookManager._resolve_user_id(cursor, user_name)
+            notebook_id = UserNotebookManager._resolve_notebook_id(
+                cursor, notebook_name)
+            if user_id is None or notebook_id is None:
+                return "ok"
+            exists = UserNotebookManager._user_notebook_exists(
+                cursor, user_id, notebook_id)
             if exists:
-                cursor.execute("""
-                UPDATE UsersNotebooks
-                SET permission=?
-                WHERE user=? AND notebook=?
-                """, (access, user_id, notebook_id))
+                cursor.execute(
+                    "UPDATE UsersNotebooks SET permission=? "
+                    "WHERE user=? AND notebook=?",
+                    (access, user_id, notebook_id))
             else:
-                cursor.execute("""
-                INSERT INTO UsersNotebooks (user, notebook, permission)
-                VALUES (?, ?, ?)
-                """, (user_id, notebook_id, access))
+                cursor.execute(
+                    "INSERT INTO UsersNotebooks (user, notebook, permission) "
+                    "VALUES (?, ?, ?)",
+                    (user_id, notebook_id, access))
+            conn.commit()
         return "ok"

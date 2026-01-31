@@ -1,17 +1,21 @@
 """
 Ronny Getz
-canvas container
+Container widget that centers a child and draws a light blue background.
 """
-
 from PyQt6 import QtGui
 from PyQt6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
 from style import STRETCH
 
+# Background color for canvas container
+CANVAS_BG_HEX = "#D3E9FF"
+
 
 class CanvasContainer(QWidget):
+    """Centers a child widget and paints a filled background."""
+
     def __init__(self, child_widget):
-        """constructor"""
+        """Build layout with stretches and child; set background color on paint."""
         super().__init__()
         self.child_widget = child_widget
         layout = QVBoxLayout()
@@ -25,6 +29,6 @@ class CanvasContainer(QWidget):
         self.setLayout(layout)
 
     def paintEvent(self, event):
-        """draw the background"""
+        """Fill widget rect with background color."""
         painter = QtGui.QPainter(self)
-        painter.fillRect(self.rect(), QtGui.QColor("#D3E9FF"))
+        painter.fillRect(self.rect(), QtGui.QColor(CANVAS_BG_HEX))

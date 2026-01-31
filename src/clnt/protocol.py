@@ -1,25 +1,28 @@
 """
 Ronny Getz
-protocol client
+Client protocol: length-prefixed, optionally encrypted send/recv.
 """
+import logging
+
 from constants import MSG_LEN
 from aes_cipher import *
-import logging
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(filename='client.log', encoding='utf-8', level=logging.DEBUG)
 logger.info('Starting the logger on file "client.log"')
 
+# Connection tuple indices and recv loop sentinel
 STOP_RECV = 0
 KEY = 1
 SOCK = 0
 
 
 class Protocol(object):
+    """Send/recv length-prefixed messages; encrypt/decrypt when key present."""
+
     @staticmethod
     def send(conn, data):
-        """
-        send the data to the socket with the length of the data at the start
-        """
+        """Send string as length-prefixed payload; encrypt if conn has key."""
         data_bit = data.encode()
         if conn[KEY] is not None:
             data_bit = AESCipher.encrypt(conn[KEY], data_bit)
@@ -31,10 +34,7 @@ class Protocol(object):
 
     @staticmethod
     def send_bin(conn, data_bit):
-        """
-        send the data to the socket with
-        the length of the data at the start in bytes
-        """
+        """Send raw bytes with length prefix; encrypt if conn has key."""
         if conn[KEY] is not None:
             data_bit = AESCipher.encrypt(conn[KEY], data_bit)
         length = len(data_bit)
@@ -69,10 +69,7 @@ class Protocol(object):
 
     @staticmethod
     def recv_bin(conn):
-        """
-        get the data from the socket until
-        all the data get to the socket in bytes
-        """
+        """Read length-prefixed payload and return raw bytes; decrypt if key set."""
         data = b""
         data_len = b""
         length = MSG_LEN

@@ -35,17 +35,14 @@ class Server(object):
             self.server_socket.listen(NUMBER_OF_CLIENTS)
             self.update_socket = socket.socket(socket.AF_INET,
                                                socket.SOCK_STREAM)
-            self.update_socket.bind((ip, port + 1))
+            self.update_socket.bind((ip, port + UPDATES_PORT_OFFSET))
             self.update_socket.listen(NUMBER_OF_CLIENTS)
         except socket.error as msg:
             print("Connection failure: %s\n terminating program" % msg)
             sys.exit(1)
 
     def handle_clients(self):
-        """
-        gets a socket and while done is not true the function
-        call the function handle_single_client
-        """
+        """Accept clients on main socket; spawn thread per client and start updates acceptor."""
         done = False
         while not done:
             try:
@@ -65,7 +62,7 @@ class Server(object):
                 print("socket error")
 
     def accept_updates(self):
-        """accept clients for updates socket"""
+        """Accept connections on updates socket; spawn thread per client."""
         while True:
             try:
                 socket_updates, address = self.update_socket.accept()
@@ -81,11 +78,7 @@ class Server(object):
 
     @staticmethod
     def handle_single_client(conn, address):
-        """
-        gets a socket and while response is not QUIT or EXIT
-        the function calls the functions receive_client_request,
-        request_client_handle, send_response_to_client
-        """
+        """Loop: receive request, dispatch to Methods, send response; stop on error."""
         done = False
         while not done:
             try:
@@ -102,7 +95,7 @@ class Server(object):
 
     @staticmethod
     def handle_update_client(conn_updates, address):
-        """handle update requests from client"""
+        """Serve only CHECK_UPDATES; respond NO to other requests; stop on error."""
         done = False
         while not done:
             try:
@@ -121,9 +114,7 @@ class Server(object):
 
     @staticmethod
     def receive_client_request(conn):
-        """
-        gets a socket and receives a request
-        """
+        """Receive one message; return (request_upper, params_list) or (None, None)."""
         request = protocol.Protocol.recv(conn)
         if request == "":
             return None, None
@@ -135,27 +126,19 @@ class Server(object):
 
     @staticmethod
     def handle_client_request(request, params):
-        """
-        gets a request and check which request to do and
-        call the function and returns the response
-        """
+        """Dispatch to Methods by params[REQUEST_TYPE]; return response."""
         cls = getattr(methods, "Methods")
         return (getattr(cls, params[REQUEST_TYPE])
                 (request, params))
 
     @staticmethod
     def send_response_to_client(response, conn):
-        """
-        gets a response and a socket and send the response to the socket
-        """
+        """Send response string over connection via Protocol.send."""
         protocol.Protocol.send(conn, response)
 
 
 def main():
-    """
-    calls the functions initiate_server_socket and handle_clients
-    and then close the socket
-    """
+    """Create server on IP:PORT and run handle_clients (blocking)."""
     server = Server(IP, PORT)
     server.handle_clients()
 

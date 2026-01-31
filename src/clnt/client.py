@@ -27,14 +27,16 @@ CHANGE_BACKGROUND_PRMS = 5
 CLEAR_PRMS = 4
 ADD_PAGE_PRMS = 5
 CHECK_UPDATES_PRMS = 4
+# Parameter counts for valid_request
+ALL_USERS_PARAMS = 4
+CHANGE_ACCESS_PARAMS = 5
 
 
 class Client(object):
+    """TCP client: main and check sockets with key exchange; send_command API."""
+
     def __init__(self):
-        """
-        constructor - gets an ip and port and create a socket
-        and return the socket
-        """
+        """Connect main and updates sockets; perform key exchange; exit on failure."""
         try:
             ip, port = winreg_file.Reg.read_reg()
             self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -52,11 +54,7 @@ class Client(object):
             sys.exit(1)
 
     def handle_user_input(self):
-        """
-        gets a socket and while request is not EXIT or QUIT
-        the function ask for request and checks if it is legal and
-        call the functions send_request_to_server and handle_server_response
-        """
+        """Loop: prompt request, validate, send and handle response until EXIT/QUIT."""
         try:
             request = None
             while request != "EXIT" and request != "QUIT":
@@ -87,9 +85,9 @@ class Client(object):
             req_and_prms[REQUEST] == "add_notebook_to_db" and
                 len(req_and_prms) == ADD_NOTEBOOK_DB_PARAMS or
             req_and_prms[REQUEST] == "all_users" and
-                len(req_and_prms) == 4 or
+                len(req_and_prms) == ALL_USERS_PARAMS or
             req_and_prms[REQUEST] == "change_access" and
-                len(req_and_prms) == 5 or
+                len(req_and_prms) == CHANGE_ACCESS_PARAMS or
             req_and_prms[REQUEST] == "clients_notebooks" and
                 len(req_and_prms) == CLIENTS_NOTEBOOKS_PARAMS):
             return True
@@ -132,9 +130,7 @@ class Client(object):
                 len(req_and_prms) == CHECK_UPDATES_PRMS)
 
     def send_request_to_server(self, con, request):
-        """
-        gets a socket and a request and sent it to the server
-        """
+        """Send request string over connection via Protocol.send."""
         protocol.Protocol.send(con, request)
 
     def handle_server_response(self, con):
@@ -145,11 +141,7 @@ class Client(object):
         return data  # returns string
 
     def send_command(self, request):
-        """
-        gets a request and checks if it is legal and
-        call the functions send_request_to_server and
-        handle_server_response and return the response
-        """
+        """Validate request; send and recv on appropriate socket; return response string."""
         rsp = ""
         req_and_prms = request.split("$")
         if self.valid_request(req_and_prms):

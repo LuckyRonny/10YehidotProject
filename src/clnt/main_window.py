@@ -42,12 +42,15 @@ from style import (
     WINDOW_SIZE,
 )
 
+# Index into notebook name split to get display name (before _id)
 BUTTON_NOTEBOOK_NAME = 0
 
 
 class MainWindow(QtWidgets.QMainWindow):
+    """Main app window: toolbar, add-notebook box, flow of notebook buttons; opens NotebookArea."""
+
     def __init__(self, client, id, login_window, name):
-        """constructor"""
+        """Build toolbar, add frame, flow layout; load notebooks for user id."""
         super().__init__()
         self.setWindowTitle("")
         self.setStyleSheet(MAIN_WINDOW)
@@ -68,14 +71,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.load_notebooks_for_user(self.id)
 
     def create_flow_layout(self):
-        """creates flow layout"""
+        """Create FlowLayout container and add to main layout."""
         self.notebooks_layout = FlowLayout()
         container_flow_layout = QWidget(self.central_widget)
         container_flow_layout.setLayout(self.notebooks_layout)
         self.layout.addWidget(container_flow_layout)
 
     def create_toolbar(self, name):
-        """create toolbar"""
+        """Create main toolbar with label, log out, refresh, spacer and add button."""
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
@@ -97,7 +100,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_toolbar.addWidget(add_button)
 
     def create_add_button(self):
-        """create add button"""
+        """Create add-notebook button with plus icon; connect to create_new_notebook_frame."""
         button = QPushButton("")
         button.setIcon(QIcon("plus_pic.png"))
         button.setIconSize(QSize(*ADD_BUTTON_SIZE))
@@ -110,7 +113,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return button
 
     def create_log_out_button(self):
-        """create log out button"""
+        """Create log out button and add to toolbar; connect to log_out."""
         button = QPushButton("log out")
         button.setStyleSheet(MAINWINDOW_BUTTON)
         button.setMinimumWidth(BUTTON_WIDTH)
@@ -121,7 +124,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_toolbar.addWidget(button)
 
     def create_refresh_button(self):
-        """create log out button"""
+        """Create refresh button with icon and add to toolbar; connect to refresh."""
         button = QPushButton()
         button.setIcon(QIcon("refresh.png"))
         button.setIconSize(QSize(*ADD_BUTTON_SIZE))
@@ -134,19 +137,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_toolbar.addWidget(button)
 
     def refresh(self):
-        """log out"""
+        """Clear notebooks layout and reload notebooks for current user."""
         self.notebooks_layout.clear()
         self.load_notebooks_for_user(self.id)
 
     def log_out(self):
-        """log out"""
+        """Clear login fields, show login window and close main window."""
         self.login_window.username_line_edit.clear()
         self.login_window.password_line_edit.clear()
         self.login_window.show()
         self.close()
 
     def create_add_frame(self):
-        """create floating frame parented to central_widget so, it floats"""
+        """Create floating add-notebook box with label, line edit and create button."""
         self.create_box()
         box_layout = QVBoxLayout(self.box)
         label = QLabel("notebook name:")
@@ -164,7 +167,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.reposition_box()
 
     def create_box(self):
-        """creates box"""
+        """Create styled QFrame box with fixed size for add-notebook form."""
         self.box = QFrame(self.central_widget)
         self.box.setStyleSheet(ADD_NOTEBOOK_FRAME)
         self.box.setFrameShape(QFrame.Shape.Box)
@@ -172,7 +175,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.box.setFixedSize(*BOX_SIZE)
 
     def create_button(self, line_edit):
-        """creates create button"""
+        """Create 'create' button; on click call create_new_notebook with line edit text."""
         button = QPushButton("create")
         button.setStyleSheet(LOGIN_BUTTON)
         button.setMinimumWidth(BUTTON_WIDTH)
@@ -192,7 +195,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.reposition_box()
 
     def create_new_notebook(self, id, notebook_name):
-        """creates a new notebook"""
+        """Send add_notebook_to_db; on ok add button to flow and hide box."""
         notebook = Notebook(None, time.time(), None)
         notebook = repr(notebook.__dict__())
         notebook_name = notebook_name + "_" + id
@@ -212,7 +215,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.reposition_box()
 
     def reposition_box(self):
-        """helper to position the box at top-right inside central_widget"""
+        """Move add-notebook box to top-right of central widget and raise."""
         if not hasattr(self, "box"):
             return
         w = self.central_widget.width()
@@ -223,7 +226,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.box.raise_()
 
     def create_notebook_button(self, name):
-        """create the notebook button"""
+        """Create push button with fixed size for notebook name."""
         button = QPushButton(name)
         button.setMinimumSize(*NOTEBOOK_BUTTON_SIZE)
         button.setMaximumSize(*NOTEBOOK_BUTTON_SIZE)
@@ -249,7 +252,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     self.notebooks_layout.addWidget(button)
 
     def open_notebook(self, name):
-        """get the notebook from the server and opens it"""
+        """Fetch notebook by name, open NotebookArea and hide main window."""
         command = "get_notebook$" + name + "$NOTEBOOKS"
         notebook = ast.literal_eval(self.client.send_command(command))
         self.notebook_area = NotebookArea(self, self.id, self.client,

@@ -1,8 +1,7 @@
 """
 Ronny getz
-constants server
+Server constants: port, IP, protocol indices, DB indices.
 """
-
 PORT = 1800
 IP = "0.0.0.0"
 MSG_LEN = 10

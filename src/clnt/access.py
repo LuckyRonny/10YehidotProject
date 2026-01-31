@@ -1,11 +1,22 @@
 """
 ronny getz
-access
+Access dialog: per-user permission combo (Admin/Edit/View/No Access).
 """
-from PyQt6.QtWidgets import (QLabel, QComboBox, QPushButton,
-                             QVBoxLayout, QHBoxLayout, QDialog)
 from PyQt6.QtGui import QAction
+from PyQt6.QtWidgets import (
+    QComboBox,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QPushButton,
+    QVBoxLayout,
+)
+
 from style import *
+
+# Dialog size (width, height)
+ACCESS_DIALOG_WIDTH = 350
+ACCESS_DIALOG_HEIGHT = 250
 
 ACCESS_DICT = {0: "Admin",
                1: "Edit",
@@ -14,13 +25,13 @@ ACCESS_DICT = {0: "Admin",
 
 
 class AccessDialog(QDialog):
+    """Dialog to view and change notebook access levels for multiple users."""
+
     def __init__(self, users_with_access, parent=None):
-        """
-        users_with_access: list of tuples [(username, current_access), ...]
-        """
+        """Build layout with one row per (username, current_access); parent optional."""
         super().__init__(parent)
         self.setWindowTitle("Access Management")
-        self.resize(350, 250)
+        self.resize(ACCESS_DIALOG_WIDTH, ACCESS_DIALOG_HEIGHT)
 
         layout = QVBoxLayout(self)
 
@@ -54,6 +65,7 @@ class AccessDialog(QDialog):
         layout.addLayout(buttons_row)
 
     def get_access_data(self):
+        """Return dict mapping username to selected access level string."""
         return {
             user: combo.currentText()
             for user, combo in self.user_boxes.items()

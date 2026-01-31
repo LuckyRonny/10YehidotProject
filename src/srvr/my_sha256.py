@@ -1,22 +1,25 @@
-# Python 3 code to demonstrate
-# SHA hash algorithms.
-
+"""SHA-256 hashing utilities for digests and hex output."""
 import hashlib
 
+
 class Hasha256:
+    """Wrapper for SHA-256: digest and hexdigest of encoded strings."""
+
     @staticmethod
     def get_hash(st):
-        """ encoding and sending to SHA256() """
+        """Return SHA-256 digest (raw bytes) of encoded string."""
         result = hashlib.sha256(st.encode())
         return result.digest()
 
+    @staticmethod
     def get_hash_hex(st):
-        """ printing the equivalent hexadecimal value. """
+        """Return SHA-256 hex string of encoded string."""
         result = hashlib.sha256(st.encode())
         return result.hexdigest()
 
+
 def main():
-    """ hashing tests """
+    """Run hashing tests on a sample string."""
     # initializing string
     st = "hello my name is inigo montoya"
     print(Hasha256.get_hash(st))

@@ -1,8 +1,7 @@
 """
 Ronny Getz
-scroll area
+Scroll area that centers notebook widget; Ctrl+wheel zooms.
 """
-
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QApplication
@@ -11,8 +10,10 @@ from style import NO_ENGLE
 
 
 class CenteredScrollArea(QtWidgets.QScrollArea):
+    """Scroll area with centered notebook; Ctrl+wheel triggers zoom in/out."""
+
     def __init__(self, notebook_widget):
-        """constructor"""
+        """Set resizable widget; center notebook in inner widget."""
         super().__init__()
 
         self.setWidgetResizable(True)
@@ -28,7 +29,7 @@ class CenteredScrollArea(QtWidgets.QScrollArea):
         self.setWidget(center_widget)
 
     def wheelEvent(self, event):
-        """Zoom in/out when scrolling with Ctrl"""
+        """On Ctrl+wheel: zoom in if angleDelta.y() > 0 else zoom out; else pass to base."""
         if (QApplication.keyboardModifiers() ==
                 Qt.KeyboardModifier.ControlModifier):
             if event.angleDelta().y() > NO_ENGLE:

@@ -1,3 +1,4 @@
+"""Diffie-Hellman key exchange using ECDH and HKDF."""
 from secrets import token_bytes
 
 from cryptography.hazmat.primitives import hashes, padding
@@ -6,6 +7,9 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, \
     load_pem_public_key
+
+# HKDF output length for derived shared key (bytes)
+DERIVED_KEY_LENGTH = 32
 
 
 class DiffieHellman:
@@ -24,11 +28,14 @@ class DiffieHellman:
         return load_pem_public_key(data)
 
     def get_key(self, public_key):
-        """ return generated shared key, hashed """
+        """Return derived shared key from ECDH exchange, hashed via HKDF."""
         shared_key = self.diffieHellman.exchange(ec.ECDH(), public_key)
-
-        derived_key = HKDF(algorithm=hashes.SHA256(), length=32, salt=None,
-                            info=None).derive(shared_key)
+        derived_key = HKDF(
+            algorithm=hashes.SHA256(),
+            length=DERIVED_KEY_LENGTH,
+            salt=None,
+            info=None,
+        ).derive(shared_key)
         return derived_key
 
 

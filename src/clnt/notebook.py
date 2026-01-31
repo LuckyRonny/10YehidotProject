@@ -1,8 +1,7 @@
 """
 Getz Ronny
-notebook
+Notebook widget: stacked pages (DrawingCanvas), zoom, add/prev/next; syncs with NotebookArea.
 """
-
 from PyQt6 import QtWidgets
 
 from canvas import DrawingCanvas
@@ -21,8 +20,10 @@ from style import (
 
 
 class Notebook(QtWidgets.QWidget):
+    """Stacked canvases; add/prev/next page; global zoom; update_notebook from server."""
+
     def __init__(self, pages, last_change, notebook_area):
-        """constructor"""
+        """Build stacked widget and pages from dict or single blank page; set last_change."""
         super().__init__()
         self.notebook_area = notebook_area
         # Set notebook_widget reference early so add_page can access it during init
@@ -44,7 +45,7 @@ class Notebook(QtWidgets.QWidget):
         self.last_change = last_change
 
     def __dict__(self):
-        """convert notebook to dictionary"""
+        """Return dict with pages and last_change for serialization."""
         page_dict = {}
         for p in self.pages_list:
             page_dict[p.id] = p.__dict__()
@@ -56,11 +57,7 @@ class Notebook(QtWidgets.QWidget):
         return self.pages.currentWidget()
 
     def add_page(self, page, notify_server=True):
-        """add another canvas
-        :param page: The canvas page to add, or None to create a new one
-        :param notify_server: Whether to notify the server about the new page,
-        fault: True. Set to False when handling server updates.
-        """
+        """Add canvas page (or create new); optionally notify server; set current widget."""
         if page:
             mycanvas = page
         else:
@@ -89,21 +86,21 @@ class Notebook(QtWidgets.QWidget):
             self.notebook_area.current_page = self.pages.currentIndex()
 
     def prev_page(self):
-        """move to the prev canvas"""
+        """Switch to previous page if index > 0; update notebook_area.current_page."""
         index = self.pages.currentIndex()
         if index > NO_PAGES:
             self.pages.setCurrentIndex(index - PREV_PAGE)
             self.notebook_area.current_page = self.pages.currentIndex()
 
     def next_page(self):
-        """move to the next canvas"""
+        """Switch to next page if not last; update notebook_area.current_page."""
         index = self.pages.currentIndex()
         if index < len(self.pages_list) + LAST_PAGE_INDEX:
             self.pages.setCurrentIndex(index + NEXT_PAGE)
             self.notebook_area.current_page = self.pages.currentIndex()
 
     def zoom_in(self):
-        """change the global scale factor by 1.2 (more)"""
+        """Increase global scale factor and apply to all pages."""
         self.global_scale_factor *= SCALE_CHANGE
         self.global_scale_factor = max(
             SCALE_MIN, min(SCALE_MAX, self.global_scale_factor)
@@ -111,7 +108,7 @@ class Notebook(QtWidgets.QWidget):
         self.apply_zoom_to_all()
 
     def zoom_out(self):
-        """change the global scale factor by 1.2 (less)"""
+        """Decrease global scale factor and apply to all pages."""
         self.global_scale_factor /= SCALE_CHANGE
         self.global_scale_factor = max(
             SCALE_MIN, min(SCALE_MAX, self.global_scale_factor)
@@ -119,14 +116,14 @@ class Notebook(QtWidgets.QWidget):
         self.apply_zoom_to_all()
 
     def apply_zoom_to_all(self):
-        """change the zoom in all pages"""
+        """Set each page scale_factor to global and update size/display."""
         for page in self.pages_list:
             page.scale_factor = self.global_scale_factor
             page._update_size()
             page.update()
 
     def update_notebook(self, ts, type, page, data):
-        """update the notebook from the DB"""
+        """Apply server update: ADD_PAGE or dispatch type to matching page; update last_change."""
         if type == "ADD_PAGE":
             # Check if page already exists to avoid duplicates
             page_id = int(page)
@@ -152,7 +149,7 @@ class Notebook(QtWidgets.QWidget):
         self.last_change = max(float(self.last_change), float(ts))
 
     def delete_old_data(self):
-        """delete the old data of the notebook"""
+        """Remove all page widgets and clear pages_list; re-add stacked widget to layout."""
         if hasattr(self, "pages"):
             while self.pages.count():
                 widget = self.pages.widget(FIRST_PAGE)
