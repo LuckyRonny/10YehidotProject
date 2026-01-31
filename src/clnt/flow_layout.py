@@ -124,3 +124,25 @@ class FlowLayout(QLayout):
             item.setGeometry(QRect(QPoint(x, y), item.sizeHint()))
         line_height = max(line_height, item.sizeHint().height())
         return next_x, y, line_height
+
+    def clear(self, delete_widgets=True):
+        """
+        Remove all items from the layout.
+        If delete_widgets is True, also delete the widgets themselves.
+        """
+        while self.itemList:
+            item = self.takeAt(0)
+            if delete_widgets:
+                widget = item.widget()
+                if widget:
+                    widget.deleteLater()
+
+    def reset_items(self, new_widgets=None):
+        """
+        Clear all current items and optionally add new widgets.
+        `new_widgets` should be a list of QWidget instances.
+        """
+        self.clear(delete_widgets=True)
+        if new_widgets:
+            for widget in new_widgets:
+                self.addWidget(widget)

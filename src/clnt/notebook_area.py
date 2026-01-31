@@ -58,7 +58,7 @@ class NotebookArea(QtWidgets.QMainWindow):
     def __init__(self, mainwindow, id, client, notebook, name, perm):
         """constructor"""
         super().__init__()
-        self.setWindowTitle("Ronny Getz")
+        self.setWindowTitle(name.split("_")[0])
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
         self.name = name
@@ -212,9 +212,9 @@ class NotebookArea(QtWidgets.QMainWindow):
         upload_button = QPushButton("upload", self)
         self.main_toolbar_button(upload_button, self.upload_notebook)
         if perm == 0:
-            manage_access_action = QAction("Manage Access", self)
-            manage_access_action.triggered.connect(self.open_access_dialog)
-            self.main_toolbar.addAction(manage_access_action)
+            manage_access_button = QPushButton("Access", self)
+            self.main_toolbar_button(manage_access_button,
+                                     self.open_access_dialog)
 
     def create_buttons_layout(self, perm):
         """create button layout"""

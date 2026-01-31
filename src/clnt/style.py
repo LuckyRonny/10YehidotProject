@@ -364,3 +364,21 @@ ADD_NOTEBOOK_FRAME = """
                         font-family: broadway;
                     }
                     """
+ACCESS_DIALOG = """
+            QDialog {
+                background: #1B0BA6;
+                color: #FFFFFF;
+                font: 14px;
+                border-style: outset;
+                border-width: 2px;
+                border-radius: 1px;
+                border-color: #D3E9FF;
+                font-family: broadway;
+            }
+            QDialog:hover{
+                background: #D3E9FF;
+                color: #FFFFFF;
+                font: 14px;
+                font-family: broadway;
+            }
+            """

@@ -84,6 +84,7 @@ class MainWindow(QtWidgets.QMainWindow):
         add_button = self.create_add_button()
         self.main_toolbar.addWidget(label)
         self.create_log_out_button()
+        self.create_refresh_button()
         spacer = QWidget()
         spacer.setSizePolicy(
             QtWidgets.QSizePolicy.Policy.Expanding,
@@ -118,6 +119,22 @@ class MainWindow(QtWidgets.QMainWindow):
         button.setMinimumHeight(ADD_NOTEBOOK_SIZE)
         button.clicked.connect(self.log_out)
         self.main_toolbar.addWidget(button)
+
+    def create_refresh_button(self):
+        """create log out button"""
+        button = QPushButton("refresh")
+        button.setStyleSheet(LOGOUT_BUTTON)
+        button.setMinimumWidth(BUTTON_WIDTH)
+        button.setMaximumWidth(BUTTON_WIDTH)
+        button.setMaximumHeight(ADD_NOTEBOOK_SIZE)
+        button.setMinimumHeight(ADD_NOTEBOOK_SIZE)
+        button.clicked.connect(self.refresh)
+        self.main_toolbar.addWidget(button)
+
+    def refresh(self):
+        """log out"""
+        self.notebooks_layout.clear()
+        self.load_notebooks_for_user(self.id)
 
     def log_out(self):
         """log out"""
@@ -214,19 +231,20 @@ class MainWindow(QtWidgets.QMainWindow):
         """add the notebooks of a client to the flow layout"""
         command = "clients_notebooks$" + user_id + "$USERS_NOTEBOOKS"
         notebooks = (self.client.send_command(command)).split("!")
-        self.names_perms = {}
-        for name_perm in notebooks:
-            list_name_perm = name_perm.split(",")
-            self.names_perms[list_name_perm[0]] = int(list_name_perm[1])
-        for name in self.names_perms.keys():
-            if not name == "":
-                notebook_name = name
-                name = name.split("_")[BUTTON_NOTEBOOK_NAME]
-                button = self.create_notebook_button(name)
-                self.notebooks_dict[notebook_name] = button
-                button.clicked.connect(lambda checked, n=notebook_name:
-                                       self.open_notebook(n))
-                self.notebooks_layout.addWidget(button)
+        if not notebooks[0] == "":
+            self.names_perms = {}
+            for name_perm in notebooks:
+                list_name_perm = name_perm.split(",")
+                self.names_perms[list_name_perm[0]] = int(list_name_perm[1])
+            for name in self.names_perms.keys():
+                if not name == "":
+                    notebook_name = name
+                    name = name.split("_")[BUTTON_NOTEBOOK_NAME]
+                    button = self.create_notebook_button(name)
+                    self.notebooks_dict[notebook_name] = button
+                    button.clicked.connect(lambda checked, n=notebook_name:
+                                           self.open_notebook(n))
+                    self.notebooks_layout.addWidget(button)
 
     def open_notebook(self, name):
         """get the notebook from the server and opens it"""

@@ -54,7 +54,8 @@ class UserNotebookManager(object):
         with sqlite3.connect('NotebookDB.db') as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT notebook, permission FROM UsersNotebooks WHERE user = ?",
+                "SELECT notebook, permission FROM UsersNotebooks "
+                "WHERE user = ? AND permission != 3",
                 (user_id,))
             notebooks_id_tuple = cursor.fetchall()
             notebooks_id = [row[NOTEBOOK_ID] for row in notebooks_id_tuple]

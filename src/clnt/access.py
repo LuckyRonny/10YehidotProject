@@ -5,6 +5,7 @@ access
 from PyQt6.QtWidgets import (QLabel, QComboBox, QPushButton,
                              QVBoxLayout, QHBoxLayout, QDialog)
 from PyQt6.QtGui import QAction
+from style import *
 
 ACCESS_DICT = {0: "Admin",
                1: "Edit",
