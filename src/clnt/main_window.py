@@ -34,7 +34,7 @@ from style import (
     BUTTON_WIDTH,
     LINE_EDIT_MAX_LENGTH,
     LOGIN_BUTTON,
-    LOGOUT_BUTTON,
+    MAINWINDOW_BUTTON,
     MAIN_WINDOW,
     NAME_LABEL,
     NOTEBOOK_BUTTON_SIZE,
@@ -112,7 +112,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def create_log_out_button(self):
         """create log out button"""
         button = QPushButton("log out")
-        button.setStyleSheet(LOGOUT_BUTTON)
+        button.setStyleSheet(MAINWINDOW_BUTTON)
         button.setMinimumWidth(BUTTON_WIDTH)
         button.setMaximumWidth(BUTTON_WIDTH)
         button.setMaximumHeight(ADD_NOTEBOOK_SIZE)
@@ -122,8 +122,10 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def create_refresh_button(self):
         """create log out button"""
-        button = QPushButton("refresh")
-        button.setStyleSheet(LOGOUT_BUTTON)
+        button = QPushButton()
+        button.setIcon(QIcon("refresh.png"))
+        button.setIconSize(QSize(*ADD_BUTTON_SIZE))
+        button.setStyleSheet(MAINWINDOW_BUTTON)
         button.setMinimumWidth(BUTTON_WIDTH)
         button.setMaximumWidth(BUTTON_WIDTH)
         button.setMaximumHeight(ADD_NOTEBOOK_SIZE)

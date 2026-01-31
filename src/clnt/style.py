@@ -292,7 +292,7 @@ ADD_NOTEBOOK_BUTTON = """
                             background-color: #5B4CE6;
                         }
                     """
-LOGOUT_BUTTON = """
+MAINWINDOW_BUTTON = """
                 QPushButton {
                     background-color: #1B0BA6;
                     font: bold 14px;
