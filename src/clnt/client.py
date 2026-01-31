@@ -5,7 +5,8 @@ client
 
 import socket
 import sys
-
+from diffie_hellman import *
+import key_exchange
 import protocol
 import winreg_file
 from constants import (
@@ -38,9 +39,14 @@ class Client(object):
             ip, port = winreg_file.Reg.read_reg()
             self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.my_socket.connect((ip, port))
+            key = key_exchange.KeyExchange.send_recv_key((self.my_socket, None))
+            self.connection = (self.my_socket, key)
             self.check_socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM)
             self.check_socket.connect((ip, port + 1))
+            key_check = key_exchange.KeyExchange.send_recv_key((self.check_socket,
+                                                                None))
+            self.connection_check = (self.check_socket, key_check)
         except socket.error as msg:
             print("Connection failure: %s\n terminating program" % msg)
             sys.exit(1)
@@ -125,17 +131,17 @@ class Client(object):
                 req_and_prms[REQUEST] == "check_updates" and
                 len(req_and_prms) == CHECK_UPDATES_PRMS)
 
-    def send_request_to_server(self, sock, request):
+    def send_request_to_server(self, con, request):
         """
         gets a socket and a request and sent it to the server
         """
-        protocol.Protocol.send(sock, request)
+        protocol.Protocol.send(con, request)
 
-    def handle_server_response(self, sock):
+    def handle_server_response(self, con):
         """
         gets a socket and gets a data from the server and prints it
         """
-        data = protocol.Protocol.recv(sock)
+        data = protocol.Protocol.recv(con)
         return data  # returns string
 
     def send_command(self, request):
@@ -148,11 +154,11 @@ class Client(object):
         req_and_prms = request.split("$")
         if self.valid_request(req_and_prms):
             if req_and_prms[REQUEST] == "check_updates":
-                self.send_request_to_server(self.check_socket, request)
-                rsp = self.handle_server_response(self.check_socket)
+                self.send_request_to_server(self.connection_check, request)
+                rsp = self.handle_server_response(self.connection_check)
             else:
-                self.send_request_to_server(self.my_socket, request)
-                rsp = self.handle_server_response(self.my_socket)
+                self.send_request_to_server(self.connection, request)
+                rsp = self.handle_server_response(self.connection)
         else:
             rsp = "ILLEGAL REQUEST"
         return rsp

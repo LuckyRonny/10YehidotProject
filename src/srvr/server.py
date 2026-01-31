@@ -6,7 +6,7 @@ server
 import socket
 import sys
 import threading
-
+import key_exchange
 import methods
 import protocol
 from constants import (
@@ -50,9 +50,12 @@ class Server(object):
         while not done:
             try:
                 client_socket, address = self.server_socket.accept()
+                key = key_exchange.KeyExchange.recv_send_key((client_socket,
+                                                              None))
+                connection = (client_socket, key)
                 clnt_thread = threading.Thread(
                     target=self.handle_single_client,
-                    args=(client_socket, address))
+                    args=(connection, address))
                 clnt_thread.start()
                 threading.Thread(
                     target=self.accept_updates,
@@ -65,16 +68,19 @@ class Server(object):
         """accept clients for updates socket"""
         while True:
             try:
-                client_socket, address = self.update_socket.accept()
+                socket_updates, address = self.update_socket.accept()
+                key = key_exchange.KeyExchange.recv_send_key((socket_updates,
+                                                              None))
+                connection_update = (socket_updates, key)
                 clnt_thread = threading.Thread(
                     target=self.handle_update_client,
-                    args=(client_socket, address))
+                    args=(connection_update, address))
                 clnt_thread.start()
             except socket.error:
                 print("update socket error")
 
     @staticmethod
-    def handle_single_client(client_socket, address):
+    def handle_single_client(conn, address):
         """
         gets a socket and while response is not QUIT or EXIT
         the function calls the functions receive_client_request,
@@ -83,9 +89,9 @@ class Server(object):
         done = False
         while not done:
             try:
-                request, params = Server.receive_client_request(client_socket)
+                request, params = Server.receive_client_request(conn)
                 response = Server.handle_client_request(request, params)
-                Server.send_response_to_client(response, client_socket)
+                Server.send_response_to_client(response, conn)
             except socket.error as msg:
                 print("Server Error: ", msg)
                 done = True
@@ -95,17 +101,17 @@ class Server(object):
         return False
 
     @staticmethod
-    def handle_update_client(client_socket, address):
+    def handle_update_client(conn_updates, address):
         """handle update requests from client"""
         done = False
         while not done:
             try:
-                request, params = Server.receive_client_request(client_socket)
+                request, params = Server.receive_client_request(conn_updates)
                 if request != "CHECK_UPDATES":
-                    Server.send_response_to_client("NO", client_socket)
+                    Server.send_response_to_client("NO", conn_updates)
                     continue
                 response = Server.handle_client_request(request, params)
-                Server.send_response_to_client(response, client_socket)
+                Server.send_response_to_client(response, conn_updates)
             except socket.error as msg:
                 print("Update client error:", msg)
                 done = True
@@ -114,11 +120,11 @@ class Server(object):
                 done = True
 
     @staticmethod
-    def receive_client_request(client_socket):
+    def receive_client_request(conn):
         """
         gets a socket and receives a request
         """
-        request = protocol.Protocol.recv(client_socket)
+        request = protocol.Protocol.recv(conn)
         if request == "":
             return None, None
         req_and_prms = request.split("$")
@@ -138,11 +144,11 @@ class Server(object):
                 (request, params))
 
     @staticmethod
-    def send_response_to_client(response, client_socket):
+    def send_response_to_client(response, conn):
         """
         gets a response and a socket and send the response to the socket
         """
-        protocol.Protocol.send(client_socket, response)
+        protocol.Protocol.send(conn, response)
 
 
 def main():
