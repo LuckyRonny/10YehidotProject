@@ -219,12 +219,13 @@ class NotebookManager(object):
             "page": page_id,
             "data": data
         }
-
         with NotebookManager.lock:
             with open("updates.json", "r") as f:
                 updates = json.load(f)
-
             updates.setdefault(notebook_name, [])
-            updates[notebook_name].append(update)
-
+            notebook_u = updates[notebook_name]
+            notebook_u.append(update)
+            if len(notebook_u) >= 15:
+                notebook_u = notebook_u[-10:]
+            updates[notebook_name] = notebook_u
             NotebookManager._atomic_write("updates.json", updates)

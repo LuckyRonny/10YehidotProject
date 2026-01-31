@@ -6,7 +6,7 @@
         "height": 700,
         "strokes": {},
         "page_type": "grid",
-        "stroke_id": "14",
+        "stroke_id": 14,
         "id": 0
       },
       "1": {
@@ -14,10 +14,26 @@
         "height": 700,
         "strokes": {},
         "page_type": "lines",
-        "stroke_id": "95",
+        "stroke_id": 157,
         "id": 1
+      },
+      "2": {
+        "width": 550,
+        "height": 700,
+        "strokes": {},
+        "page_type": "grid",
+        "stroke_id": 3,
+        "id": 2
+      },
+      "3": {
+        "width": 550,
+        "height": 700,
+        "strokes": {},
+        "page_type": "lines",
+        "stroke_id": "3",
+        "id": 3
       }
     },
-    "last_change": 1769686035.1786299
+    "last_change": 1769864773.5181053
   }
 }

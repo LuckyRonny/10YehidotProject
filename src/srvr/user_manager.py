@@ -57,12 +57,36 @@ class UserManager(object):
     def ALL_USERS(params):
         """gets all users except the user"""
         excluded_user = params[USER_NAME]
+        notebook = params[1]
+        usernames_ids, ids_permissions = UserManager.get_id_permission(
+            excluded_user, notebook)
+        dict = {}
+        for row in ids_permissions:
+            dict[row[0]] = row[1]
+        usernames = [row[0] for row in usernames_ids]
+        ids = [row[1] for row in usernames_ids]
+        users_str = ""
+        for i in range(len(ids)):
+            if ids[i] in dict.keys():
+                users_str += usernames[i] + "," + str(dict[ids[i]])
+            else:
+                users_str += usernames[i] + ",3"
+            users_str += "!"
+        return users_str[:-1]
+
+    @staticmethod
+    def get_id_permission(excluded_user, notebook):
+        """"""
         with sqlite3.connect('NotebookDB.db') as conn:
             cursor = conn.cursor()
             cursor.execute(
-                "SELECT username FROM users WHERE username != ?",
+                "SELECT user_name, id FROM users WHERE id != ?",
                 (excluded_user,)
             )
-            usernames = [row[0] for row in cursor.fetchall()]
-        users_str = ", ".join(usernames)
-        return users_str
+            usernames_ids = cursor.fetchall()
+            cursor.execute(
+                "SELECT user, permission FROM UsersNotebooks WHERE notebook != ?",
+                (notebook,)
+            )
+            ids_permissions = cursor.fetchall()
+        return usernames_ids, ids_permissions

@@ -214,7 +214,11 @@ class MainWindow(QtWidgets.QMainWindow):
         """add the notebooks of a client to the flow layout"""
         command = "clients_notebooks$" + user_id + "$USERS_NOTEBOOKS"
         notebooks = (self.client.send_command(command)).split("!")
-        for name in notebooks:
+        self.names_perms = {}
+        for name_perm in notebooks:
+            list_name_perm = name_perm.split(",")
+            self.names_perms[list_name_perm[0]] = int(list_name_perm[1])
+        for name in self.names_perms.keys():
             if not name == "":
                 notebook_name = name
                 name = name.split("_")[BUTTON_NOTEBOOK_NAME]
@@ -229,6 +233,6 @@ class MainWindow(QtWidgets.QMainWindow):
         command = "get_notebook$" + name + "$NOTEBOOKS"
         notebook = ast.literal_eval(self.client.send_command(command))
         self.notebook_area = NotebookArea(self, self.id, self.client,
-                                          notebook, name)
+                                          notebook, name, self.names_perms[name])
         self.notebook_area.show()
         self.hide()

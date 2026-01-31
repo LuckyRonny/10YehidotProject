@@ -8,6 +8,7 @@ import time
 
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QAction
 from PyQt6.QtWidgets import (
     QComboBox,
     QPushButton,
@@ -18,6 +19,7 @@ from PyQt6.QtWidgets import (
 )
 
 from notebook import Notebook
+from access import *
 from scroll_area import CenteredScrollArea
 from style import (
     BUTTON,
@@ -43,13 +45,17 @@ from style import (
     WINDOW_SIZE,
 )
 
+ACCESS_DICT = {"Admin": 0,
+               "Edit": 1,
+               "View": 2,
+               "No Access": 3}
 WAIT_TIME = 0.2
 
 
 class NotebookArea(QtWidgets.QMainWindow):
     notebook_update_signal = QtCore.pyqtSignal(list, int)
 
-    def __init__(self, mainwindow, id, client, notebook, name):
+    def __init__(self, mainwindow, id, client, notebook, name, perm):
         """constructor"""
         super().__init__()
         self.setWindowTitle("Ronny Getz")
@@ -65,7 +71,7 @@ class NotebookArea(QtWidgets.QMainWindow):
             self.notebook_widget = Notebook(None, time.time(), self)
         self.current_page = self.notebook_widget.pages.currentIndex()
         central_layout, central_widget = self.create_central_layout()
-        self.create_toolbars(central_layout)
+        self.create_toolbars(central_layout, perm)
         self.id = id
         self.client = client
         self.main_window = mainwindow
@@ -91,16 +97,20 @@ class NotebookArea(QtWidgets.QMainWindow):
                                                  self.current_page)
             time.sleep(WAIT_TIME)
 
-    def create_toolbars(self, central_layout):
+    def create_toolbars(self, central_layout, perm):
         """create toolbars"""
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
         self.sub_toolbars = []
         self.create_sub_toolbars(central_layout)
-        self.create_buttons_layout()
-        self.create_buttons()
-        self.add_to_central_layout(central_layout)
+        self.perm = perm
+        if self.perm == 2:
+            self.main_toolbar.setVisible(False)
+            self.no_tool_for_all()
+        self.create_buttons_layout(perm)
+        self.create_buttons(perm)
+        self.add_to_central_layout(central_layout, perm)
 
     def save_notebook(self):
         """saves the notebook in the db"""
@@ -138,7 +148,7 @@ class NotebookArea(QtWidgets.QMainWindow):
                    str(id) + "$NOTEBOOKS")
         self.client.send_command(command)
 
-    def add_to_central_layout(self, central_layout):
+    def add_to_central_layout(self, central_layout, perm):
         """add notebook scroll area buttons layout to the central layout"""
         self.scroll_area = CenteredScrollArea(self.notebook_widget)
         central_layout.setContentsMargins(*MARGIN)
@@ -193,7 +203,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         if color:
             self.set_size_for_current(color)
 
-    def create_buttons(self):
+    def create_buttons(self, perm):
         """create clear, save, back, prev, next, add page buttons"""
         clear_button = QPushButton("clear", self)
         self.main_toolbar_button(clear_button, self.clear_current_page)
@@ -201,20 +211,26 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.main_toolbar_button(back_button, self.back_current_page)
         upload_button = QPushButton("upload", self)
         self.main_toolbar_button(upload_button, self.upload_notebook)
+        if perm == 0:
+            manage_access_action = QAction("Manage Access", self)
+            manage_access_action.triggered.connect(self.open_access_dialog)
+            self.main_toolbar.addAction(manage_access_action)
 
-    def create_buttons_layout(self):
+    def create_buttons_layout(self, perm):
         """create button layout"""
         self.btn_prev = QtWidgets.QPushButton("⟨ Prev Page")
         self.btn_next = QtWidgets.QPushButton("Next Page ⟩")
-        self.btn_add = QtWidgets.QPushButton("+ Add Page")
+        if not self.perm == 2:
+            self.btn_add = QtWidgets.QPushButton("+ Add Page")
+            self.btn_add.clicked.connect(self.notebook_widget.add_page)
         self.btn_prev.clicked.connect(self.notebook_widget.prev_page)
         self.btn_next.clicked.connect(self.notebook_widget.next_page)
-        self.btn_add.clicked.connect(self.notebook_widget.add_page)
 
         self.button_layout = QtWidgets.QHBoxLayout()
         self.button_layout.addStretch()
         self.button_layout.addWidget(self.btn_prev)
-        self.button_layout.addWidget(self.btn_add)
+        if not self.perm == 2:
+            self.button_layout.addWidget(self.btn_add)
         self.button_layout.addWidget(self.btn_next)
         self.button_layout.addStretch()
 
@@ -312,6 +328,11 @@ class NotebookArea(QtWidgets.QMainWindow):
         canvas = self.notebook_widget.current_canvas()
         if canvas:
             canvas.set_tool(tool_name)
+
+    def no_tool_for_all(self):
+        """calls the set_tool func on current page"""
+        for canvas in self.notebook_widget.pages_list:
+            canvas.set_tool("no")
 
     def set_size_for_current(self, size):
         """calls the change_pen_size func on current page"""
@@ -469,6 +490,28 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.reload_notebook(ast.literal_eval(
             self.client.send_command(command)), current_page)
 
+    def open_access_dialog(self):
+        """"""
+        command = ("all_users$" + self.id + "$" +
+                   self.name + "$USERS")
+        resp = self.client.send_command(command)
+        users_access_str_lst = resp.split("!")
+        users_with_access = []
+        for user_access in users_access_str_lst:
+            list_user_access = user_access.split(",")
+            users_with_access.append((list_user_access[0],
+                                      int(list_user_access[1])))
+        dialog = AccessDialog(users_with_access, self)
+        if dialog.exec():
+            access_data = dialog.get_access_data()
+            print("Updated access levels:")
+            for user, access in access_data.items():
+                print(f"{user}: {access}")
+                command = ("change_access$" + user + "$" +
+                           str(ACCESS_DICT[access]) + "$" +
+                           self.name + "$USERS_NOTEBOOKS")
+                self.client.send_command(command)
+
     def reload_notebook(self, data, current_page):
         """Replace the current notebook with a new one from the server."""
         for u in data:
@@ -476,3 +519,5 @@ class NotebookArea(QtWidgets.QMainWindow):
         for page in self.notebook_widget.pages_list:
             page.update()
         self.notebook_widget.pages.setCurrentIndex(current_page)
+        if self.perm == 2:
+            self.no_tool_for_all()

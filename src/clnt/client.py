@@ -80,6 +80,10 @@ class Client(object):
                 len(req_and_prms) == GET_NOTEBOOK_PARAMS or
             req_and_prms[REQUEST] == "add_notebook_to_db" and
                 len(req_and_prms) == ADD_NOTEBOOK_DB_PARAMS or
+            req_and_prms[REQUEST] == "all_users" and
+                len(req_and_prms) == 4 or
+            req_and_prms[REQUEST] == "change_access" and
+                len(req_and_prms) == 5 or
             req_and_prms[REQUEST] == "clients_notebooks" and
                 len(req_and_prms) == CLIENTS_NOTEBOOKS_PARAMS):
             return True

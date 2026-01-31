@@ -58,11 +58,13 @@ class UserNotebookManager(object):
                 (user_id,))
             notebooks_id_tuple = cursor.fetchall()
             notebooks_id = [row[NOTEBOOK_ID] for row in notebooks_id_tuple]
+            permissions = [row[1] for row in notebooks_id_tuple]
             notebooks_names = []
-            for id in notebooks_id:
-                name = UserNotebookManager.get_all_notebooks(id, cursor,
+            for i in range(len(notebooks_id)):
+                name = UserNotebookManager.get_all_notebooks(notebooks_id[i],
+                                                             cursor,
                                                              notebooks_names)
-                notebooks_names.append(name + ",")
+                notebooks_names.append(name + "," + str(permissions[i]))
         names = "!".join(notebooks_names)
         return names
 
@@ -77,7 +79,7 @@ class UserNotebookManager(object):
 
     @staticmethod
     def CHANGE_ACCESS(params):
-        """gchange the access"""
+        """change the access"""
         user_name = params[USER_ID]
         access = params[1]
         notebook_name = params[2]
@@ -93,8 +95,20 @@ class UserNotebookManager(object):
                 (notebook_name,))
             notebook_id_tuple = cursor.fetchone()
             notebook_id = notebook_id_tuple[0]
-            cursor.execute(
-                "INSERT INTO UsersNotebooks (user, notebook, permission) VALUES (?)",
-                (notebook_name, notebook_id, access)
-            )
+            cursor.execute("""
+            SELECT COUNT(*) FROM UsersNotebooks
+            WHERE user=? AND notebook=?
+            """, (user_id, notebook_id))
+            exists = cursor.fetchone()[0] > 0
+            if exists:
+                cursor.execute("""
+                UPDATE UsersNotebooks
+                SET permission=?
+                WHERE user=? AND notebook=?
+                """, (access, user_id, notebook_id))
+            else:
+                cursor.execute("""
+                INSERT INTO UsersNotebooks (user, notebook, permission)
+                VALUES (?, ?, ?)
+                """, (user_id, notebook_id, access))
         return "ok"

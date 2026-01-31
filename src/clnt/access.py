@@ -1,9 +1,9 @@
-import sys
-from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QLabel,
-    QComboBox, QPushButton, QVBoxLayout, QHBoxLayout,
-    QToolBar, QDialog
-)
+"""
+ronny getz
+access
+"""
+from PyQt6.QtWidgets import (QLabel, QComboBox, QPushButton,
+                             QVBoxLayout, QHBoxLayout, QDialog)
 from PyQt6.QtGui import QAction
 
 ACCESS_DICT = {0: "Admin",
@@ -57,42 +57,3 @@ class AccessDialog(QDialog):
             user: combo.currentText()
             for user, combo in self.user_boxes.items()
         }
-
-
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setWindowTitle("Main Application")
-        self.resize(500, 300)
-
-        central = QWidget()
-        self.setCentralWidget(central)
-
-        toolbar = QToolBar("Main Toolbar")
-        self.addToolBar(toolbar)
-
-        manage_access_action = QAction("Manage Access", self)
-        manage_access_action.triggered.connect(self.open_access_dialog)
-        toolbar.addAction(manage_access_action)
-
-    def open_access_dialog(self):
-        users_with_access = [
-            ("Alice", 3),
-            ("Bob", 1),
-            ("Charlie", 2),
-            ("Dana", 0)
-        ]
-
-        dialog = AccessDialog(users_with_access, self)
-
-        if dialog.exec():  # MODAL
-            access_data = dialog.get_access_data()
-            print("Updated access levels:")
-            for user, access in access_data.items():
-                print(f"{user}: {access}")
-
-
-app = QApplication(sys.argv)
-window = MainWindow()
-window.show()
-sys.exit(app.exec())
