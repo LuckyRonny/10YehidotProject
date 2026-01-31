@@ -1,12 +1,11 @@
 """Diffie-Hellman key exchange using ECDH and HKDF."""
-from secrets import token_bytes
 
-from cryptography.hazmat.primitives import hashes, padding
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
-from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, \
-    load_pem_public_key
+from cryptography.hazmat.primitives.serialization import (Encoding,
+                                                          PublicFormat,
+                                                          load_pem_public_key)
 
 # HKDF output length for derived shared key (bytes)
 DERIVED_KEY_LENGTH = 32

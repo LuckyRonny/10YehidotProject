@@ -24,13 +24,12 @@ LOADING_TIME = 1.0
 TIME_STAMP_CLEAR = 2
 TIME_STAMP_CHECK = 1
 # Updates ring buffer: max length and trim-to size when exceeded
-UPDATES_MAX_LEN = 15
-UPDATES_TRIM_TO = 10
+UPDATES_MAX_LEN = 10
+UPDATES_TRIM_TO = 5
+INDENT = 2
 
 
 class NotebookManager(object):
-    """Manages notebook JSON DB and updates; thread-safe with lock."""
-
     lock = threading.Lock()
 
     @staticmethod
@@ -39,7 +38,7 @@ class NotebookManager(object):
         dir_name = os.path.dirname(path) or "."
         with tempfile.NamedTemporaryFile("w", dir=dir_name,
                                          delete=False) as tmp:
-            json.dump(data, tmp, indent=2)
+            json.dump(data, tmp, indent=INDENT)
             tmp_name = tmp.name
         os.replace(tmp_name, path)
 

@@ -3,8 +3,6 @@ import hashlib
 
 
 class Hasha256:
-    """Wrapper for SHA-256: digest and hexdigest of encoded strings."""
-
     @staticmethod
     def get_hash(st):
         """Return SHA-256 digest (raw bytes) of encoded string."""
@@ -24,6 +22,7 @@ def main():
     st = "hello my name is inigo montoya"
     print(Hasha256.get_hash(st))
     print(Hasha256.get_hash_hex(st))
+
 
 if __name__ == "__main__":
     main()

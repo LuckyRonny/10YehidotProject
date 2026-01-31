@@ -11,14 +11,15 @@ NAME_OF_USER = 1
 LOGIN_FAIL_RESPONSE = "False"
 DEFAULT_PERMISSION = 3
 ALL_USERS_PARAMS_NOTEBOOK_INDEX = 1
+PERMISSION = 1
+ID = 1
 
 
 class UserManager(object):
-    """Handles user auth and listing; uses NotebookDB.db."""
-
     @staticmethod
     def LOGIN(params):
-        """Validate username/password; return id!name or LOGIN_FAIL_RESPONSE."""
+        """Validate username/password
+         return id!name or LOGIN_FAIL_RESPONSE."""
         username = params[USER_NAME]
         password = params[PASSWORD]
         with sqlite3.connect('NotebookDB.db') as conn:
@@ -33,7 +34,8 @@ class UserManager(object):
 
     @staticmethod
     def SIGNUP(params):
-        """Insert new user; return id string or LOGIN_FAIL_RESPONSE on duplicate."""
+        """Insert new user; return id string or
+        LOGIN_FAIL_RESPONSE on duplicate."""
         username = params[USER_NAME]
         password = params[PASSWORD]
         name = params[SIGNUP_NAME]
@@ -42,7 +44,8 @@ class UserManager(object):
                 cursor = conn.cursor()
                 sql = ("INSERT INTO Users (user_name, password, name)" +
                        "VALUES (?, ?, ?)")
-                cursor.execute(sql, (username, Hasha256.get_hash_hex(password), name))
+                cursor.execute(sql, (username,
+                                     Hasha256.get_hash_hex(password), name))
                 conn.commit()
                 id = cursor.lastrowid
             if id:
@@ -53,14 +56,15 @@ class UserManager(object):
 
     @staticmethod
     def ALL_USERS(params):
-        """Return user list with permissions for notebook; format name,perm!..."""
+        """Return user list with permissions for notebook"""
         excluded_user = params[USER_NAME]
         notebook = params[ALL_USERS_PARAMS_NOTEBOOK_INDEX]
         usernames_ids, ids_permissions = UserManager.get_id_permission(
             excluded_user, notebook)
-        perms_by_id = {row[0]: row[1] for row in ids_permissions}
-        usernames = [row[0] for row in usernames_ids]
-        ids = [row[1] for row in usernames_ids]
+        perms_by_id = {row[USER_NAME]: row[PERMISSION]
+                       for row in ids_permissions}
+        usernames = [row[USER_NAME] for row in usernames_ids]
+        ids = [row[ID] for row in usernames_ids]
         parts = []
         for i in range(len(ids)):
             perm = perms_by_id.get(ids[i], DEFAULT_PERMISSION)
@@ -69,7 +73,8 @@ class UserManager(object):
 
     @staticmethod
     def get_id_permission(excluded_user, notebook):
-        """Fetch (user_name, id) and (user, permission) for notebook; exclude one user."""
+        """Fetch (user_name, id) and (user, permission) for notebook
+         exclude one user."""
         with sqlite3.connect('NotebookDB.db') as conn:
             cursor = conn.cursor()
             cursor.execute(
@@ -78,7 +83,8 @@ class UserManager(object):
             )
             usernames_ids = cursor.fetchall()
             cursor.execute(
-                "SELECT user, permission FROM UsersNotebooks WHERE notebook != ?",
+                "SELECT user, permission FROM UsersNotebooks "
+                "WHERE notebook != ?",
                 (notebook,)
             )
             ids_permissions = cursor.fetchall()

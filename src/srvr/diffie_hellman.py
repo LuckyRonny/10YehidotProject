@@ -13,7 +13,6 @@ DERIVED_KEY_LENGTH = 32
 
 
 class DiffieHellman:
-    """ECDH key agreement; generates private key and exposes PEM public key."""
 
     def __init__(self):
         """Create EC private key and public key on SECP384R1 curve."""

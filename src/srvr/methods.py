@@ -1,6 +1,7 @@
 """
 Ronny Getz
-Server request routing: delegates USERS, NOTEBOOKS, USERS_NOTEBOOKS to managers.
+Server request routing: delegates USERS, NOTEBOOKS,
+USERS_NOTEBOOKS to managers.
 """
 import user_manager
 import notebook_manager
@@ -12,7 +13,6 @@ USER_NOTEBOOK_MANAGER_CLASS_NAME = "UserNotebookManager"
 
 
 class Methods(object):
-    """Dispatches requests to UserManager, NotebookManager, or UserNotebookManager."""
 
     @staticmethod
     def USERS(request, params):

@@ -44,13 +44,16 @@ from style import (
 
 # Index into notebook name split to get display name (before _id)
 BUTTON_NOTEBOOK_NAME = 0
+FIRST_NOTEBOOK = 0
+NAME = 0
+PERMISSION = 1
 
 
 class MainWindow(QtWidgets.QMainWindow):
-    """Main app window: toolbar, add-notebook box, flow of notebook buttons; opens NotebookArea."""
 
     def __init__(self, client, id, login_window, name):
-        """Build toolbar, add frame, flow layout; load notebooks for user id."""
+        """Build toolbar, add frame, flow layout
+        load notebooks for user id."""
         super().__init__()
         self.setWindowTitle("")
         self.setStyleSheet(MAIN_WINDOW)
@@ -78,7 +81,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.layout.addWidget(container_flow_layout)
 
     def create_toolbar(self, name):
-        """Create main toolbar with label, log out, refresh, spacer and add button."""
+        """Create main toolbar with label, log out, refresh,
+        spacer and add button."""
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
@@ -100,7 +104,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_toolbar.addWidget(add_button)
 
     def create_add_button(self):
-        """Create add-notebook button with plus icon; connect to create_new_notebook_frame."""
+        """Create add-notebook button with plus icon
+         connect to create_new_notebook_frame."""
         button = QPushButton("")
         button.setIcon(QIcon("plus_pic.png"))
         button.setIconSize(QSize(*ADD_BUTTON_SIZE))
@@ -124,7 +129,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.main_toolbar.addWidget(button)
 
     def create_refresh_button(self):
-        """Create refresh button with icon and add to toolbar; connect to refresh."""
+        """Create refresh button with icon and add to toolbar
+         connect to refresh."""
         button = QPushButton()
         button.setIcon(QIcon("refresh.png"))
         button.setIconSize(QSize(*ADD_BUTTON_SIZE))
@@ -149,7 +155,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.close()
 
     def create_add_frame(self):
-        """Create floating add-notebook box with label, line edit and create button."""
+        """Create floating add-notebook box with label,
+         line edit and create button."""
         self.create_box()
         box_layout = QVBoxLayout(self.box)
         label = QLabel("notebook name:")
@@ -175,7 +182,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.box.setFixedSize(*BOX_SIZE)
 
     def create_button(self, line_edit):
-        """Create 'create' button; on click call create_new_notebook with line edit text."""
+        """Create 'create' button
+         on click call create_new_notebook with line edit text."""
         button = QPushButton("create")
         button.setStyleSheet(LOGIN_BUTTON)
         button.setMinimumWidth(BUTTON_WIDTH)
@@ -236,11 +244,12 @@ class MainWindow(QtWidgets.QMainWindow):
         """add the notebooks of a client to the flow layout"""
         command = "clients_notebooks$" + user_id + "$USERS_NOTEBOOKS"
         notebooks = (self.client.send_command(command)).split("!")
-        if not notebooks[0] == "":
+        if not notebooks[FIRST_NOTEBOOK] == "":
             self.names_perms = {}
             for name_perm in notebooks:
                 list_name_perm = name_perm.split(",")
-                self.names_perms[list_name_perm[0]] = int(list_name_perm[1])
+                self.names_perms[list_name_perm[NAME]] = (
+                    int(list_name_perm[PERMISSION]))
             for name in self.names_perms.keys():
                 if not name == "":
                     notebook_name = name
@@ -256,6 +265,7 @@ class MainWindow(QtWidgets.QMainWindow):
         command = "get_notebook$" + name + "$NOTEBOOKS"
         notebook = ast.literal_eval(self.client.send_command(command))
         self.notebook_area = NotebookArea(self, self.id, self.client,
-                                          notebook, name, self.names_perms[name])
+                                          notebook, name,
+                                          self.names_perms[name])
         self.notebook_area.show()
         self.hide()

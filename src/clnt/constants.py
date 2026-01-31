@@ -3,8 +3,7 @@ Ronny getz
 Client constants: port, IP, protocol indices, param counts.
 """
 PORT = 1800
-# IP = "127.0.0.1"
-IP = "192.168.1.245"
+IP = "127.0.0.1"
 MSG_LEN = 10
 PARAMETERS = 1
 REQUEST = 0

@@ -20,6 +20,7 @@ from constants import (
 
 
 NUMBER_OF_CLIENTS = 1
+UPDATES_PORT_OFFSET = 1
 
 
 class Server(object):
@@ -42,7 +43,8 @@ class Server(object):
             sys.exit(1)
 
     def handle_clients(self):
-        """Accept clients on main socket; spawn thread per client and start updates acceptor."""
+        """Accept clients on main socket
+         spawn thread per client and start updates acceptor."""
         done = False
         while not done:
             try:
@@ -78,7 +80,8 @@ class Server(object):
 
     @staticmethod
     def handle_single_client(conn, address):
-        """Loop: receive request, dispatch to Methods, send response; stop on error."""
+        """Loop: receive request, dispatch to Methods, send response
+         stop on error."""
         done = False
         while not done:
             try:
@@ -95,7 +98,8 @@ class Server(object):
 
     @staticmethod
     def handle_update_client(conn_updates, address):
-        """Serve only CHECK_UPDATES; respond NO to other requests; stop on error."""
+        """Serve only CHECK_UPDATES; respond NO to other requests
+         stop on error."""
         done = False
         while not done:
             try:
@@ -114,7 +118,8 @@ class Server(object):
 
     @staticmethod
     def receive_client_request(conn):
-        """Receive one message; return (request_upper, params_list) or (None, None)."""
+        """Receive one message; return
+        (request_upper, params_list) or (None, None)."""
         request = protocol.Protocol.recv(conn)
         if request == "":
             return None, None

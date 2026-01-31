@@ -1,6 +1,7 @@
 """
 Getz Ronny
-Notebook widget: stacked pages (DrawingCanvas), zoom, add/prev/next; syncs with NotebookArea.
+Notebook widget: stacked pages (DrawingCanvas), zoom, add/prev/next
+ syncs with NotebookArea.
 """
 from PyQt6 import QtWidgets
 
@@ -20,13 +21,11 @@ from style import (
 
 
 class Notebook(QtWidgets.QWidget):
-    """Stacked canvases; add/prev/next page; global zoom; update_notebook from server."""
-
     def __init__(self, pages, last_change, notebook_area):
-        """Build stacked widget and pages from dict or single blank page; set last_change."""
+        """Build stacked widget and pages from dict or single blank page
+         set last_change."""
         super().__init__()
         self.notebook_area = notebook_area
-        # Set notebook_widget reference early so add_page can access it during init
         if notebook_area:
             notebook_area.notebook_widget = self
         self.pages = QtWidgets.QStackedWidget()
@@ -34,7 +33,8 @@ class Notebook(QtWidgets.QWidget):
         if pages:
             for page in pages:
                 self.add_page(
-                    DrawingCanvas(**(pages[page]), notebook_area=notebook_area),
+                    DrawingCanvas(**(pages[page]),
+                                  notebook_area=notebook_area),
                     notify_server=False,
                 )
         self.global_scale_factor = START_SCALE_FACTOR
@@ -57,18 +57,14 @@ class Notebook(QtWidgets.QWidget):
         return self.pages.currentWidget()
 
     def add_page(self, page, notify_server=True):
-        """Add canvas page (or create new); optionally notify server; set current widget."""
+        """Add canvas page (or create new); optionally notify server
+         set current widget."""
         if page:
             mycanvas = page
         else:
             mycanvas = DrawingCanvas(
-                *CANVAS_SIZE,
-                None,
-                None,
-                self.notebook_area,
-                None,
-                self.pages.currentIndex() + NEXT_PAGE,
-            )
+                *CANVAS_SIZE, None, None, self.notebook_area,
+                None, self.pages.currentIndex() + NEXT_PAGE)
         if self.pages_list:
             prev_canvas = self.pages_list[LAST_PAGE_INDEX]
             mycanvas.scale_factor = prev_canvas.scale_factor
@@ -76,24 +72,23 @@ class Notebook(QtWidgets.QWidget):
         self.pages_list.append(mycanvas)
         self.pages.addWidget(mycanvas)
         self.pages.setCurrentWidget(mycanvas)
-        if (
-            self.notebook_area
+        if (self.notebook_area
             and hasattr(self.notebook_area, "notebook_widget")
-            and self.notebook_area.notebook_widget
-            and notify_server
-        ):
+            and self.notebook_area.notebook_widget and notify_server):
             self.notebook_area.add_page(mycanvas.id, mycanvas)
             self.notebook_area.current_page = self.pages.currentIndex()
 
     def prev_page(self):
-        """Switch to previous page if index > 0; update notebook_area.current_page."""
+        """Switch to previous page if index > 0
+         update notebook_area.current_page."""
         index = self.pages.currentIndex()
         if index > NO_PAGES:
             self.pages.setCurrentIndex(index - PREV_PAGE)
             self.notebook_area.current_page = self.pages.currentIndex()
 
     def next_page(self):
-        """Switch to next page if not last; update notebook_area.current_page."""
+        """Switch to next page if not last
+         update notebook_area.current_page."""
         index = self.pages.currentIndex()
         if index < len(self.pages_list) + LAST_PAGE_INDEX:
             self.pages.setCurrentIndex(index + NEXT_PAGE)
@@ -123,13 +118,12 @@ class Notebook(QtWidgets.QWidget):
             page.update()
 
     def update_notebook(self, ts, type, page, data):
-        """Apply server update: ADD_PAGE or dispatch type to matching page; update last_change."""
+        """Apply server update: ADD_PAGE or dispatch type to matching page
+         update last_change."""
         if type == "ADD_PAGE":
-            # Check if page already exists to avoid duplicates
             page_id = int(page)
             page_exists = any(p.id == page_id for p in self.pages_list)
             if not page_exists:
-                # Create canvas from server data without notifying server
                 mycanvas = DrawingCanvas(**data, notebook_area=self.notebook_area)
                 if self.pages_list:
                     prev_canvas = self.pages_list[LAST_PAGE_INDEX]
@@ -137,19 +131,17 @@ class Notebook(QtWidgets.QWidget):
                     mycanvas._update_size()
                 self.pages_list.append(mycanvas)
                 self.pages.addWidget(mycanvas)
-                # Don't call add_page with notify_server=True to avoid loop
                 if self.notebook_area:
                     self.notebook_area.current_page = self.pages.currentIndex()
         else:
             for p in self.pages_list:
                 if p.id == int(page):
                     getattr(p, type)(data)
-        # Use maximum to ensure we don't go backwards in time
-        # This prevents missing updates when local changes have newer timestamps
         self.last_change = max(float(self.last_change), float(ts))
 
     def delete_old_data(self):
-        """Remove all page widgets and clear pages_list; re-add stacked widget to layout."""
+        """Remove all page widgets and clear pages_list
+         re-add stacked widget to layout."""
         if hasattr(self, "pages"):
             while self.pages.count():
                 widget = self.pages.widget(FIRST_PAGE)

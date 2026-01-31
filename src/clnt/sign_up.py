@@ -28,7 +28,6 @@ from style import (
 
 
 class SignupWindow(QtWidgets.QMainWindow):
-    """Sign-up window: username, name, password; opens MainWindow on success."""
 
     def __init__(self, login):
         """Build UI, create Client after layout; store login parent."""
@@ -61,7 +60,8 @@ class SignupWindow(QtWidgets.QMainWindow):
     def create_central_layout(self, central_layout, username_layout,
                               name_layout, password_layout, button_layout,
                               error_layout):
-        """Set margins and add username, name, password, error and button layouts."""
+        """Set margins and add username, name, password,
+        error and button layouts."""
         central_layout.setContentsMargins(*MARGIN)
         central_layout.addStretch(LOGIN_STRETCH)
         central_layout.addLayout(username_layout)
@@ -83,7 +83,8 @@ class SignupWindow(QtWidgets.QMainWindow):
         return line_edit
 
     def create_error_layout(self, layout):
-        """Add stretch, label, stretch to layout; return label for error text."""
+        """Add stretch, label, stretch to layout
+         return label for error text."""
         label = QLabel()
         layout.addStretch(STRETCH)
         layout.addWidget(label)
@@ -104,7 +105,8 @@ class SignupWindow(QtWidgets.QMainWindow):
         button_layout.addStretch(STRETCH)
 
     def signup_button_clicked(self):
-        """Send signup request; on success open MainWindow and close; else set error."""
+        """Send signup request; on success open MainWindow and close
+         else set error."""
         username = self.username_line_edit.text()
         password = self.password_line_edit.text()
         name = self.name_line_edit.text()

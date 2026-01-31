@@ -10,7 +10,6 @@ from style import NO_ENGLE
 
 
 class CenteredScrollArea(QtWidgets.QScrollArea):
-    """Scroll area with centered notebook; Ctrl+wheel triggers zoom in/out."""
 
     def __init__(self, notebook_widget):
         """Set resizable widget; center notebook in inner widget."""
@@ -29,7 +28,8 @@ class CenteredScrollArea(QtWidgets.QScrollArea):
         self.setWidget(center_widget)
 
     def wheelEvent(self, event):
-        """On Ctrl+wheel: zoom in if angleDelta.y() > 0 else zoom out; else pass to base."""
+        """On Ctrl+wheel: zoom in if angleDelta.y() > 0 else zoom out
+         else pass to base."""
         if (QApplication.keyboardModifiers() ==
                 Qt.KeyboardModifier.ControlModifier):
             if event.angleDelta().y() > NO_ENGLE:

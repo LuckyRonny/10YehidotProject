@@ -30,13 +30,13 @@ CHECK_UPDATES_PRMS = 4
 # Parameter counts for valid_request
 ALL_USERS_PARAMS = 4
 CHANGE_ACCESS_PARAMS = 5
+UPDATES_PORT_OFFSET = 1
 
 
 class Client(object):
-    """TCP client: main and check sockets with key exchange; send_command API."""
-
     def __init__(self):
-        """Connect main and updates sockets; perform key exchange; exit on failure."""
+        """Connect main and updates sockets
+         perform key exchange; exit on failure."""
         try:
             ip, port = winreg_file.Reg.read_reg()
             self.my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,16 +45,17 @@ class Client(object):
             self.connection = (self.my_socket, key)
             self.check_socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM)
-            self.check_socket.connect((ip, port + 1))
-            key_check = key_exchange.KeyExchange.send_recv_key((self.check_socket,
-                                                                None))
+            self.check_socket.connect((ip, port + UPDATES_PORT_OFFSET))
+            key_check = key_exchange.KeyExchange.send_recv_key((
+                self.check_socket, None))
             self.connection_check = (self.check_socket, key_check)
         except socket.error as msg:
             print("Connection failure: %s\n terminating program" % msg)
             sys.exit(1)
 
     def handle_user_input(self):
-        """Loop: prompt request, validate, send and handle response until EXIT/QUIT."""
+        """Loop: prompt request, validate,
+        send and handle response until EXIT/QUIT."""
         try:
             request = None
             while request != "EXIT" and request != "QUIT":
@@ -141,7 +142,8 @@ class Client(object):
         return data  # returns string
 
     def send_command(self, request):
-        """Validate request; send and recv on appropriate socket; return response string."""
+        """Validate request; send and recv on appropriate socket
+         return response string."""
         rsp = ""
         req_and_prms = request.split("$")
         if self.valid_request(req_and_prms):

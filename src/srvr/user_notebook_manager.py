@@ -20,14 +20,19 @@ CHANGE_ACCESS_PARAMS_NOTEBOOK_NAME_INDEX = 2
 NOTEBOOK_ID_ROW_INDEX = 0
 USER_ID_ROW_INDEX = 0
 PERMISSION_ROW_INDEX = 1
+EXIST = 0
+FIRST = 0
+PERMISSIONS_ROW = 1
 
 
 class UserNotebookManager(object):
-    """Manages UsersNotebooks and Notebooks tables; delegates content to NotebookManager."""
+    """Manages UsersNotebooks and Notebooks tables
+     delegates content to NotebookManager."""
 
     @staticmethod
     def ADD_NOTEBOOK_TO_DB(params):
-        """Add notebook to DB and to notebook manager; return ok or error string."""
+        """Add notebook to DB and to notebook manager
+         return ok or error string."""
         user_id = params[USER_ID]
         notebook_name = params[NOTEBOOK_NAME]
         notebook = params[NOTEBOOK]
@@ -66,7 +71,7 @@ class UserNotebookManager(object):
                 (user_id,))
             notebooks_id_tuple = cursor.fetchall()
             notebooks_id = [row[NOTEBOOK_ID] for row in notebooks_id_tuple]
-            permissions = [row[1] for row in notebooks_id_tuple]
+            permissions = [row[PERMISSIONS_ROW] for row in notebooks_id_tuple]
             notebooks_names = []
             for i in range(len(notebooks_id)):
                 name = UserNotebookManager.get_all_notebooks(notebooks_id[i],
@@ -78,7 +83,8 @@ class UserNotebookManager(object):
 
     @staticmethod
     def get_all_notebooks(id, cursor, notebooks_names):
-        """Resolve notebook id to name via Notebooks table; return name string."""
+        """Resolve notebook id to name via Notebooks table
+         return name string."""
         cursor.execute(
             "SELECT name FROM Notebooks WHERE id = ?",
             (id,))
@@ -88,14 +94,16 @@ class UserNotebookManager(object):
     @staticmethod
     def _resolve_user_id(cursor, user_name):
         """Return user id for user_name from Users table."""
-        cursor.execute("SELECT id FROM Users WHERE user_name = ?", (user_name,))
+        cursor.execute("SELECT id FROM Users WHERE user_name = ?",
+                       (user_name,))
         row = cursor.fetchone()
         return row[USER_ID_ROW_INDEX] if row else None
 
     @staticmethod
     def _resolve_notebook_id(cursor, notebook_name):
         """Return notebook id for notebook_name from Notebooks table."""
-        cursor.execute("SELECT id FROM Notebooks WHERE name = ?", (notebook_name,))
+        cursor.execute("SELECT id FROM Notebooks WHERE name = ?",
+                       (notebook_name,))
         row = cursor.fetchone()
         return row[NOTEBOOK_ID_ROW_INDEX] if row else None
 
@@ -105,7 +113,7 @@ class UserNotebookManager(object):
         cursor.execute(
             "SELECT COUNT(*) FROM UsersNotebooks WHERE user=? AND notebook=?",
             (user_id, notebook_id))
-        return cursor.fetchone()[0] > 0
+        return cursor.fetchone()[FIRST] > EXIST
 
     @staticmethod
     def CHANGE_ACCESS(params):
@@ -129,8 +137,8 @@ class UserNotebookManager(object):
                     (access, user_id, notebook_id))
             else:
                 cursor.execute(
-                    "INSERT INTO UsersNotebooks (user, notebook, permission) "
-                    "VALUES (?, ?, ?)",
+                    "INSERT INTO UsersNotebooks "
+                    "(user, notebook, permission) VALUES (?, ?, ?)",
                     (user_id, notebook_id, access))
             conn.commit()
         return "ok"

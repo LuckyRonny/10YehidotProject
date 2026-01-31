@@ -33,7 +33,6 @@ RETURNED_NAME = 1
 
 
 class LoginWindow(QtWidgets.QMainWindow):
-    """Sign-in window: username/password, login and sign-up buttons; opens MainWindow on success."""
 
     def __init__(self):
         """Build UI, create Client, set styles and minimum size."""
@@ -45,7 +44,8 @@ class LoginWindow(QtWidgets.QMainWindow):
         self.client = Client()
 
     def create_central_widget(self):
-        """Build central widget with username, password, error label and buttons."""
+        """Build central widget with username,
+        password, error label and buttons."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_layout = QVBoxLayout()
@@ -119,7 +119,8 @@ class LoginWindow(QtWidgets.QMainWindow):
         return button
 
     def login_button_clicked(self):
-        """Send login request; on success open MainWindow, else set error label."""
+        """Send login request
+         on success open MainWindow, else set error label."""
         username = self.username_line_edit.text()
         password = self.password_line_edit.text()
         request = "login$" + username + "$" + password + "$USERS"

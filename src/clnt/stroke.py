@@ -18,10 +18,10 @@ from style import (
 
 
 class Stroke(object):
-    """Single stroke: points, timestamps, pen color/size, id; contains_point and __dict__."""
 
     def __init__(self, points, times, pen_color, pen_size, id):
-        """Build stroke from points (QPoint or (x,y)), times, pen, id; selected=False."""
+        """Build stroke from points (QPoint or (x,y)), times, pen, id
+         selected=False."""
         if any(isinstance(point, QPoint) for point in points):
             self.points = points
         else:
