@@ -12,10 +12,9 @@ CANVAS_BG_HEX = "#D3E9FF"
 
 
 class CanvasContainer(QWidget):
-    """Centers a child widget and paints a filled background."""
-
     def __init__(self, child_widget):
-        """Build layout with stretches and child; set background color on paint."""
+        """Build layout with stretches and child
+         set background color on paint."""
         super().__init__()
         self.child_widget = child_widget
         layout = QVBoxLayout()

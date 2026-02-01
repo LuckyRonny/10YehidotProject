@@ -1,22 +1,35 @@
 """
 Ronny Getz
-Read IP and port from constants (registry not used; kept for API).
+winreg
 """
-import winreg
 
-from constants import IP, PORT
+from winreg import *
+from constants import *
 
-# Number of values returned by read_reg (ip, port)
 VALUES_COUNT = 2
 
 
 class Reg(object):
-    """Provides read_reg returning (IP, PORT) from constants."""
-
     @staticmethod
     def read_reg():
-        """Return (ip, port) from constants for server connection."""
+        """
+        gets the ip and the port from registry
+        """
         ip = IP
         port = PORT
 
+        RawKey = OpenKey(HKEY_LOCAL_MACHINE,
+                         r"SOFTWARE\\Technition Server")
+        for i in range(VALUES_COUNT):
+            try:
+                name, value, type = EnumValue(RawKey, i)
+                if name == "IP":
+                    ip = value
+                if name == "port":
+                    port = value
+                print(i, name, value, type)
+            except EnvironmentError:
+                print("You have ", i, " values")
+                break
+        CloseKey(RawKey)
         return ip, port

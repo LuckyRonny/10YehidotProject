@@ -18,10 +18,10 @@ from style import (
 
 
 class Stroke(object):
-    """Single stroke: points, timestamps, pen color/size, id; contains_point and __dict__."""
 
     def __init__(self, points, times, pen_color, pen_size, id):
-        """Build stroke from points (QPoint or (x,y)), times, pen, id; selected=False."""
+        """Build stroke from points (QPoint or (x,y)), times, pen, id
+         selected=False."""
         if any(isinstance(point, QPoint) for point in points):
             self.points = points
         else:
@@ -39,7 +39,8 @@ class Stroke(object):
         self.id = int(id)
 
     def contains_point(self, pt, tolerance):
-        """Return True if pt is within tolerance of any segment of the stroke."""
+        """Return True if pt is within
+        tolerance of any segment of the stroke."""
         for i in range(SECOND_POINT, len(self.points)):
             p1, p2 = self.points[i-POINT_BEFORE], self.points[i]
             if self.point_line_distance(pt, p1, p2) <= tolerance:
@@ -64,7 +65,8 @@ class Stroke(object):
                 SQUARE_ROOT)
 
     def __dict__(self):
-        """Return dict with points, times, pen_color (hex), pen_size, id for serialization."""
+        """Return dict with points, times, pen_color (hex),
+        pen_size, id for serialization."""
         points_l = []
         for p in self.points:
             points_l.append((p.x(), p.y()))

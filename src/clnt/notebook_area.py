@@ -54,16 +54,18 @@ WAIT_TIME = 0.2
 PERM_VIEW_ONLY = 2
 # Permission: admin (can manage access)
 PERM_ADMIN = 0
+ACCESS = 1
+NAME = 0
 
 
 class NotebookArea(QtWidgets.QMainWindow):
-    """Notebook viewer/editor: toolbars, scroll area, update loop; syncs with server."""
     notebook_update_signal = QtCore.pyqtSignal(list, int)
 
     def __init__(self, mainwindow, id, client, notebook, name, perm):
-        """Build layout and toolbars; start update loop; connect reload signal."""
+        """Build layout and toolbars; start update loop
+         connect reload signal."""
         super().__init__()
-        self.setWindowTitle(name.split("_")[0])
+        self.setWindowTitle(name.split("_")[NAME])
         self.setStyleSheet(MAIN_WINDOW)
         self.setMinimumSize(*WINDOW_SIZE)
         self.name = name
@@ -86,7 +88,8 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.notebook_update_signal.connect(self.reload_notebook)
 
     def loop(self):
-        """Poll check_updates; emit notebook_update_signal when data received."""
+        """Poll check_updates
+         emit notebook_update_signal when data received."""
         while self.running:
             command = ("check_updates$" + self.name + "$" +
                        str(self.notebook_widget.last_change) + "$NOTEBOOKS")
@@ -103,14 +106,15 @@ class NotebookArea(QtWidgets.QMainWindow):
             time.sleep(WAIT_TIME)
 
     def create_toolbars(self, central_layout, perm):
-        """Create main and sub toolbars; hide main if view-only; add buttons and layout."""
+        """Create main and sub toolbars; hide main if view-only
+         add buttons and layout."""
         self.main_toolbar = QToolBar("Main Toolbar")
         self.main_toolbar.setMovable(False)
         self.addToolBar(Qt.ToolBarArea.TopToolBarArea, self.main_toolbar)
         self.sub_toolbars = []
         self.create_sub_toolbars(central_layout)
         self.perm = perm
-        if self.perm == 2:
+        if self.perm == PERM_VIEW_ONLY:
             self.main_toolbar.setVisible(False)
             self.no_tool_for_all()
         self.create_buttons_layout(perm)
@@ -154,7 +158,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.client.send_command(command)
 
     def add_to_central_layout(self, central_layout, perm):
-        """Add scroll area and button layout to central layout; set stretch."""
+        """Add scroll area and button layout to central layout set stretch."""
         self.scroll_area = CenteredScrollArea(self.notebook_widget)
         central_layout.setContentsMargins(*MARGIN)
         central_layout.addWidget(self.scroll_area)
@@ -162,7 +166,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         central_layout.setStretch(SCROLL_AREA, SCROLL_STRETCH)
 
     def create_central_layout(self):
-        """Create central widget and VBox layout; return (layout, widget)."""
+        """Create central widget and VBox layout return (layout, widget)."""
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         central_layout = QVBoxLayout()
@@ -225,7 +229,7 @@ class NotebookArea(QtWidgets.QMainWindow):
         """create button layout"""
         self.btn_prev = QtWidgets.QPushButton("⟨ Prev Page")
         self.btn_next = QtWidgets.QPushButton("Next Page ⟩")
-        if not self.perm == 2:
+        if not self.perm == PERM_VIEW_ONLY:
             self.btn_add = QtWidgets.QPushButton("+ Add Page")
             self.btn_add.clicked.connect(self.notebook_widget.add_page)
         self.btn_prev.clicked.connect(self.notebook_widget.prev_page)
@@ -495,17 +499,18 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.reload_notebook(ast.literal_eval(
             self.client.send_command(command)), current_page)
 
-    def _parse_users_access_response(self, resp):
+    def parse_users_access_response(self, resp):
         """Parse all_users response into list of (username, permission_int)."""
         users_access_str_lst = resp.split("!")
         users_with_access = []
-        for user_access in users_access_str_lst:
-            list_user_access = user_access.split(",")
-            users_with_access.append((list_user_access[0],
-                                      int(list_user_access[1])))
+        if resp != "":
+            for user_access in users_access_str_lst:
+                list_user_access = user_access.split(",")
+                users_with_access.append((list_user_access[NAME],
+                                          int(list_user_access[ACCESS])))
         return users_with_access
 
-    def _apply_access_changes(self, access_data):
+    def apply_access_changes(self, access_data):
         """Send change_access for each (user, access) in access_data."""
         for user, access in access_data.items():
             command = ("change_access$" + user + "$" +
@@ -514,21 +519,23 @@ class NotebookArea(QtWidgets.QMainWindow):
             self.client.send_command(command)
 
     def open_access_dialog(self):
-        """Fetch all_users, show AccessDialog; on accept send change_access per user."""
+        """Fetch all_users, show AccessDialog
+        on accept send change_access per user."""
         command = ("all_users$" + self.id + "$" +
                    self.name + "$USERS")
         resp = self.client.send_command(command)
-        users_with_access = self._parse_users_access_response(resp)
+        users_with_access = self.parse_users_access_response(resp)
         dialog = AccessDialog(users_with_access, self)
         if dialog.exec():
             access_data = dialog.get_access_data()
             print("Updated access levels:")
             for user, access in access_data.items():
                 print(f"{user}: {access}")
-            self._apply_access_changes(access_data)
+            self.apply_access_changes(access_data)
 
     def reload_notebook(self, data, current_page):
-        """Apply updates from data to notebook; refresh pages and set current index."""
+        """Apply updates from data to notebook
+            refresh pages and set current index."""
         for u in data:
             self.notebook_widget.update_notebook(**u)
         for page in self.notebook_widget.pages_list:

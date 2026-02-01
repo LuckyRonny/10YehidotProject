@@ -1,9 +1,10 @@
-"""SHA-256 hashing utilities for digests and hex output."""
+"""
+SHA-256 hashing utilities for digests and hex output.
+"""
 import hashlib
 
 
 class Hasha256:
-    """Wrapper for SHA-256: digest and hexdigest of encoded strings."""
 
     @staticmethod
     def get_hash(st):
@@ -24,6 +25,7 @@ def main():
     st = "hello my name is inigo montoya"
     print(Hasha256.get_hash(st))
     print(Hasha256.get_hash_hex(st))
+
 
 if __name__ == "__main__":
     main()

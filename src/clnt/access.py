@@ -24,10 +24,9 @@ ACCESS_DICT = {0: "Admin",
 
 
 class AccessDialog(QDialog):
-    """Dialog to view and change notebook access levels for multiple users."""
-
     def __init__(self, users_with_access, parent=None):
-        """Build layout with one row per (username, current_access); parent optional."""
+        """Build layout with one row per (username, current_access)
+        parent optional."""
         super().__init__(parent)
         self.setWindowTitle("Access Management")
         self.resize(ACCESS_DIALOG_WIDTH, ACCESS_DIALOG_HEIGHT)
@@ -36,22 +35,22 @@ class AccessDialog(QDialog):
 
         self.access_levels = ["No Access", "View", "Edit", "Admin"]
         self.user_boxes = {}
-
-        for username, current_access in users_with_access:
-            row = QHBoxLayout()
-            name_label = QLabel(username)
-            combo = QComboBox()
-            combo.addItems(self.access_levels)
-            access = ACCESS_DICT[current_access]
-            if access in self.access_levels:
-                combo.setCurrentText(access)
-            else:
-                combo.setCurrentText("No Access")
-            row.addWidget(name_label)
-            row.addStretch()
-            row.addWidget(combo)
-            layout.addLayout(row)
-            self.user_boxes[username] = combo
+        if users_with_access:
+            for username, current_access in users_with_access:
+                row = QHBoxLayout()
+                name_label = QLabel(username)
+                combo = QComboBox()
+                combo.addItems(self.access_levels)
+                access = ACCESS_DICT[current_access]
+                if access in self.access_levels:
+                    combo.setCurrentText(access)
+                else:
+                    combo.setCurrentText("No Access")
+                row.addWidget(name_label)
+                row.addStretch()
+                row.addWidget(combo)
+                layout.addLayout(row)
+                self.user_boxes[username] = combo
 
         buttons_row = QHBoxLayout()
         save_btn = QPushButton("Save")

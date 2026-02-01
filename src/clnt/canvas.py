@@ -1,6 +1,7 @@
 """
 Ronny Getz
-Drawing canvas: strokes, pen/marker/eraser/select, zoom, background (blank/lines/grid).
+Drawing canvas: strokes, pen/marker/eraser/select,
+zoom, background (blank/lines/grid).
 """
 import math
 import time
@@ -58,11 +59,11 @@ STROKE_ID_NEW = "0"
 
 
 class DrawingCanvas(QWidget):
-    """Single page: draw strokes, tools (pen/marker/eraser/select), zoom, background."""
 
     def __init__(self, width, height, strokes, page_type,
                  notebook_area, stroke_id, id):
-        """Build background, strokes, history, pen, zoom; set notebook_area and ids."""
+        """Build background, strokes, history, pen, zoom
+         set notebook_area and ids."""
         super().__init__()
         # background layer
         self.create_background_layer(width, height)
@@ -81,7 +82,8 @@ class DrawingCanvas(QWidget):
             self.stroke_id = int(stroke_id)
 
     def _handle_eraser_click(self, pos):
-        """Remove first stroke containing pos; notify notebook_area if stroke deleted."""
+        """Remove first stroke containing pos
+         notify notebook_area if stroke deleted."""
         new_strokes = []
         stroke = None
         for s in self.strokes:
@@ -217,7 +219,8 @@ class DrawingCanvas(QWidget):
                 painter.drawLine(pts[i - POINT_BEFORE], pts[i])
 
     def mousePressEvent(self, event):
-        """On left click: start stroke (pen/marker), select stroke, or erase stroke."""
+        """On left click: start stroke (pen/marker), select stroke,
+         or erase stroke."""
         if event.button() == QtCore.Qt.MouseButton.LeftButton:
             pos = (event.position() / self.scale_factor).toPoint()
             if self.tool in ["pen", "marker"]:
@@ -313,7 +316,8 @@ class DrawingCanvas(QWidget):
         if self.current_stroke_points:
             stroke = self.add_new_stroke()
             if self.notebook_area and stroke:
-                id = self.notebook_area.add_stroke(stroke, self.id, STROKE_ID_NEW)
+                id = self.notebook_area.add_stroke(stroke, self.id,
+                                                   STROKE_ID_NEW)
                 stroke.id = id
         elif self.tool == "select":
             if self.selected_stroke:
@@ -323,7 +327,6 @@ class DrawingCanvas(QWidget):
             self.update()
             if self.notebook_area and stroke:
                 id = self.notebook_area.add_stroke(stroke, self.id, stroke.id)
-
 
     def add_new_stroke(self):
         """adds the new stroke to the list of strokes"""
@@ -355,7 +358,8 @@ class DrawingCanvas(QWidget):
         return new_stroke
 
     def end_stroke(self):
-        """Append current stroke to list, clear current points and times; return stroke."""
+        """Append current stroke to list, clear current points and times
+         return stroke."""
         stroke = Stroke(self.current_stroke_points[:],
                         self.current_stroke_times,
                         self.pen_color, self.pen_size, STROKE_ID_NEW)
@@ -408,7 +412,8 @@ class DrawingCanvas(QWidget):
             self.pen_size = size
 
     def change_pen_color(self, i):
-        """Set pen/marker color from COLORS or MARKER_COLORS index; set alpha."""
+        """Set pen/marker color from COLORS or MARKER_COLORS index
+         set alpha."""
         if self.tool == "marker":
             color = QtGui.QColor(MARKER_COLORS[i])
             color.setAlpha(TRANSPARENCY_MARKER)

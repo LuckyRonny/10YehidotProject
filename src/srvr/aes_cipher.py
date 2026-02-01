@@ -10,6 +10,7 @@ from Crypto.Cipher import AES
 
 # Key generation: random bytes length and digest size for SHA256
 KEY_RANDOM_BYTES = 32
+NO_OVER = 1
 
 
 class AESCipher(object):
@@ -17,7 +18,8 @@ class AESCipher(object):
 
     @staticmethod
     def encrypt(key, raw):
-        """Encrypt raw bytes with key; returns base64-encoded iv + ciphertext."""
+        """Encrypt raw bytes with key
+         returns base64-encoded iv + ciphertext."""
         raw = AESCipher._pad(raw)
         iv = Random.new().read(AES.block_size)
         cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -42,7 +44,7 @@ class AESCipher(object):
     @staticmethod
     def _unpad(s):
         """Remove PKCS7-style padding from decrypted bytes."""
-        return s[:-ord(s[len(s) - 1:])]
+        return s[:-ord(s[len(s) - NO_OVER:])]
 
     @staticmethod
     def generate_key():
@@ -50,18 +52,3 @@ class AESCipher(object):
         key = Random.new().read(KEY_RANDOM_BYTES)
         key = hashlib.sha256(key).digest()
         return key
-
-
-
-def main():
-    """Generate key, encrypt and decrypt sample data for testing."""
-    key = AESCipher.generate_key()
-
-    enc = AESCipher.encrypt(key, ("aa"*100).encode())
-    dec = AESCipher.decrypt(key, enc)
-    print(enc, dec)
-
-if __name__ == "__main__":
-    main()
-
-

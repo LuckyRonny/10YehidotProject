@@ -22,10 +22,6 @@ START_LINE_HEIGHT = 0
 
 
 class FlowLayout(QLayout):
-    """
-    A custom layout that arranges widgets in a flowing style that when there is
-    no more horizontal space, they wrap onto the next line.
-    """
 
     def __init__(self, parent=None):
         """
@@ -131,7 +127,7 @@ class FlowLayout(QLayout):
         If delete_widgets is True, also delete the widgets themselves.
         """
         while self.itemList:
-            item = self.takeAt(0)
+            item = self.takeAt(FIRST_ITEM)
             if delete_widgets:
                 widget = item.widget()
                 if widget:
