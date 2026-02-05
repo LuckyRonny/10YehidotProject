@@ -1,15 +1,6 @@
 # project
 
 ## TODO
-- add a button to give permissions
-- add time stemp of last change
-- create loop of every second check if there is an update
-
-## DONE
-- add id for the strokes
-- add to DB permissions
-- add a dict with conection between button to name
-- add button to upload a notebook
-- change from paint event to release mouse + add page and change background
-- change the stroke not the hole canvas
-- add change background and add page
+- check if I can separate all the notebooks in the json
+- check the problem of the add notebook
+- check the problem of overload

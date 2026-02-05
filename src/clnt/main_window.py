@@ -47,6 +47,7 @@ BUTTON_NOTEBOOK_NAME = 0
 FIRST_NOTEBOOK = 0
 NAME = 0
 PERMISSION = 1
+ADMIN = 0
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -216,6 +217,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.notebooks_dict[notebook_name] = button
             button.clicked.connect(lambda: self.open_notebook(notebook_name))
             self.notebooks_layout.addWidget(button)
+            self.names_perms[notebook_name] = ADMIN
 
     def resizeEvent(self, event):
         """when window resizes, reposition the floating box to top-right"""
