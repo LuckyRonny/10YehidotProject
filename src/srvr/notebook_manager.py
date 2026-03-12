@@ -1,6 +1,7 @@
 """
 Ronny Getz
 Notebook manager server
+Handles notebooks pages strokes and updates
 """
 
 import ast
@@ -20,128 +21,252 @@ PAGE_ID = 1
 STROKE_ID = 2
 PAGE_TYPE = 2
 NEXT_STROKE = 1
-LOADING_TIME = 1.0
-TIME_STAMP_CLEAR = 2
-TIME_STAMP_CHECK = 1
-# Updates ring buffer: max length and trim-to size when exceeded
 UPDATES_MAX_LEN = 10
 UPDATES_TRIM_TO = 5
 INDENT = 2
+
+BASE_DIR = "server_data"
+NOTEBOOKS_DIR = os.path.join(BASE_DIR, "notebooks")
+UPDATES_DIR = os.path.join(BASE_DIR, "updates")
+
+os.makedirs(NOTEBOOKS_DIR, exist_ok=True)
+os.makedirs(UPDATES_DIR, exist_ok=True)
 
 
 class NotebookManager(object):
     lock = threading.Lock()
 
     @staticmethod
+    def _notebook_path(name):
+        """
+        Return the path to the notebook JSON file
+        """
+        return os.path.join(NOTEBOOKS_DIR, f"{name}.json")
+
+    @staticmethod
+    def _updates_path(name):
+        """
+        Return the path to the updates JSON file for the notebook
+        """
+        return os.path.join(UPDATES_DIR, f"updates_{name}.json")
+
+    @staticmethod
     def _atomic_write(path, data):
-        """Write JSON to path via temp file then replace (atomic)."""
-        dir_name = os.path.dirname(path) or "."
-        with tempfile.NamedTemporaryFile("w", dir=dir_name,
-                                         delete=False) as tmp:
+        """
+        Write JSON to file using a temporary file
+        Replace file atomically to prevent corruption
+        """
+        dir_name = os.path.dirname(path)
+        with tempfile.NamedTemporaryFile(
+            "w", dir=dir_name, delete=False, encoding="utf-8"
+        ) as tmp:
             json.dump(data, tmp, indent=INDENT)
             tmp_name = tmp.name
         os.replace(tmp_name, path)
 
     @staticmethod
+    def _load(path, default=None):
+        """
+        Load JSON from file
+        Return default if file does not exist
+        """
+        if not os.path.exists(path):
+            return default if default is not None else {}
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    @staticmethod
+    def _parse_param(param):
+        """
+        Convert parameter to dict if it is a string
+        Return dict unchanged if already dict
+        """
+        if isinstance(param, str):
+            return ast.literal_eval(param)
+        return param
+
+    @staticmethod
     def GET_NOTEBOOK(params):
-        """Load notebook by name from DB and return repr."""
+        """
+        Return notebook content as string representation
+        """
         name = params[NAME]
         with NotebookManager.lock:
-            with open("notebook_DB.json", "r") as f:
-                notebook_db = json.load(f)
-            notebook = notebook_db[name]
+            notebook = NotebookManager._load(
+                NotebookManager._notebook_path(name), {}
+            )
         return repr(notebook)
 
     @staticmethod
     def ADD_NOTEBOOK(params):
-        """Add or overwrite notebook by name; ensure updates entry exists."""
+        """
+        Add or overwrite notebook
+        Create updates file if it does not exist
+        """
         name = params[NAME]
-        notebook = ast.literal_eval(params[NOTE_BOOK])
-
+        notebook = NotebookManager._parse_param(params[NOTE_BOOK])
         with NotebookManager.lock:
-            with open("notebook_DB.json", "r") as f:
-                notebook_db = json.load(f)
-
-            notebook_db[name] = notebook
-            NotebookManager._atomic_write("notebook_DB.json", notebook_db)
-
-            # FIX: do NOT override existing updates
-            with open("updates.json", "r") as f:
-                updates = json.load(f)
-
-            updates.setdefault(name, [])
-            NotebookManager._atomic_write("updates.json", updates)
-
+            NotebookManager._atomic_write(
+                NotebookManager._notebook_path(name), notebook
+            )
+            if not os.path.exists(NotebookManager._updates_path(name)):
+                NotebookManager._atomic_write(
+                    NotebookManager._updates_path(name), []
+                )
         return "ok"
 
     @staticmethod
     def ADD_STROKE(params):
-        """Add stroke to notebook page; assign id if 0; create update."""
+        """
+        Add stroke to a page
+        Assign stroke id if zero
+        Update last_change timestamp
+        """
         name = params[NAME]
-        stroke = ast.literal_eval(params[NOTE_BOOK])
+        stroke = NotebookManager._parse_param(params[NOTE_BOOK])
         id_page = params[ID_PAGE]
         sid = params[ID_STROKE]
         ts = time.time()
+
         with NotebookManager.lock:
+            notebook = NotebookManager._load(
+                NotebookManager._notebook_path(name), {}
+            )
+            if "pages" not in notebook:
+                notebook["pages"] = {}
+            if id_page not in notebook["pages"]:
+                notebook["pages"][id_page] = {"strokes": {}, "stroke_id": "1"}
+
+            page = notebook["pages"][id_page]
             if sid == "0":
-                sid = NotebookManager._get_stroke_id_unlocked(name, id_page)
+                sid = page.get("stroke_id", "1")
+                page["stroke_id"] = str(int(sid) + NEXT_STROKE)
                 stroke["id"] = sid
 
-            with open("notebook_DB.json", "r") as f:
-                notebook_db = json.load(f)
-
-            notebook_db[name]["pages"][id_page]["strokes"][sid] = stroke
-            notebook_db[name]["last_change"] = max(
-                float(notebook_db[name]["last_change"]),
-                float(ts)
+            page["strokes"][sid] = stroke
+            notebook["last_change"] = max(
+                float(notebook.get("last_change", 0)), float(ts)
             )
-            NotebookManager._atomic_write("notebook_DB.json", notebook_db)
+            NotebookManager._atomic_write(
+                NotebookManager._notebook_path(name), notebook
+            )
 
-        NotebookManager.create_update(
-            name, ts, "ADD_STROKE", id_page, stroke
-        )
+        NotebookManager.create_update(name, ts, "ADD_STROKE", id_page, stroke)
         return sid
 
     @staticmethod
     def DELETE_STROKE(params):
-        """Remove stroke from notebook page and record update."""
+        """
+        Delete stroke from page
+        Update last_change timestamp
+        """
         name = params[NAME]
         id_page = params[PAGE_ID]
-        id = params[STROKE_ID]
+        sid = params[STROKE_ID]
+        ts = time.time()
+
+        with NotebookManager.lock:
+            notebook = NotebookManager._load(
+                NotebookManager._notebook_path(name), {}
+            )
+            if "pages" not in notebook or id_page not in notebook["pages"]:
+                return "page_not_found"
+            page = notebook["pages"][id_page]
+            if sid not in page["strokes"]:
+                return "stroke_not_found"
+
+            del page["strokes"][sid]
+            notebook["last_change"] = max(
+                float(notebook.get("last_change", 0)), float(ts)
+            )
+            NotebookManager._atomic_write(
+                NotebookManager._notebook_path(name), notebook
+            )
+
+        NotebookManager.create_update(name, ts, "DELETE_STROKE", id_page, sid)
+        return "ok"
+
+    @staticmethod
+    def ADD_PAGE(params):
+        """
+        Add a page to a notebook
+        Create strokes dict and stroke_id if missing
+        """
+        name = params[NAME]
+        page_data = NotebookManager._parse_param(params[NOTE_BOOK])
+        id_page = params[ID_PAGE]
+        ts = time.time()
+
+        with NotebookManager.lock:
+            notebook = NotebookManager._load(
+                NotebookManager._notebook_path(name), {}
+            )
+            if "pages" not in notebook:
+                notebook["pages"] = {}
+            notebook["pages"][id_page] = page_data
+            notebook["pages"][id_page].setdefault("stroke_id", "1")
+            notebook["pages"][id_page].setdefault("strokes", {})
+
+            notebook["last_change"] = max(
+                float(notebook.get("last_change", 0)), float(ts)
+            )
+            NotebookManager._atomic_write(
+                NotebookManager._notebook_path(name), notebook
+            )
+
+        NotebookManager.create_update(name, ts, "ADD_PAGE", id_page, page_data)
+        return "ok"
+
+    @staticmethod
+    def CLEAR(params):
+        """
+        Clear all strokes from a page
+        Update last_change timestamp
+        """
+        name = params[NAME]
+        id_page = params[PAGE_ID]
         ts = time.time()
         with NotebookManager.lock:
-            with open("notebook_DB.json", "r") as f:
-                notebook_db = json.load(f)
+            notebook = NotebookManager._load(
+                NotebookManager._notebook_path(name), {})
+            if "pages" not in notebook or id_page not in notebook["pages"]:
+                return "page_not_found"
 
-            notebook_db[name]["pages"][id_page]["strokes"].pop(id)
-            notebook_db[name]["last_change"] = max(
-                float(notebook_db[name]["last_change"]),
-                float(ts)
+            notebook["pages"][id_page]["strokes"] = {}
+            notebook["last_change"] = max(
+                float(notebook.get("last_change", 0)), float(ts)
             )
-            NotebookManager._atomic_write("notebook_DB.json", notebook_db)
+            NotebookManager._atomic_write(
+                NotebookManager._notebook_path(name), notebook
+            )
 
-        NotebookManager.create_update(
-            name, ts, "DELETE_STROKE", id_page, id
-        )
+        NotebookManager.create_update(name, ts, "CLEAR", id_page, None)
         return "ok"
 
     @staticmethod
     def CHANGE_BACKGROUND(params):
-        """Set page background type and record update."""
+        """
+        Change background type of page
+        Update last_change timestamp
+        """
         name = params[NAME]
         id_page = params[PAGE_ID]
         page_type = params[PAGE_TYPE]
         ts = time.time()
         with NotebookManager.lock:
-            with open("notebook_DB.json", "r") as f:
-                notebook_db = json.load(f)
-
-            notebook_db[name]["pages"][id_page]["page_type"] = page_type
-            notebook_db[name]["last_change"] = max(
-                float(notebook_db[name]["last_change"]),
-                float(ts)
+            notebook = NotebookManager._load(
+                NotebookManager._notebook_path(name), {}
             )
-            NotebookManager._atomic_write("notebook_DB.json", notebook_db)
+            if "pages" not in notebook or id_page not in notebook["pages"]:
+                return "page_not_found"
+
+            notebook["pages"][id_page]["page_type"] = page_type
+            notebook["last_change"] = max(
+                float(notebook.get("last_change", 0)), float(ts)
+            )
+            NotebookManager._atomic_write(
+                NotebookManager._notebook_path(name), notebook
+            )
 
         NotebookManager.create_update(
             name, ts, "CHANGE_BACKGROUND", id_page, page_type
@@ -149,95 +274,51 @@ class NotebookManager(object):
         return "ok"
 
     @staticmethod
-    def CLEAR(params):
-        """Clear all strokes on a page and record update."""
-        name = params[NAME]
-        id = params[PAGE_ID]
-        ts = time.time()
-        with NotebookManager.lock:
-            with open("notebook_DB.json", "r") as f:
-                notebook_db = json.load(f)
-
-            notebook_db[name]["pages"][id]["strokes"] = {}
-            notebook_db[name]["last_change"] = max(
-                float(notebook_db[name]["last_change"]),
-                float(ts)
-            )
-            NotebookManager._atomic_write("notebook_DB.json", notebook_db)
-
-        NotebookManager.create_update(
-            name, ts, "CLEAR", id, None
-        )
-        return "ok"
-
-    @staticmethod
-    def ADD_PAGE(params):
-        """Add page to notebook and record update."""
-        name = params[NAME]
-        page = ast.literal_eval(params[NOTE_BOOK])
-        id_page = params[ID_PAGE]
-        ts = time.time()
-        with NotebookManager.lock:
-            with open("notebook_DB.json", "r") as f:
-                notebook_db = json.load(f)
-            notebook_db[name]["pages"][id_page] = page
-            notebook_db[name]["last_change"] = max(
-                float(notebook_db[name]["last_change"]),
-                float(ts)
-            )
-            NotebookManager._atomic_write("notebook_DB.json", notebook_db)
-        NotebookManager.create_update(
-            name, ts, "ADD_PAGE", id_page, page
-        )
-        return "ok"
-
-    @staticmethod
     def CHECK_UPDATES(params):
-        """Return updates for notebook newer than given timestamp."""
+        """
+        Return list of updates newer than timestamp
+        """
         name = params[NAME]
-        time_stamp = params[TIME_STAMP_CHECK]
-
+        time_stamp = params[TIME_STAMP]
         with NotebookManager.lock:
-            with open("updates.json", "r") as f:
-                updates_db = json.load(f)
+            updates_data = NotebookManager._load(
+                NotebookManager._updates_path(name), []
+            )
 
-        updates = []
-        for u in updates_db.get(name, []):
-            if float(u["ts"]) > float(time_stamp):
-                updates.append(u)
+        if isinstance(updates_data, dict):
+            updates_list = updates_data.get(name, [])
+        elif isinstance(updates_data, list):
+            updates_list = updates_data
+        else:
+            updates_list = []
 
+        updates = [
+            u for u in updates_list if float(u["ts"]) > float(time_stamp)
+        ]
         return repr(updates)
 
     @staticmethod
-    def _get_stroke_id_unlocked(name, page_id):
-        """Increment and return next stroke id for page (caller holds lock)."""
-        with open("notebook_DB.json", "r") as f:
-            notebook_db = json.load(f)
-
-        next_stroke_id = notebook_db[name]["pages"][page_id]["stroke_id"]
-        notebook_db[name]["pages"][page_id]["stroke_id"] = str(
-            int(next_stroke_id) + NEXT_STROKE
-        )
-
-        NotebookManager._atomic_write("notebook_DB.json", notebook_db)
-        return str(next_stroke_id)
-
-    @staticmethod
-    def create_update(notebook_name, time, type, page_id, data):
-        """Append update to notebook's ring buffer in updates.json."""
-        update = {
-            "ts": time,
-            "type": type,
-            "page": page_id,
-            "data": data
-        }
+    def create_update(notebook_name, ts, type, id_page, data):
+        """
+        Append update to notebook JSON
+        Trim updates if over max length
+        """
+        update = {"ts": ts, "type": type, "page": id_page, "data": data}
         with NotebookManager.lock:
-            with open("updates.json", "r") as f:
-                updates = json.load(f)
-            updates.setdefault(notebook_name, [])
-            notebook_u = updates[notebook_name]
-            notebook_u.append(update)
-            if len(notebook_u) >= UPDATES_MAX_LEN:
-                notebook_u = notebook_u[-UPDATES_TRIM_TO:]
-            updates[notebook_name] = notebook_u
-            NotebookManager._atomic_write("updates.json", updates)
+            updates_data = NotebookManager._load(
+                NotebookManager._updates_path(notebook_name), []
+            )
+            if isinstance(updates_data, dict):
+                updates_list = updates_data.get(notebook_name, [])
+            elif isinstance(updates_data, list):
+                updates_list = updates_data
+            else:
+                updates_list = []
+
+            updates_list.append(update)
+            if len(updates_list) >= UPDATES_MAX_LEN:
+                updates_list = updates_list[-UPDATES_TRIM_TO:]
+
+            NotebookManager._atomic_write(
+                NotebookManager._updates_path(notebook_name), updates_list
+            )

@@ -72,6 +72,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_flow_layout()
         self.id = id
         self.notebooks_dict = {}
+        self.names_perms = {}
         self.load_notebooks_for_user(self.id)
 
     def create_flow_layout(self):
@@ -247,7 +248,6 @@ class MainWindow(QtWidgets.QMainWindow):
         command = "clients_notebooks$" + user_id + "$USERS_NOTEBOOKS"
         notebooks = (self.client.send_command(command)).split("!")
         if not notebooks[FIRST_NOTEBOOK] == "":
-            self.names_perms = {}
             for name_perm in notebooks:
                 list_name_perm = name_perm.split(",")
                 self.names_perms[list_name_perm[NAME]] = (

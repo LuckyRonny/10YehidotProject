@@ -218,8 +218,6 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.main_toolbar_button(clear_button, self.clear_current_page)
         back_button = QPushButton("back", self)
         self.main_toolbar_button(back_button, self.back_current_page)
-        upload_button = QPushButton("upload", self)
-        self.main_toolbar_button(upload_button, self.upload_notebook)
         if perm == PERM_ADMIN:
             manage_access_button = QPushButton("Access", self)
             self.main_toolbar_button(manage_access_button,
@@ -491,13 +489,6 @@ class NotebookArea(QtWidgets.QMainWindow):
         self.main_window.show()
         self.running = False
         event.accept()
-
-    def upload_notebook(self):
-        """Fetch get_notebook from server and reload current notebook."""
-        command = "get_notebook$" + self.name + "$NOTEBOOKS"
-        current_page = self.current_page
-        self.reload_notebook(ast.literal_eval(
-            self.client.send_command(command)), current_page)
 
     def parse_users_access_response(self, resp):
         """Parse all_users response into list of (username, permission_int)."""
