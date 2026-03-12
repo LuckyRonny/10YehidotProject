@@ -2,8 +2,6 @@
 Ronny Getz
 Server protocol: length-prefixed, optionally encrypted send/recv.
 """
-import logging
-
 from constants import MSG_LEN
 from aes_cipher import AESCipher
 
