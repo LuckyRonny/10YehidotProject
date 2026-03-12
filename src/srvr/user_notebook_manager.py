@@ -3,7 +3,6 @@ Ronny Gets
 Links users to notebooks and permissions; NotebookDB + NotebookManager.
 """
 import sqlite3
-
 from constants import (
     NAME_NOTEBOOK,
     NOTEBOOK,

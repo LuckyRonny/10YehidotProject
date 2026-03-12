@@ -14,7 +14,7 @@ class ToolbarsEnum(Enum):
 
 
 # window
-WINDOW_SIZE = (650, 650)
+WINDOW_SIZE = (650, 640)
 MARGIN = (0, 0, 0, 0)
 SPACER = (0, 0)
 

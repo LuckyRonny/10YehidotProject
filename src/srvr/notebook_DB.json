@@ -43,10 +43,88 @@
         "height": 700,
         "strokes": {},
         "page_type": "lines",
-        "stroke_id": "63",
+        "stroke_id": "168",
         "id": 0
       }
     },
-    "last_change": 1769892272.5633166
+    "last_change": 1770113081.9230306
+  },
+  "english_7": {
+    "pages": {
+      "0": {
+        "width": 550,
+        "height": 700,
+        "strokes": {},
+        "page_type": "grid",
+        "stroke_id": 0,
+        "id": 0
+      }
+    },
+    "last_change": 1770111855.259
+  },
+  "hebrew_7": {
+    "pages": {
+      "0": {
+        "width": 550,
+        "height": 700,
+        "strokes": {},
+        "page_type": "blank",
+        "stroke_id": 0,
+        "id": 0
+      }
+    },
+    "last_change": 1770114847.2132113
+  },
+  "civics_7": {
+    "pages": {
+      "0": {
+        "width": 550,
+        "height": 700,
+        "strokes": {},
+        "page_type": "blank",
+        "stroke_id": 0,
+        "id": 0
+      }
+    },
+    "last_change": 1770115182.9850824
+  },
+  "calculus_7": {
+    "pages": {
+      "0": {
+        "width": 550,
+        "height": 700,
+        "strokes": {},
+        "page_type": "blank",
+        "stroke_id": 0,
+        "id": 0
+      }
+    },
+    "last_change": 1770115269.9559195
+  },
+  "history_7": {
+    "pages": {
+      "0": {
+        "width": 550,
+        "height": 700,
+        "strokes": {},
+        "page_type": "blank",
+        "stroke_id": 0,
+        "id": 0
+      }
+    },
+    "last_change": 1770286749.9413974
+  },
+  "bible_7": {
+    "pages": {
+      "0": {
+        "width": 550,
+        "height": 700,
+        "strokes": {},
+        "page_type": "blank",
+        "stroke_id": 0,
+        "id": 0
+      }
+    },
+    "last_change": 1770287475.6506608
   }
 }

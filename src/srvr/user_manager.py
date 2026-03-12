@@ -5,6 +5,7 @@ User manager: login, signup, all_users via SQLite.
 import sqlite3
 from my_sha256 import Hasha256
 from constants import ID_OF_USER, PASSWORD, SIGNUP_NAME, USER_NAME
+from user_notebook_manager import *
 
 # Index of display name in user row; default permission when not in notebook
 NAME_OF_USER = 1
@@ -82,9 +83,11 @@ class UserManager(object):
                 (excluded_user,)
             )
             usernames_ids = cursor.fetchall()
+            notebook = UserNotebookManager._resolve_notebook_id(cursor,
+                                                                notebook)
             cursor.execute(
                 "SELECT user, permission FROM UsersNotebooks "
-                "WHERE notebook != ?",
+                "WHERE notebook == ?",
                 (notebook,)
             )
             ids_permissions = cursor.fetchall()

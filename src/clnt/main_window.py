@@ -47,6 +47,7 @@ BUTTON_NOTEBOOK_NAME = 0
 FIRST_NOTEBOOK = 0
 NAME = 0
 PERMISSION = 1
+ADMIN = 0
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -71,6 +72,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.create_flow_layout()
         self.id = id
         self.notebooks_dict = {}
+        self.names_perms = {}
         self.load_notebooks_for_user(self.id)
 
     def create_flow_layout(self):
@@ -216,6 +218,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.notebooks_dict[notebook_name] = button
             button.clicked.connect(lambda: self.open_notebook(notebook_name))
             self.notebooks_layout.addWidget(button)
+            self.names_perms[notebook_name] = ADMIN
 
     def resizeEvent(self, event):
         """when window resizes, reposition the floating box to top-right"""
@@ -245,7 +248,6 @@ class MainWindow(QtWidgets.QMainWindow):
         command = "clients_notebooks$" + user_id + "$USERS_NOTEBOOKS"
         notebooks = (self.client.send_command(command)).split("!")
         if not notebooks[FIRST_NOTEBOOK] == "":
-            self.names_perms = {}
             for name_perm in notebooks:
                 list_name_perm = name_perm.split(",")
                 self.names_perms[list_name_perm[NAME]] = (
