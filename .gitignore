@@ -212,3 +212,6 @@ src/srvr/*.json
 
 # project logs
 *.log
+
+# temporary files
+~*
