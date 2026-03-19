@@ -4,10 +4,18 @@
       "width": 550,
       "height": 700,
       "strokes": {},
-      "page_type": "lines",
-      "stroke_id": "11",
+      "page_type": "grid",
+      "stroke_id": 147,
       "id": 0
+    },
+    "1": {
+      "width": 550,
+      "height": 700,
+      "strokes": {},
+      "page_type": "grid",
+      "stroke_id": 463,
+      "id": 1
     }
   },
-  "last_change": 1772654864.6102288
+  "last_change": 1773936467.692992
 }

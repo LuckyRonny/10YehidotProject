@@ -15,8 +15,9 @@ SOCK = 0
 
 class Protocol(object):
     @staticmethod
-    def send(conn, data):
+    def send(conn, data: str):
         """Send string as length-prefixed payload; encrypt if conn has key."""
+        assert isinstance(data, str), f"data to be sent must be a string: {data}"
         data_bit = data.encode()
         if conn[KEY] is not None:
             data_bit = AESCipher.encrypt(conn[KEY], data_bit)

@@ -17,12 +17,13 @@ ID_PAGE = 2
 ID_STROKE = 3
 TIME_STAMP_STROKE = 4
 TIME_STAMP = 3
+TIME_STAMP_CHECK_UPDATES = 1
 PAGE_ID = 1
 STROKE_ID = 2
 PAGE_TYPE = 2
 NEXT_STROKE = 1
-UPDATES_MAX_LEN = 10
-UPDATES_TRIM_TO = 5
+UPDATES_MAX_LEN = 20
+UPDATES_TRIM_TO = 10
 INDENT = 2
 
 BASE_DIR = "server_data"
@@ -152,7 +153,7 @@ class NotebookManager(object):
             )
 
         NotebookManager.create_update(name, ts, "ADD_STROKE", id_page, stroke)
-        return sid
+        return str(sid)
 
     @staticmethod
     def DELETE_STROKE(params):
@@ -278,24 +279,27 @@ class NotebookManager(object):
         """
         Return list of updates newer than timestamp
         """
-        name = params[NAME]
-        time_stamp = params[TIME_STAMP]
-        with NotebookManager.lock:
-            updates_data = NotebookManager._load(
-                NotebookManager._updates_path(name), []
-            )
+        try:
+            name = params[NAME]
+            time_stamp = params[TIME_STAMP_CHECK_UPDATES]
+            with NotebookManager.lock:
+                updates_data = NotebookManager._load(
+                    NotebookManager._updates_path(name), []
+                )
 
-        if isinstance(updates_data, dict):
-            updates_list = updates_data.get(name, [])
-        elif isinstance(updates_data, list):
-            updates_list = updates_data
-        else:
-            updates_list = []
+            if isinstance(updates_data, dict):
+                updates_list = updates_data.get(name, [])
+            elif isinstance(updates_data, list):
+                updates_list = updates_data
+            else:
+                updates_list = []
 
-        updates = [
-            u for u in updates_list if float(u["ts"]) > float(time_stamp)
-        ]
-        return repr(updates)
+            updates = [
+                u for u in updates_list if float(u["ts"]) > float(time_stamp)
+            ]
+            return repr(updates)
+        except Exception as msg:
+            print("check update: ", msg)
 
     @staticmethod
     def create_update(notebook_name, ts, type, id_page, data):
@@ -303,22 +307,25 @@ class NotebookManager(object):
         Append update to notebook JSON
         Trim updates if over max length
         """
-        update = {"ts": ts, "type": type, "page": id_page, "data": data}
-        with NotebookManager.lock:
-            updates_data = NotebookManager._load(
-                NotebookManager._updates_path(notebook_name), []
-            )
-            if isinstance(updates_data, dict):
-                updates_list = updates_data.get(notebook_name, [])
-            elif isinstance(updates_data, list):
-                updates_list = updates_data
-            else:
-                updates_list = []
+        try:
+            update = {"ts": ts, "type": type, "page": id_page, "data": data}
+            with NotebookManager.lock:
+                updates_data = NotebookManager._load(
+                    NotebookManager._updates_path(notebook_name), []
+                )
+                if isinstance(updates_data, dict):
+                    updates_list = updates_data.get(notebook_name, [])
+                elif isinstance(updates_data, list):
+                    updates_list = updates_data
+                else:
+                    updates_list = []
 
-            updates_list.append(update)
-            if len(updates_list) >= UPDATES_MAX_LEN:
-                updates_list = updates_list[-UPDATES_TRIM_TO:]
+                updates_list.append(update)
+                if len(updates_list) >= UPDATES_MAX_LEN:
+                    updates_list = updates_list[-UPDATES_TRIM_TO:]
 
-            NotebookManager._atomic_write(
-                NotebookManager._updates_path(notebook_name), updates_list
-            )
+                NotebookManager._atomic_write(
+                    NotebookManager._updates_path(notebook_name), updates_list
+                )
+        except Exception as msg:
+            print("create update: ", msg)
