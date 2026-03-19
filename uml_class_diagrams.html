@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Project UML Class Diagrams</title>
+  <style>
+    :root {
+      --server-bg:   #e8f4f8;
+      --server-border: #0d7377;
+      --client-bg:   #fef4e8;
+      --client-border: #c75b39;
+      --crypto-bg:   #f0e8f8;
+      --crypto-border: #6b4e9b;
+      --ui-bg:       #e8f8e8;
+      --ui-border:   #2d7d2d;
+    }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      margin: 0;
+      padding: 24px;
+      background: #fafafa;
+      color: #1a1a1a;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 1.75rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: #555;
+      margin-bottom: 32px;
+    }
+    section {
+      margin-bottom: 48px;
+      padding: 24px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    section h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #ddd;
+      font-size: 1.35rem;
+    }
+    .diagram-note {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 12px;
+    }
+
+    /* UML diagram: grid of class boxes (no Mermaid) */
+    .uml-diagram {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+      position: relative;
+    }
+    .uml-class {
+      border: 2px solid #333;
+      border-radius: 6px;
+      overflow: hidden;
+      font-size: 12px;
+      min-width: 0;
+      break-inside: avoid;
+    }
+    .uml-class.serverClass { background: #d4edda; border-color: #155724; }
+    .uml-class.cryptoClass { background: #e2d5f1; border-color: #5a3d7a; }
+    .uml-class.clientCore { background: #fff3cd; border-color: #856404; }
+    .uml-class.clientUI { background: #cce5ff; border-color: #004085; }
+    .uml-class.dataClass { background: #e8e8e8; border-color: #555; }
+    .uml-class-title {
+      font-weight: bold;
+      text-align: center;
+      padding: 6px 8px;
+      border-bottom: 1px solid #333;
+      background: rgba(0,0,0,0.06);
+    }
+    .uml-class-attrs,
+    .uml-class-methods {
+      padding: 6px 8px;
+      border-top: 1px solid #999;
+      font-family: Consolas, 'Courier New', monospace;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .uml-class-attrs { font-size: 11px; color: #444; }
+    .uml-class-methods { font-size: 11px; }
+    .uml-relationships {
+      grid-column: 1 / -1;
+      font-size: 0.85rem;
+      color: #555;
+      margin-top: 8px;
+      padding: 10px;
+      background: #f8f8f8;
+      border-radius: 6px;
+      border-left: 4px solid #0d7377;
+    }
+    .uml-relationships strong { color: #333; }
+
+    @media print {
+      body { background: #fff; padding: 12px; }
+      section { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; page-break-inside: avoid; }
+      .uml-diagram { break-inside: avoid; page-break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Project UML Class Diagrams</h1>
+  <p class="subtitle">Server and client classes with relationships</p>
+
+  <!-- ========== SERVER CLASSES ========== -->
+  <section>
+    <h2>Server (src/srvr)</h2>
+    <div class="uml-diagram">
+      <div class="uml-class serverClass">
+        <div class="uml-class-title">Server</div>
+        <div class="uml-class-attrs">- server_socket
+- update_socket</div>
+        <div class="uml-class-methods">+ __init__(ip, port)
++ handle_clients()
++ accept_updates()
++ handle_single_client(conn, address)
++ handle_update_client(conn_updates, address)
++ receive_client_request(conn)
++ handle_client_request(request, params)
++ send_response_to_client(response, conn)</div>
+      </div>
+      <div class="uml-class serverClass">
+        <div class="uml-class-title">Methods</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ USER_MANAGER_CLASS_NAME
++ NOTEBOOK_MANAGER_CLASS_NAME
++ USER_NOTEBOOK_MANAGER_CLASS_NAME
++ USERS(request, params)
++ NOTEBOOKS(request, params)
++ USERS_NOTEBOOKS(request, params)</div>
+      </div>
+      <div class="uml-class serverClass">
+        <div class="uml-class-title">UserManager</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ NAME_OF_USER
++ LOGIN_FAIL_RESPONSE
++ DEFAULT_PERMISSION
++ LOGIN(params)
++ SIGNUP(params)
++ ALL_USERS(params)
++ get_id_permission(excluded_user, notebook)</div>
+      </div>
+      <div class="uml-class serverClass">
+        <div class="uml-class-title">UserNotebookManager</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ ADD_NOTEBOOK_TO_DB(params)
++ add_to_db(notebook_name, user_id, per)
++ CLIENTS_NOTEBOOKS(params)
++ CHANGE_ACCESS(params)
+- _resolve_user_id(cursor, user_name)
+- _resolve_notebook_id(cursor, notebook_name)</div>
+      </div>
+      <div class="uml-class serverClass">
+        <div class="uml-class-title">NotebookManager</div>
+        <div class="uml-class-attrs">- lock</div>
+        <div class="uml-class-methods">+ GET_NOTEBOOK(params)
++ ADD_NOTEBOOK(params)
++ ADD_STROKE(params)
++ DELETE_STROKE(params)
++ ADD_PAGE(params)
++ CLEAR(params)
++ CHANGE_BACKGROUND(params)
++ CHECK_UPDATES(params)
++ create_update(notebook_name, ts, type, id_page, data)</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">Protocol</div>
+        <div class="uml-class-attrs">+ STOP_RECV
++ KEY
++ SOCK</div>
+        <div class="uml-class-methods">+ send(conn, data)
++ send_bin(conn, data_bit)
++ recv(conn)
++ recv_bin(conn)</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">KeyExchange</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ send_recv_key(conn)
++ recv_send_key(conn)</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">DiffieHellman</div>
+        <div class="uml-class-attrs">- diffieHellman
+- public_key</div>
+        <div class="uml-class-methods">+ __init__()
++ serialize_public_key()
++ deserialize_public_key(data)
++ get_key(public_key)</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">AESCipher</div>
+        <div class="uml-class-attrs">+ KEY_RANDOM_BYTES
++ NO_OVER</div>
+        <div class="uml-class-methods">+ encrypt(key, raw)
++ decrypt(key, enc)
++ _pad(s)
++ _unpad(s)
++ generate_key()</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">Hasha256</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ get_hash(st)
++ get_hash_hex(st)</div>
+      </div>
+      <div class="uml-relationships">
+        <strong>Relationships:</strong> Server → Methods, Protocol, KeyExchange. Methods → UserManager, NotebookManager, UserNotebookManager. KeyExchange → Protocol, DiffieHellman. Protocol → AESCipher. UserManager → Hasha256. UserNotebookManager → NotebookManager (ADD_NOTEBOOK).
+      </div>
+    </div>
+    <p class="diagram-note">Server accepts connections, performs key exchange (KeyExchange, DiffieHellman, Protocol, AESCipher), and routes requests via Methods to UserManager, NotebookManager, and UserNotebookManager.</p>
+  </section>
+
+  <!-- ========== CLIENT UI & CORE ========== -->
+  <section>
+    <h2>Client – UI &amp; core (src/clnt)</h2>
+    <div class="uml-diagram">
+      <div class="uml-class clientCore">
+        <div class="uml-class-title">Client</div>
+        <div class="uml-class-attrs">- my_socket
+- connection
+- check_socket
+- connection_check</div>
+        <div class="uml-class-methods">+ __init__()
++ handle_user_input()
++ valid_request(req_and_prms)
++ send_request_to_server(con, request)
++ handle_server_response(con)
++ send_command(request)</div>
+      </div>
+      <div class="uml-class clientUI">
+        <div class="uml-class-title">LoginWindow</div>
+        <div class="uml-class-attrs">- client
+- username_line_edit
+- password_line_edit
+- error_label</div>
+        <div class="uml-class-methods">+ __init__()
++ create_central_widget()
++ login_button_clicked()
++ signin_button_clicked()</div>
+      </div>
+      <div class="uml-class clientUI">
+        <div class="uml-class-title">SignupWindow</div>
+        <div class="uml-class-attrs">- username_line_edit
+- name_line_edit
+- password_line_edit
+- error_label
+- client
+- login</div>
+        <div class="uml-class-methods">+ __init__(login)
++ signup_button_clicked()</div>
+      </div>
+      <div class="uml-class clientUI">
+        <div class="uml-class-title">MainWindow</div>
+        <div class="uml-class-attrs">- login_window
+- client
+- notebooks_layout
+- id
+- notebooks_dict
+- names_perms</div>
+        <div class="uml-class-methods">+ __init__(client, id, login_window, name)
++ create_flow_layout()
++ create_toolbar(name)
++ refresh()
++ log_out()
++ load_notebooks_for_user(user_id)
++ open_notebook(name)</div>
+      </div>
+      <div class="uml-class clientCore">
+        <div class="uml-class-title">NotebookArea</div>
+        <div class="uml-class-attrs">+ notebook_update_signal
+- name
+- notebook_widget
+- current_page
+- id
+- client
+- main_window
+- running</div>
+        <div class="uml-class-methods">+ __init__(mainwindow, id, client, notebook, name, perm)
++ loop()
++ save_notebook()
++ add_stroke(stroke, id_page, id)
++ add_page(id_page, page)
++ delete_stroke(id_page, id)
++ reload_notebook(data, current_page)</div>
+      </div>
+      <div class="uml-class dataClass">
+        <div class="uml-class-title">Notebook</div>
+        <div class="uml-class-attrs">- notebook_area
+- pages
+- pages_list
+- global_scale_factor
+- last_change</div>
+        <div class="uml-class-methods">+ __init__(pages, last_change, notebook_area)
++ __dict__()
++ current_canvas()
++ add_page(page, notify_server)
++ prev_page()
++ next_page()
++ zoom_in()
++ zoom_out()
++ update_notebook(ts, type, page, data)</div>
+      </div>
+      <div class="uml-class dataClass">
+        <div class="uml-class-title">DrawingCanvas</div>
+        <div class="uml-class-attrs">- background_layer
+- strokes
+- current_stroke_points
+- pen_color
+- pen_size
+- tool
+- notebook_area
+- id</div>
+        <div class="uml-class-methods">+ __init__(width, height, strokes, page_type, notebook_area, stroke_id, id)
++ __dict__()
++ paintEvent(event)
++ add_new_stroke()
++ set_tool(tool_type)
++ clear_canvas()</div>
+      </div>
+      <div class="uml-class dataClass">
+        <div class="uml-class-title">Stroke</div>
+        <div class="uml-class-attrs">- points
+- times
+- pen_color
+- pen_size
+- selected
+- id</div>
+        <div class="uml-class-methods">+ __init__(points, times, pen_color, pen_size, id)
++ contains_point(pt, tolerance)
++ __dict__()</div>
+      </div>
+      <div class="uml-class dataClass">
+        <div class="uml-class-title">FlowLayout</div>
+        <div class="uml-class-attrs">- itemList</div>
+        <div class="uml-class-methods">+ addItem(item)
++ count()
++ itemAt(index)
++ takeAt(index)
++ setGeometry(rect)
++ clear(delete_widgets)</div>
+      </div>
+      <div class="uml-class dataClass">
+        <div class="uml-class-title">CanvasContainer</div>
+        <div class="uml-class-attrs">- child_widget</div>
+        <div class="uml-class-methods">+ __init__(child_widget)
++ paintEvent(event)</div>
+      </div>
+      <div class="uml-class dataClass">
+        <div class="uml-class-title">CenteredScrollArea</div>
+        <div class="uml-class-attrs">- notebook</div>
+        <div class="uml-class-methods">+ __init__(notebook_widget)
++ wheelEvent(event)</div>
+      </div>
+      <div class="uml-class clientUI">
+        <div class="uml-class-title">AccessDialog</div>
+        <div class="uml-class-attrs">- access_levels
+- user_boxes</div>
+        <div class="uml-class-methods">+ __init__(users_with_access, parent)
++ get_access_data()</div>
+      </div>
+      <div class="uml-class dataClass">
+        <div class="uml-class-title">ToolbarsEnum</div>
+        <div class="uml-class-attrs">&lt;&lt;enumeration&gt;&gt;</div>
+        <div class="uml-class-methods">PAGE
+PEN
+MARKER
+ERASER
+SELECT</div>
+      </div>
+      <div class="uml-relationships">
+        <strong>Relationships:</strong> LoginWindow owns Client, opens MainWindow/SignupWindow. SignupWindow owns Client, opens MainWindow. MainWindow uses Client, LoginWindow (back-ref), FlowLayout, opens NotebookArea. NotebookArea contains Notebook, uses Client, MainWindow, opens AccessDialog. Notebook has DrawingCanvas pages, back-ref NotebookArea. DrawingCanvas has Stroke list, notifies NotebookArea. CanvasContainer wraps DrawingCanvas. CenteredScrollArea hosts Notebook. NotebookArea uses ToolbarsEnum.
+      </div>
+    </div>
+    <p class="diagram-note">Client UI: LoginWindow/SignupWindow own Client and open MainWindow. MainWindow uses FlowLayout for notebook tiles and opens NotebookArea. NotebookArea contains Notebook; Notebook stacks DrawingCanvas pages; DrawingCanvas holds Stroke list and notifies NotebookArea for server sync.</p>
+  </section>
+
+  <!-- ========== CLIENT CRYPTO & PROTOCOL ========== -->
+  <section>
+    <h2>Client – protocol &amp; crypto (src/clnt)</h2>
+    <div class="uml-diagram">
+      <div class="uml-class clientCore">
+        <div class="uml-class-title">Client</div>
+        <div class="uml-class-attrs">- my_socket
+- connection
+- connection_check</div>
+        <div class="uml-class-methods">+ send_command(request)</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">Reg</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ read_reg()</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">Protocol</div>
+        <div class="uml-class-attrs">+ STOP_RECV
++ KEY
++ SOCK</div>
+        <div class="uml-class-methods">+ send(conn, data)
++ send_bin(conn, data_bit)
++ recv(conn)
++ recv_bin(conn)</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">KeyExchange</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ send_recv_key(conn)
++ recv_send_key(conn)</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">DiffieHellman</div>
+        <div class="uml-class-attrs">- diffieHellman
+- public_key</div>
+        <div class="uml-class-methods">+ __init__()
++ serialize_public_key()
++ deserialize_public_key(data)
++ get_key(public_key)</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">AESCipher</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ encrypt(key, raw)
++ decrypt(key, enc)
++ generate_key()</div>
+      </div>
+      <div class="uml-class cryptoClass">
+        <div class="uml-class-title">Hasha256</div>
+        <div class="uml-class-attrs"></div>
+        <div class="uml-class-methods">+ get_hash(st)
++ get_hash_hex(st)</div>
+      </div>
+      <div class="uml-relationships">
+        <strong>Relationships:</strong> Client → Reg (read_reg), Protocol (send/recv), KeyExchange (key exchange). KeyExchange → Protocol, DiffieHellman. Protocol → AESCipher (encrypt/decrypt).
+      </div>
+    </div>
+    <p class="diagram-note">Client uses Reg for server IP/port, Protocol for length-prefixed encrypted messages, KeyExchange and DiffieHellman for ECDH, AESCipher for payload encryption. Hasha256 is available for local hashing.</p>
+  </section>
+</body>
+</html>
