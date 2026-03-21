@@ -27,17 +27,18 @@ def install_module(name: str) -> None:
 
 
 install_module("markdown")
-import markdown
-from markdown.extensions.codehilite import CodeHiliteExtension
-from markdown.extensions.fenced_code import FencedCodeExtension
+import markdown # noqa: E402
+from markdown.extensions.codehilite import CodeHiliteExtension # noqa: E402
+from markdown.extensions.fenced_code import FencedCodeExtension # noqa: E402
 
 install_module("typelate")
-from typelate import Template
+from typelate import Template # noqa: E402
 
 install_module("webbrowser")
-import webbrowser
+import webbrowser # noqa: E402
 
-install_module("pygments")
+# install_module("pygments")
+# import pygments # noqa: E402
 
 PYTHON_SUFFIX = ".py"
 DEFUALT_THEME = """
@@ -141,7 +142,7 @@ def main() -> None:
 
     out = "output.html"
 
-    with open("output.html", "w") as file:
+    with open("output.html", mode="w", encoding="utf-8") as file:
         file.write(html)
 
     out = Path(out).absolute()
@@ -151,7 +152,7 @@ def main() -> None:
 
 def parse(path: Path, line_numbers: bool = True) -> str:
     info(f"Parsing {path}")
-    code = path.read_text()
+    code = path.read_text(encoding="utf-8")
     html = markdown.markdown(
         MARKDOWN_TEMPLATE(code=code),
         extensions=[
