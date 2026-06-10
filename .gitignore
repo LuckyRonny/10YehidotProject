@@ -207,4 +207,4 @@ storage
 poetry.lock
 *.db
 *.json
-.idea/
+.idea
